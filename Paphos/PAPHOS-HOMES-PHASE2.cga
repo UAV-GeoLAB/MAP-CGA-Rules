@@ -1,0 +1,1830 @@
+/**
+ * File:    mass_homes.cga
+ * Author:  Jakub Modrzewski
+ */
+
+version "2022.1"
+
+
+// ----*** ATTRIBUTES ***----
+@Group("BUILDING", 1)
+attr buildingHeight = rand(5, 8)
+attr firstFloorHeight = rand(2,5)
+attr wallThickness = 0.5
+attr wallHeightAbove = 1.5
+attr foundationThickness = 2
+@Enum("east", "south") 
+attr sunDirection = 60%: "east" else: "south"
+attr windowWidth = 1
+attr nadprozeWidth = 0.2
+attr bFloor = 50%: true else: false
+
+@Group("BUILDING", "COURTYARD", "POSITION", 2)
+@Order(1)
+@Enum("central", "on side", "double") 
+attr courtyardPosition = 33%: "central" 33%: "on side" else: "double"
+@Order(2) @Enum("left", "right") 
+attr courtyardSide = 70%: "right" else: "left"
+
+@Group("BUILDING", "COURTYARD", "SIZE", 3)
+@Order(1)
+attr r_courtyardWidth = rand(3, 8)
+@Order(2)
+attr r_courtyardLength = rand(5, 8)
+@Order(3)
+attr l_courtyardWidth = rand(5, 8)
+@Order(4)
+attr l_courtyardLength = rand(5, 8)
+
+@Group("BUILDING", "COURTYARD", "OFFSETS", 4)
+@Order(1)
+@Range(min=2, max=5,  step_size=0.5)
+attr wallOffset = 2
+@Range(min=2, max=8,  step_size=0.5)
+attr frontWallOffset = 4.0
+@Order(2)
+attr levelOffset = 2.0
+
+
+@Group("BUILDING", "COURTYARD", "COLLONADE", 5)
+@Order(1)  
+attr column_diameter = 0.6
+@Order(2)  
+attr column_spacing = 1.5
+@Order(3)
+attr collonadeBaseHeight = 0.5
+# @Order(4)
+# attr collonadeFootprintWidth = 0.75
+@Order(5) @Enum("DORIC", "TUSCAN","IONIC","CORINTHIAN")
+attr order_						= case buildingHeight <= 5: "DORIC"
+												case buildingHeight <= 7: "TUSCAN"
+												case buildingHeight <= 9: "IONIC"
+												else: "CORINTHIAN"
+@Order(6) @Enum("HIGH","MED","LOW")
+attr LOD						= "LOW"						
+
+const  collonadeFootprintWidth = case order_ == "DORIC": column_diameter*1.2
+																	else: column_diameter*2		
+		
+
+ @Group("BUILDING", "COLORS", 6)
+@Color
+attr floorColor			  			= "#3f2f1e"
+@Color
+attr baseColor			  			= "#C0C0C0"
+@Color
+attr buildingColor 		  			= "#9c9b49"
+@Color
+attr wallColor 						= "#FFFFFF"
+@Color
+attr wallColor_debug = "#FFFFFF"
+@Color
+attr roofColor 						= "#A44A4A"
+
+@Color
+attr roofColor2 						= "#FF8000"
+
+@Color
+attr roofHigherColor						= "#FF8000"
+
+@Color
+attr gableRoofColor = "#FF0000"
+
+// Helpers
+yAngle = convert(y, pivot, world, orient,0,0,0)
+# Pivots settings
+
+# OUTDATED:( 0 - SouthEast; 1 - NorthEast; 2 - NorthWest; 3 - SouthWest)
+setPivotIndexUncorrected = floor((yAngle+45)/90)
+setPivotIndex0 = setPivotIndexUncorrected+0 - floor((setPivotIndexUncorrected+0)/4)*4 
+setPivotIndex1 = setPivotIndexUncorrected+1 - floor((setPivotIndexUncorrected+1)/4)*4
+setPivotIndex2 = setPivotIndexUncorrected+2 - floor((setPivotIndexUncorrected+2)/4)*4
+setPivotIndex3 = setPivotIndexUncorrected+3 - floor((setPivotIndexUncorrected+3)/4)*4
+
+attr floorOffset = 0
+
+@InPolygon
+@StartRule
+StartRule -->
+		alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			Lot
+
+
+
+// Znalezienie najwiêkszego prostok¹ta (podstawy budynku) wewn¹trz parceli.
+Lot -->
+
+
+# 	70%:
+	// HORYZONTALNIE
+	case (scope.sz < scope.sx):
+	33%: 
+		print("HORYZONTALNIE " + scope.sx + " "+  scope.sy + " " + scope.sz)
+			set(wallOffset,1)
+			set(courtyardPosition,"central")
+			set(sunDirection,"east")
+			set(r_courtyardWidth, rand(12, 15))
+			set(l_courtyardWidth, rand(12, 15))
+			set(r_courtyardLength, rand(4, 8))
+			set(l_courtyardLength, rand(4, 8))
+			innerRectangle(edge){ shape : LotDivided(r_courtyardWidth, r_courtyardLength, courtyardPosition, courtyardSide, sunDirection)| remainder : NIL }
+		else:
+			case scope.sx  > 40:
+				print("HORYZONTALNIE " + scope.sx + " "+  scope.sy + " " + scope.sz)
+				set(wallOffset,2)
+				set(bFloor,true)
+				set(courtyardPosition,"double")
+				set(sunDirection,"east")
+				set(r_courtyardWidth, rand(4, 6))
+				set(l_courtyardWidth, rand(6, 8))
+				set(r_courtyardLength, rand(4, 8))
+				set(l_courtyardLength, rand(4, 8))
+				innerRectangle(edge){ shape : LotDivided(r_courtyardWidth, r_courtyardLength, courtyardPosition, courtyardSide, sunDirection)| remainder : NIL }
+			case bFloor == true :
+				print("HORYZONTALNIE " + scope.sx + " "+  scope.sy + " " + scope.sz)
+				set(wallOffset,2)
+				set(courtyardPosition,"double")
+				set(sunDirection,"east")
+				set(r_courtyardWidth, rand(4, 6))
+				set(l_courtyardWidth, rand(6, 8))
+				set(r_courtyardLength, rand(4, 8))
+				set(l_courtyardLength, rand(4, 8))
+				innerRectangle(edge){ shape : LotDivided(r_courtyardWidth, r_courtyardLength, courtyardPosition, courtyardSide, sunDirection)| remainder : NIL }
+			else:
+			print("HORYZONTALNIE " + scope.sx + " "+  scope.sy + " " + scope.sz)
+								set(wallOffset,1)
+				set(courtyardPosition,"double")
+				set(sunDirection,"east")
+				set(r_courtyardWidth, rand(15, 17))
+				set(l_courtyardWidth, rand(6, 7))
+				set(r_courtyardLength, rand(4, 8))
+				set(l_courtyardLength, rand(4, 8))
+				innerRectangle(edge){ shape : LotDivided(r_courtyardWidth, r_courtyardLength, courtyardPosition, courtyardSide, sunDirection)| remainder : NIL } 
+			
+	
+
+	// WERTYKALNIE CENTRAL
+	case (scope.sz > scope.sx) && courtyardPosition == "central":
+	print("scope.sx > scope.sz")
+	print("WERTYKALNIE " + scope.sx + " "+  scope.sy + " " + scope.sz)
+		set(wallOffset,1)
+		set(sunDirection,"south")
+		set(r_courtyardWidth, rand(8, 10))
+		set(r_courtyardLength, rand(12, 15))
+		innerRectangle(edge){ shape : LotDivided(r_courtyardWidth, r_courtyardLength, courtyardPosition, courtyardSide, sunDirection)| remainder : NIL }
+	// WERTYKALNIE DOUBLE
+	case (scope.sz > scope.sx) && courtyardPosition == "double":
+
+	print("WERTYKALNIE " + scope.sx + " "+  scope.sy + " " + scope.sz)
+		
+		set(wallOffset,1)
+		set(sunDirection,"south")
+		set(r_courtyardWidth, rand(5, 7))
+		set(l_courtyardWidth, rand(3, 5))
+		set(r_courtyardLength, rand(10, 17))
+		set(l_courtyardLength, rand(10, 17))
+		innerRectangle(edge){ shape : LotDivided(r_courtyardWidth, r_courtyardLength, courtyardPosition, courtyardSide, sunDirection)| remainder : NIL }
+	
+	// WERTYKALNIE ON SIDE
+	case (scope.sz > scope.sx) && courtyardPosition == "on side":
+	print("WERTYKALNIE " + scope.sx + " "+  scope.sy + " " + scope.sz)
+		set(wallOffset,1)
+		set(sunDirection,"south")
+		set(r_courtyardWidth, rand(10, 12))
+		set(r_courtyardLength, rand(12, 17))
+		innerRectangle(edge){ shape : LotDivided(r_courtyardWidth, r_courtyardLength, courtyardPosition, courtyardSide, sunDirection)| remainder : NIL }
+	
+	 
+		
+	else:
+		report("grass_parcels", 1)
+
+	
+	
+	
+# else:
+# 				report("grass_parcels", 1)
+#     		GrassBreak
+    		
+   		
+GrassBreak -->
+		NIL
+# 	color(0,1,0)
+	
+
+
+// Podzia³ budynku na przyziemie i œciany	
+LotDivided(cWidth, cLength, cPosition, cSide, cVertSide) -->
+case cPosition == "central":
+	case sunDirection == "south":
+		extrude(world.up.flatTop,foundationThickness) // Foundations
+		comp(f){ top: 	alignScopeToGeometry(yUp,0,0)
+				    alignScopeToAxes(y)
+						setPivot(xyz, setPivotIndex2)
+				split(x) {
+					wallThickness: SideWall(cPosition, cSide, "right")
+					| ~1: split(z) {wallThickness:  FrontWall(cWidth, cLength, cPosition, cSide, cVertSide) | ~1: Footprint(cWidth, cLength, cPosition, cSide, cVertSide) | wallThickness: BackWall(cWidth, cLength, cPosition, cSide, cVertSide)}
+					| wallThickness: SideWall(cPosition, cSide, "left")
+				}
+		| side: sides.}
+	case sunDirection == "east":
+		extrude(world.up.flatTop,foundationThickness)
+		comp(f){ top: 	alignScopeToGeometry(yUp,0,0)
+						alignScopeToAxes(y)
+						setPivot(xyz, setPivotIndex2)
+				split(x) {
+					wallThickness: SideWall(cPosition, cSide, "right")
+					| ~1: split(z) {wallThickness:  FrontWall(cWidth, cLength, cPosition, cSide, cVertSide) | ~1: Footprint(cWidth, cLength, cPosition, cSide, cVertSide) | wallThickness: WallWithWindows(buildingHeight + wallHeightAbove, "back")}
+					| wallThickness: SideWall(cPosition, cSide, "left")
+				}
+		| side: sides.}
+	
+	else: NIL
+	
+case cPosition == "on side" && cSide == "left":
+	case sunDirection == "south":
+		extrude(world.up.flatTop,foundationThickness)
+		comp(f){ top: 	alignScopeToGeometry(yUp,0,0)
+						alignScopeToAxes(y)
+						setPivot(xyz, setPivotIndex2)
+						split(x) {
+							wallThickness: WallWithWindows(buildingHeight+wallHeightAbove, "right")
+							| ~1: split(z) {wallThickness:  FrontWall(cWidth, cLength, cPosition, cSide, cVertSide) | ~1: Footprint(cWidth, cLength, cPosition, cSide, cVertSide) | wallThickness: BackWall(cWidth, cLength, cPosition, cSide, cVertSide)}
+							| wallThickness: SideWall(cPosition, cSide, "left")
+						}
+				| side: sides.}
+	case sunDirection == "east":
+		extrude(world.up.flatTop,foundationThickness)
+		comp(f){ top: 	alignScopeToGeometry(yUp,0,0)
+						alignScopeToAxes(y)
+						setPivot(xyz, setPivotIndex2)
+						split(x) {
+							wallThickness: SideWall(cPosition, cSide, "right")
+							| ~1: split(z) {wallThickness:  FrontWall(cWidth, cLength, cPosition, cSide, cVertSide) | ~1: Footprint(cWidth, cLength, cPosition, cSide, cVertSide) | wallThickness: BackWall(cWidth, cLength, cPosition, cSide, cVertSide)}
+							| wallThickness: WallWithWindows(buildingHeight+wallHeightAbove, "left")
+						}
+				| side: sides.}
+	else: NIL
+		
+case cPosition == "on side" && cSide == "right":
+	case sunDirection == "south":
+		print("floorOffset")
+		print(floorOffset)
+		extrude(world.up.flatTop,foundationThickness)
+			comp(f){ top: 	alignScopeToGeometry(yUp,0,0)
+							alignScopeToAxes(y)
+							setPivot(xyz, setPivotIndex2)
+					split(x) {
+						wallThickness: SideWall(cPosition, cSide, "right")
+						| ~1: split(z) {wallThickness:  FrontWall(cWidth, cLength, cPosition, cSide, cVertSide) | ~1: Footprint(cWidth, cLength, cPosition, cSide, cVertSide) | wallThickness: BackWall(cWidth, cLength, cPosition, cSide, cVertSide)}
+						| wallThickness: WallWithWindows(buildingHeight+wallHeightAbove, "left")
+					}
+				| side: sides.}
+	case sunDirection == "east":
+		extrude(world.up.flatTop,foundationThickness)
+		comp(f){ top: 	alignScopeToGeometry(yUp,0,0)
+						alignScopeToAxes(y)
+						setPivot(xyz, setPivotIndex2)
+						split(x) {
+							wallThickness: WallWithWindows(buildingHeight+wallHeightAbove, "right")
+							| ~1: split(z) {wallThickness:  FrontWall(cWidth, cLength, cPosition, cSide, cVertSide) | ~1: Footprint(cWidth, cLength, cPosition, cSide, cVertSide) | wallThickness: BackWall(cWidth, cLength, cPosition, cSide, cVertSide)}
+							| wallThickness: WallWithWindows(buildingHeight+firstFloorHeight, "left")
+						}
+				| side: sides.}
+	else: NIL
+	
+case cPosition == "double":
+	case sunDirection == "south":
+		extrude(world.up.flatTop,foundationThickness)
+		comp(f){ top: 	alignScopeToGeometry(yUp,0,0)
+						alignScopeToAxes(y)
+						setPivot(xyz, setPivotIndex2)
+				split(x) {
+					wallThickness: SideWall(cPosition, cSide, "right")
+					| ~1: split(z) {wallThickness:  FrontWall(cWidth, cLength, cPosition, cSide, cVertSide) | ~1: Footprint(cWidth, cLength, cPosition, cSide, cVertSide) | wallThickness: WallWithWindows(buildingHeight + firstFloorHeight, "back")}
+					| wallThickness: SideWall(cPosition, cSide, "left")
+				}
+			| side: sides.}
+	case sunDirection == "east":
+		extrude(world.up.flatTop,foundationThickness)
+		comp(f){ top: 	alignScopeToGeometry(yUp,0,0)
+						alignScopeToAxes(y)
+						setPivot(xyz, setPivotIndex2)
+				split(x) {
+					wallThickness: SideWall(cPosition, cSide, "right")
+					| ~1: split(z) {wallThickness:  FrontWall(cWidth, cLength, cPosition, cSide, cVertSide) | ~1: Footprint(cWidth, cLength, cPosition, cSide, cVertSide) | wallThickness: WallWithWindows(buildingHeight + wallHeightAbove, "back")}
+					| wallThickness: SideWall(cPosition, cSide, "left")
+				}
+			| side: sides.}
+	else: NIL
+
+else: NIL
+
+WallWithDoor -->
+	split(x) { ~1: WallWithWindows(buildingHeight+wallHeightAbove, "front")
+		 | 2+nadprozeWidth:   DoorTile
+		 | ~1: WallWithWindows(buildingHeight+wallHeightAbove, "front") }
+
+// WALLS
+FrontWall (cWidth, cLength, cPosition, cSide, cVertSide) -->
+	case cPosition == "central":
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		split(x) { ~1: WallWithWindows(buildingHeight+wallHeightAbove, "front")
+				 | 2+nadprozeWidth:  WallWithDoor 
+				 | ~1: WallWithWindows(buildingHeight+wallHeightAbove, "front") }
+	
+	case cPosition == "on side" && cSide == "left":
+		case sunDirection == "south":
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+			split(x) { ~1: WallWithWindows(buildingHeight+wallHeightAbove, "front")
+					 | 2+nadprozeWidth: WallWithDoor 
+					 | r_courtyardWidth/2: WallWithWindows(buildingHeight+wallHeightAbove, "front") }
+		 else: // EAST DONE
+		 	alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+# 			extrude(buildingHeight)
+			split(x) {
+				~1:  WallWithWindows(buildingHeight+firstFloorHeight, "front") //comp(f) {top: Wall (3, firstFloorHeight) | back: Wall.}
+				| r_courtyardWidth+2*wallOffset+3*wallThickness:  WallWithDoor 
+				
+			}
+				 
+				 
+	 case cPosition == "on side" && cSide == "right":
+	 	case sunDirection == "south":
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+			split(x) { r_courtyardWidth/2 + wallOffset: WallWithWindows(buildingHeight+wallHeightAbove, "front")
+					 | 2+nadprozeWidth: WallWithDoor
+					 | ~1: WallWithWindows(buildingHeight+wallHeightAbove, "front")}
+	 	else:
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+# 			extrude(buildingHeight)
+			split(x) {
+				r_courtyardWidth+2*wallOffset+3*wallThickness: s('1, buildingHeight+wallHeightAbove, '1) WallWithDoor
+				| ~1: WallWithWindows(buildingHeight+firstFloorHeight, "front")//comp(f) {top: Wall (3, firstFloorHeight) | back: Wall.} 
+				
+			}
+	 
+	 case cPosition == "double" :
+	 	case sunDirection == "south":
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+			split(x) { r_courtyardWidth/2 + wallOffset: WallWithWindows(buildingHeight+wallHeightAbove, "front") 
+					 | 2: WallWithDoor 
+					 | ~1: WallWithWindows(buildingHeight+wallHeightAbove, "front")
+					 | 2: WallWithDoor 
+					 | l_courtyardWidth/2 + wallOffset: WallWithWindows(buildingHeight+wallHeightAbove, "front")}
+		 else: // east
+		 	alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+			split(x) { r_courtyardWidth/2 + wallOffset: WallWithWindows(buildingHeight+wallHeightAbove, "front") 
+					 | 2+nadprozeWidth: WallWithDoor
+					 | ~1: WallWithWindows(buildingHeight+wallHeightAbove, "front") 
+					 | 2+nadprozeWidth: WallWithDoor
+					 | l_courtyardWidth/2 + wallOffset: WallWithWindows(buildingHeight+wallHeightAbove, "front") }
+				 
+	 else: NIL	 
+			 
+
+
+BackWall(cWidth, cLength, cPosition, cSide, cVertSide) -->
+	case cPosition == "central":
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+# 		extrude(buildingHeight+firstFloorHeight)
+		WallWithWindows(buildingHeight+firstFloorHeight, "back")
+# 		NIL
+
+	case cPosition == "on side" && cSide == "right":
+		case sunDirection == "south":
+# 			extrude(buildingHeight)
+			split(x) {
+				r_courtyardWidth+ wallOffset+collonadeFootprintWidth+wallThickness: WallWithWindows(buildingHeight+firstFloorHeight, "back")//comp(f) {top: Wall (3, firstFloorHeight) | all: Wall.}
+				|~1: WallWithWindows(buildingHeight+wallHeightAbove, "back")// s('1, buildingHeight+wallHeightAbove, '1) Wall.
+			}
+		else: // east
+# 			extrude(buildingHeight)
+			split(x) {
+				r_courtyardWidth+2*wallOffset+3*wallThickness:  WallWithWindows(buildingHeight+wallHeightAbove, "back")
+				|  ~1: WallWithWindows(buildingHeight+firstFloorHeight, "back")// comp(f) {top: Wall (1, firstFloorHeight) | all:  Wall.}
+			}
+			
+		
+	case cPosition == "on side" && cSide == "left":
+		case sunDirection == "south":
+# 			extrude(buildingHeight)
+			split(x) {
+				~1:  WallWithWindows(buildingHeight+wallHeightAbove, "back")
+				| r_courtyardWidth+ wallOffset+collonadeFootprintWidth+wallThickness: WallWithWindows(buildingHeight+firstFloorHeight, "back")//comp(f) {top: Wall (1, firstFloorHeight) | all:  Wall.}
+			}
+		else: // EAST Done
+# 			extrude(buildingHeight)
+			split(x) {
+				~1: WallWithWindows(buildingHeight+firstFloorHeight, "back")//comp(f) {top: Wall (1, firstFloorHeight) | all:  Wall.}
+				|r_courtyardWidth+2*wallOffset+3*wallThickness:  WallWithWindows(buildingHeight+wallHeightAbove, "back")//s('1, buildingHeight+wallHeightAbove, '1) Wall.
+				 
+			}
+	
+	case cPosition == "double" :
+		extrude(buildingHeight+firstFloorHeight)
+		
+	else: NIL
+
+SideWall(cPosition, cSide, orient) -->
+case cPosition == "central":
+	case sunDirection == "south":
+		case floorOffset != 0:
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+# 				extrude(buildingHeight)
+				split(z) {
+					~1:  WallWithWindows(buildingHeight+wallHeightAbove, orient)//s('1, buildingHeight+wallHeightAbove, '1) Wall.
+					| (scope.sz - r_courtyardLength - floorOffset)/2  - wallThickness:  WallWithWindows(buildingHeight+firstFloorHeight, orient) //comp(f) {top: Wall (3, firstFloorHeight) | all: Wall.}
+				}
+		else: // floorOffset == 0
+			print("floorOffset == 0")
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+# 				extrude(buildingHeight)
+				split(z) {
+					~1:   WallWithWindows(buildingHeight+wallHeightAbove, orient) //comp(f) {top: t(0, 0, -(buildingHeight)) Wall (3, buildingHeight+wallHeightAbove)}
+					| (scope.sz - r_courtyardLength - floorOffset)/2  - wallThickness/2: WallWithWindows(buildingHeight+firstFloorHeight, orient)//comp(f) {top: Wall (3, firstFloorHeight) | all: Wall.}
+				}
+		else: // sunDirection == "east":
+			alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+# 				extrude(buildingHeight)
+				split(z) {
+					~1:   WallWithWindows(buildingHeight+wallHeightAbove, orient)//s('1, buildingHeight+wallHeightAbove, '1) Wall.
+					| r_courtyardLength+2*wallThickness:  WallWithWindows(buildingHeight+firstFloorHeight, orient)//comp(f) {top: Wall (1, firstFloorHeight) | all:  Wall.}
+					| ~1:  WallWithWindows(buildingHeight+wallHeightAbove, orient)  //s('1, buildingHeight+wallHeightAbove, '1) Wall.
+				}
+		
+		
+
+	case cPosition == "on side" && cSide == "right":
+		case sunDirection == "south":
+			case floorOffset != 0:
+				alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+			
+# 				extrude(buildingHeight)
+				split(z) {
+					~1: WallWithWindows(buildingHeight+wallHeightAbove, orient) //s('1, buildingHeight+wallHeightAbove, '1) Wall.
+					| (scope.sz - r_courtyardLength - floorOffset)/2  - wallThickness :  WallWithWindows(buildingHeight+firstFloorHeight, orient) //comp(f) {top: Wall (3, firstFloorHeight) | all: Wall.}
+				}
+			else:
+				alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+			
+# 				extrude(buildingHeight)
+				split(z) {
+					~1: WallWithWindows(buildingHeight+wallHeightAbove, orient) //s('1, buildingHeight+wallHeightAbove, '1) Wall.
+					| (scope.sz - r_courtyardLength - floorOffset)/2  - wallThickness/2 : WallWithWindows(buildingHeight+firstFloorHeight, orient)//comp(f) {top: Wall (3, firstFloorHeight) | all: Wall.}
+				}
+			
+		
+		else: 
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			extrude(buildingHeight) comp(f) {top: Wall (1, firstFloorHeight) | all:  Wall.}
+
+		
+	case cPosition == "on side" && cSide == "left":
+		case sunDirection == "south":
+			case floorOffset != 0:
+				alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+# 				extrude(buildingHeight)
+				split(z) {
+					~1:  WallWithWindows(buildingHeight+wallHeightAbove, orient) //s('1, buildingHeight+wallHeightAbove, '1) Wall.
+					| (scope.sz - r_courtyardLength - floorOffset)/2  - wallThickness: WallWithWindows(buildingHeight+firstFloorHeight, orient) //comp(f) {top: Wall (1, firstFloorHeight) | all:  Wall.}
+				}
+			else:
+				alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+# 				extrude(buildingHeight)
+				split(z) {
+					~1:  WallWithWindows(buildingHeight+wallHeightAbove, orient)//s('1, buildingHeight+wallHeightAbove, '1) Wall.
+					| (scope.sz - r_courtyardLength - floorOffset)/2  - wallThickness/2: WallWithWindows(buildingHeight+firstFloorHeight, orient)//comp(f) {top: Wall (1, firstFloorHeight) | all:  Wall.}
+				}
+				
+		else: //EAST DONE
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			//extrude(buildingHeight) comp(f) {top: Wall (1, firstFloorHeight) | all:  Wall.}
+			WallWithWindows(buildingHeight+firstFloorHeight, orient)
+	
+		
+	case cPosition == "double":
+		case sunDirection == "south":
+			case floorOffset != 0:
+				alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+	
+				split(z) {
+					~1:  WallWithWindows(buildingHeight+wallHeightAbove, orient)//s('1, buildingHeight+wallHeightAbove, '1) Wall.
+					| (scope.sz - max(r_courtyardLength,l_courtyardLength) - floorOffset)/2  - 2*wallThickness: WallWithWindows(buildingHeight+firstFloorHeight, orient)//comp(f) {top: Wall (1, firstFloorHeight) | all:  Wall.}
+				}
+			else: // floorOffset == 0
+				alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+	
+				split(z) {
+					~1:  WallWithWindows(buildingHeight+wallHeightAbove, orient)//s('1, buildingHeight+wallHeightAbove, '1) Wall.
+					| (scope.sz - max(r_courtyardLength,l_courtyardLength) - floorOffset)/2  - wallThickness/2: WallWithWindows(buildingHeight+firstFloorHeight, orient)//comp(f) {top: Wall (1, firstFloorHeight) | all:  Wall.}
+				}
+			else: // sunDirection == "east"
+				alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				WallWithWindows(buildingHeight+wallHeightAbove, orient)
+			
+	
+		
+	else: NIL
+
+windowClose = "MAP-CGA-Rules/assets/detale/okna/close_window_decimate01.obj"
+windowOpen= "MAP-CGA-Rules/assets/detale/okna/open_window.obj"
+windowNadproze = "MAP-CGA-Rules/assets/detale/okna/nadproze_window_decimate.obj"
+door_asset = "MAP-CGA-Rules/assets/detale/double_door_decimate.obj"
+
+
+WallWithWindows(height, orient) -->
+
+	case orient == "front" || orient == "back":
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		extrude(height) 
+		
+		split(x) {
+				~6: Facade.
+				| windowWidth+nadprozeWidth: split(y) {
+													~1: Facade.
+													| 1: split(x) {
+																		~1: Facade.
+																		|windowWidth: WindowTest(orient) //comp(f) {left: WindowTest | all: NIL}
+																		| ~1: Facade.
+													
+													}
+													 |0.1: i(windowNadproze) I.
+													 
+													| ~1: Facade.
+											} 
+				| ~6: Facade.
+			
+			}*
+			
+	
+	else: // right or left
+
+		case height != buildingHeight + firstFloorHeight:
+			alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+		# 	color(wallColor_debug)
+			extrude(height) 
+			print(geometry.area)
+			split(z) {
+				~6: Facade.
+				| windowWidth+nadprozeWidth: split(y) {
+													~1: Facade.
+													| 1: split(z) {
+																		~1: Facade.
+																		|windowWidth: WindowTest(orient) //comp(f) {left: WindowTest | all: NIL}
+																		| ~1: Facade.
+													}
+													 |0.1: i(windowNadproze) I.
+													 
+													| ~1: Facade.
+											} 
+				| ~6: Facade.
+			
+			}*
+	else:
+		alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+		# 	color(wallColor_debug)
+			extrude(height) 
+			print(geometry.area)
+			split(z) {
+				~6: Facade.
+				| windowWidth+nadprozeWidth: split(y) {
+													buildingHeight + firstFloorHeight - 2: Facade.
+													| 1: split(z) {
+																		~1: Facade.
+																		|windowWidth: WindowTest(orient) //comp(f) {left: WindowTest | all: NIL}
+																		| ~1: Facade.
+													}
+													 |0.1: i(windowNadproze) I.
+													 
+													| ~1: Facade.
+											} 
+				| ~6: Facade.
+			
+			}*
+		
+
+
+window = 50%: windowOpen else: windowClose
+WindowTest(orient) -->
+
+	50%:
+		case orient == "left":
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+# 				r(0,180,0)
+				s('1,'1,'1.5)
+				t(0, 0,-wallThickness)
+			i(windowOpen, zUp)
+			
+		case orient == "right":
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+				r(0,180,0)
+				s('1,'1,'1.5)
+				t(-scope.sx, 0,-2*wallThickness)
+			i(windowOpen, zUp)
+			
+			
+		case orient == "back":
+			s('1,'1,'1.5)
+			r(0,180,0)
+			t(-scope.sx, 0,-2*wallThickness)
+			i(windowOpen, zUp)
+			
+			
+			
+		else: // front
+			s('1,'1,'1.5)
+		t(0,0,-wallThickness)
+			i(windowOpen, zUp)
+			
+	else: //WindowClose
+			case orient == "left":
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+# 				r(0,180,180)
+# 				s('1,'1,'1.5)
+# 				t(0, 0,-wallThickness)
+			i(windowClose, zUp)
+			
+		case orient == "right":
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+				r(0,180,0)
+# 				s('1,'1,'1.5)
+				t(-scope.sx, 0, -wallThickness)
+			i(windowClose, zUp)
+			
+			
+		case orient == "back":
+			r(0,180,0)
+			t(-scope.sx, 0,-wallThickness)
+			i(windowClose, zUp)
+			
+		else: // front
+			
+			i(windowClose, zUp)
+			
+			
+
+
+
+Wall -->
+	alignScopeToGeometry(yUp,0,0)
+	alignScopeToAxes(y)
+	setPivot(xyz, setPivotIndex2)
+# 	color(wallColor_debug)
+	extrude(buildingHeight+wallHeightAbove) 
+	print(geometry.area)
+	
+	split(x) {
+		~6: Facade.
+		| windowWidth: split(y) {
+											~1: Facade.
+											| 1: WindowAsset
+											| ~1: Facade.
+									} 
+		| ~6: Facade.
+	
+	}*
+	
+
+	
+	
+Wall (nWindows, height) -->
+	alignScopeToGeometry(yUp,0,0)
+	alignScopeToAxes(y)
+	setPivot(xyz, setPivotIndex2)
+	color(wallColor)
+	extrude(height)
+	
+
+
+
+
+
+
+
+Wall(nWindows) --> 
+	extrude(buildingHeight+wallHeightAbove) X. 
+	split(x) {~1: NIL | 2: Window.}
+	
+	
+DoorTile -->
+	alignScopeToGeometry(yUp,0,0)
+	alignScopeToAxes(y)
+	setPivot(xyz, setPivotIndex2)
+	extrude(buildingHeight+wallHeightAbove)
+	
+	split(y) {
+							3:  split(x) {
+											~1: Facade.
+											| 2:Door
+											| ~1: Facade.
+							} 
+							| 0.2: i(windowNadproze) I.
+							| ~1: Wall.
+	}
+	
+ Door -->
+#  	r(scopeCenter, 0, 180, 0)
+ 	i(door_asset, zUp)	
+
+
+
+WindowAsset -->
+	50%:
+
+		i(windowClose, zUp) //mirror(true,false,true)
+		
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)
+	else:
+		i(windowOpen, zUp) //mirror(true,false,true)
+		s('1,'1,'1.5)
+		t(0,0,-wallThickness)
+
+
+// Interior building	
+Footprint(cWidth, cLength, cPosition, cSide, cVertSide)  -->
+	alignScopeToGeometry(yUp,0,0)
+	alignScopeToAxes(y)
+	setPivot(xyz, setPivotIndex2)
+	
+	extrude(buildingHeight+wallThickness) 
+	split(y) {~1: Building(cWidth, cLength, cPosition, cSide, cVertSide) 
+				| wallThickness: Ceiling(cWidth, cLength, cPosition, cSide, cVertSide)
+				|wallThickness:   Roof(cWidth, cLength, cPosition, cSide, cVertSide)}
+
+
+# const collonadeBaseHeight = 0.5
+const collonadeBaseSize = column_diameter + 0.1
+
+
+Building -->
+	alignScopeToGeometry(yUp,0,0)
+	alignScopeToAxes(y)
+	setPivot(xyz, setPivotIndex2)
+	
+	split(x) {
+		   ~1: LeftBuildingSegment
+		  | r_courtyardWidth: split(z) {~1: FrontBuildingSegment | r_courtyardLength: Courtyard("all") | ~1: BackBuildingSegment}
+		  | ~1: RightBuildingSegment
+	  	}
+
+
+Building (cWidth, cLength, cPosition, cSide, cVertSide) -->
+	case cPosition == "central":
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+			split(x) {
+				   ~1: LeftBuildingSegment
+				  | r_courtyardWidth+2*collonadeFootprintWidth: split(z) {~1: FrontBuildingSegment | r_courtyardLength++2*collonadeFootprintWidth: Courtyard("all") |floorOffset: RightBuildingSegment| ~1: BackBuildingSegment}
+				  | ~1: RightBuildingSegment
+			  	}
+
+	  		
+	  	
+	case cPosition == "on side" && cSide == "left":
+		case sunDirection == "south":
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+		  	
+		  	split(x) {
+				~1: RightBuildingSegment
+				  | r_courtyardWidth+2*collonadeFootprintWidth: split(z) {~1: RightBuildingSegment | r_courtyardLength+2*collonadeFootprintWidth: Courtyard("back") |floorOffset: RightBuildingSegment | ~1: RightBuildingSegment }
+				  | wallOffset: LeftBuildingSegment
+		  	}
+		  	
+		  	
+	  	else: // EAST??
+	  		alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+		  	
+		  	split(x) {
+				~1: RightBuildingSegment
+				  | r_courtyardWidth+2*collonadeFootprintWidth: split(z) {~1: RightBuildingSegment | r_courtyardLength+2*collonadeFootprintWidth: Courtyard("back")  | ~1: RightBuildingSegment }
+				  | wallOffset: LeftBuildingSegment
+		  	}
+	  	
+	  	
+	case cPosition == "on side" && cSide == "right":
+		case sunDirection == "south":
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+			split(x) {
+			wallOffset: RightBuildingSegment
+			  | r_courtyardWidth+2*collonadeFootprintWidth: split(z) {~1: RightBuildingSegment | r_courtyardLength+2*collonadeFootprintWidth: Courtyard("all")  |floorOffset: RightBuildingSegment | ~1: RightBuildingSegment }
+			  | ~1: LeftBuildingSegment
+		  	}
+	  	else:
+	  		alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			split(x) {
+# 				~1: LeftBuildingSegment
+			   wallOffset: RightBuildingSegment
+			  | r_courtyardWidth+2*collonadeFootprintWidth: split(z) {~1: RightBuildingSegment | r_courtyardLength+2*collonadeFootprintWidth: Courtyard("back")  | ~1: RightBuildingSegment }
+			  | wallOffset: RightBuildingSegment
+			  | ~1: LeftBuildingSegment
+		  	} 
+  	
+  	case cPosition == "double" :
+  		case floorOffset == 0:
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+			split(x) {
+				wallOffset: RightBuildingSegment
+			  | r_courtyardWidth+2*collonadeFootprintWidth: split(z) {~1: LeftBuildingSegment | r_courtyardLength+2*collonadeFootprintWidth: Courtyard("all") | ~1: LeftBuildingSegment}
+			  | ~1: CentralBuildingSegment
+			  | l_courtyardWidth+2*collonadeFootprintWidth: split(z) {~1: LeftBuildingSegment | l_courtyardLength+2*collonadeFootprintWidth: Courtyard("all") | ~1: LeftBuildingSegment}
+			  | wallOffset: RightBuildingSegment
+		  	}
+	  	
+	  	else:
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+			split(x) {
+				wallOffset: RightBuildingSegment
+			  | r_courtyardWidth+2*collonadeFootprintWidth: split(z) {~1: LeftBuildingSegment | r_courtyardLength+2*collonadeFootprintWidth: Courtyard("all") | floorOffset: RightBuildingSegment | ~1: LeftBuildingSegment}
+			  | ~1: CentralBuildingSegment
+			  | l_courtyardWidth+2*collonadeFootprintWidth: split(z) {~1: LeftBuildingSegment | l_courtyardLength+2*collonadeFootprintWidth: Courtyard("all") | floorOffset: RightBuildingSegment |  ~1: LeftBuildingSegment}
+			  | wallOffset: RightBuildingSegment
+		  	}
+	  	
+  	else: NIL
+	
+
+CentralBuildingSegment -->
+# 	color(0,1,0) X.	
+	NIL
+
+LeftBuildingSegment -->
+	NIL
+
+RightBuildingSegment -->
+# 	color(0,1,0) X.
+	NIL
+	
+BackBuildingSegment -->
+	NIL
+	
+FrontBuildingSegment -->
+	NIL
+
+Ceiling (cWidth, cLength, cPosition, cSide, cVertSide) -->
+	case cPosition == "central":
+		case floorOffset != 0:
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			split(z) {
+				   ~1: Wall.
+				  | r_courtyardLength+2*collonadeFootprintWidth: split(x) {~1: Wall. | r_courtyardWidth+2*collonadeFootprintWidth: NIL | ~1: Wall.}
+				  |floorOffset: Wall.
+				  | ~1: Wall.
+			  	}
+	  	else:
+	  		alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			split(z) {
+				   ~1: Wall.
+				  | r_courtyardLength+2*wallThickness: split(x) {~1: Wall. | r_courtyardWidth+2*collonadeFootprintWidth: NIL | ~1: Wall.}
+					| wallThickness: W.
+				  | ~1: Wall.
+			  	}
+	  	
+	case cPosition == "on side" && cSide == "left":
+		case sunDirection == "south":
+		  	case floorOffset != 0:
+		  		print("!= 0")
+			  	alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				split(z) {
+					   ~1: Wall.
+					  | r_courtyardLength+2*collonadeFootprintWidth: split(x) {~1: Wall. | r_courtyardWidth+2*collonadeFootprintWidth: NIL | wallOffset: Wall.}
+					  |floorOffset: Wall.
+					  | ~1: Wall.
+				  	}
+		  	else:
+		  		print("== 0")
+		  		alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				split(z) {
+					   ~1: Wall.
+					  | r_courtyardLength+2*wallThickness: split(x) {~1: Wall. | r_courtyardWidth+2*collonadeFootprintWidth: NIL | wallOffset: Wall.}
+					  | wallThickness: Wall.
+					  | ~1: Wall.
+				  	}
+		  	
+	  	else: //EAST DONE
+	  		alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			split(z) {
+				   ~1: Wall.
+				  | r_courtyardLength+2*collonadeFootprintWidth: split(x) {~1: Wall. | r_courtyardWidth+2*collonadeFootprintWidth: NIL | wallOffset: Wall.}
+				  | ~1: Wall.
+			  	}
+
+		  	
+		  	
+  	case cPosition == "on side" && cSide == "right":
+   		case sunDirection == "south":
+   			case floorOffset != 0:
+				alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				split(z) {
+					   ~1: Wall.
+					  | r_courtyardLength+2*collonadeFootprintWidth: split(x) {wallOffset: Wall. | r_courtyardWidth+2*collonadeFootprintWidth: NIL | ~1: Wall.}
+					  |floorOffset: Wall.
+					  | ~1: Wall.
+				  	}
+		  	else:
+		  		alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				split(z) {
+					   ~1: Wall.
+					  | r_courtyardLength+2*wallThickness: split(x) {wallOffset: Wall. | r_courtyardWidth+2*collonadeFootprintWidth: NIL | ~1: Wall.}
+					  |wallThickness: Wall.
+					  | ~1: Wall.
+				  	}
+		  		
+		  	
+ 	  	else: 
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			split(z) {
+				   ~1: Wall.
+				   |wallOffset: Wall.
+				  | r_courtyardLength+2*collonadeFootprintWidth: split(x) {wallOffset: Wall. | r_courtyardWidth+2*collonadeFootprintWidth : NIL  | ~1: Wall.}
+				  |wallOffset: Wall.
+				  | ~1: Wall.
+			  	}
+			  	
+  	case cPosition == "double":
+  		case floorOffset != 0:
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			split(z) {
+				   ~1: Wall.
+				  | max(r_courtyardLength, l_courtyardLength)+2*collonadeFootprintWidth:
+				   
+				  split(x) {wallOffset: Wall. 
+			  			| r_courtyardWidth+2*collonadeFootprintWidth: split(z) {
+			  				~1: Wall.
+			  				| r_courtyardLength + 2*collonadeFootprintWidth: NIL
+			  				| ~1: Wall.
+			  			} 
+		  			 | ~1: Wall. 
+		  			 | l_courtyardWidth+2*collonadeFootprintWidth: split(z) {
+			  				~1: Wall.
+			  				| l_courtyardLength + 2*collonadeFootprintWidth: NIL
+			  				| ~1: Wall.
+			  			}
+		  			 | wallOffset: Wall.
+	  			 }
+			  			 
+				  |floorOffset: Wall.
+				  | ~1: Wall.
+			  	}
+	  	else:
+	  		alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			split(z) {
+				   ~1: Wall.
+				  | max(r_courtyardLength, l_courtyardLength)+2*wallThickness:
+				   
+				  split(x) {wallOffset: Wall. 
+			  			| r_courtyardWidth+2*collonadeFootprintWidth: split(z) {
+			  				~1: Wall.
+			  				| r_courtyardLength + 2*collonadeFootprintWidth: NIL
+			  				| ~1: Wall.
+			  			} 
+		  			 | ~1: Wall. 
+		  			 | l_courtyardWidth+2*collonadeFootprintWidth: split(z) {
+			  				~1: Wall.
+			  				| l_courtyardLength + 2*collonadeFootprintWidth: NIL
+			  				| ~1: Wall.
+			  			}
+		  			 | wallOffset: Wall.
+	  			 }
+			  			 
+				  |floorOffset: Wall.
+				  | ~1: Wall.
+			  }
+	  		
+	  	
+	
+	else: NIL
+	
+	
+// Dach
+Roof(cWidth, cLength, cPosition, cSide, cVertSide) -->
+	case cPosition == "central":
+		case sunDirection == "south":
+			case floorOffset != 0:
+				alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				split(z) {
+					   ~1: RoofTile
+					  | r_courtyardLength+wallThickness*2: split(x) {~1: RoofTile | r_courtyardWidth+ collonadeFootprintWidth:  s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof("all") | ~1: RoofTile}
+					  | floorOffset: RoofTile
+					  | ~1: RoofHigher( cPosition, cSide)
+				  	}
+		  	else: 
+			  	alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				split(z) {
+					   ~1: RoofTile
+					  | r_courtyardLength+wallThickness: split(x) {~1: RoofTile | r_courtyardWidth++ collonadeFootprintWidth:  s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof("U-shaped") | ~1: RoofTile}
+					  | ~1: RoofHigher( cPosition, cSide)
+				  	}
+	  	else: //"EAST"
+	  		alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+
+			split(z) {
+				   ~1: RoofTile
+				  | r_courtyardLength+wallThickness*2: 
+				  		split(x) {
+				  			~1: RoofHigher( "right_empty") 
+				  			| wallOffset: RoofTile
+				  			| r_courtyardWidth+ collonadeFootprintWidth:  s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof("all")
+				  			| wallOffset: RoofTile
+				  			 | ~1: RoofHigher( "left_empty") }
+				  | ~1: RoofTile
+			  	}
+	  		
+	  	
+  	case cPosition == "on side" && cSide == "left":
+  		case sunDirection == "south":
+  			case floorOffset != 0:
+				alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				
+				
+				split(z) {
+						~1: RoofTile
+					   | r_courtyardLength+wallThickness*2: split(x) { ~1: RoofTile | r_courtyardWidth + collonadeFootprintWidth: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof("central", cSide) | wallOffset+wallThickness: RoofTile}
+					   | floorOffset: RoofTile
+					  | ~1: split(x) { ~1: RoofTile | r_courtyardWidth+wallOffset+wallThickness+collonadeFootprintWidth: RoofHigher(cPosition, cSide) }
+					  
+				  	}
+		  	else:
+		  		alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				
+				
+				split(z) {
+						~1: RoofTile
+					   | r_courtyardLength+wallThickness: split(x) { ~1: RoofTile | r_courtyardWidth + 2*wallThickness: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof("central", cSide) | wallOffset+wallThickness: RoofTile}
+					   | floorOffset: RoofTile
+					  | ~1: split(x) { ~1: RoofTile | r_courtyardWidth+wallOffset+wallThickness+collonadeFootprintWidth: RoofHigher(cPosition, cSide) }
+					  
+				  	} 
+	  	else: //EAST DONE
+				alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				
+				
+				split(x) {
+				~1:  RoofHigher(cPosition, cSide)
+				| wallOffset: RoofTile
+				 | r_courtyardWidth+wallThickness*2: split(z) { ~1: RoofTile | r_courtyardLength +wallThickness*2: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof(cPosition, cSide) | ~1: RoofTile}
+				  | wallOffset+wallThickness: RoofTile
+			  	}
+				
+
+		  	
+		  	
+  	case cPosition == "on side" && cSide == "right":
+	  	case sunDirection == "south":
+	  		case floorOffset != 0:
+				alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				
+				split(z) {
+						~1: RoofTile
+					   | r_courtyardLength+2*wallThickness: split(x) { wallOffset+wallThickness: RoofTile | r_courtyardWidth + collonadeFootprintWidth: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof(cPosition, cSide) | ~1: RoofTile}
+					   | floorOffset: RoofTile
+					  | ~1: split(x) { r_courtyardWidth+wallOffset+wallThickness+collonadeFootprintWidth: RoofHigher(cPosition, cSide) | ~1: RoofTile
+					  }
+				  	}
+	  		else:
+	  			alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+		
+				
+				split(z) {
+						~1: RoofTile
+					   | r_courtyardLength+wallThickness: split(x) { wallOffset+wallThickness: RoofTile | r_courtyardWidth + collonadeFootprintWidth: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof("central", cSide) | ~1: RoofTile}
+					   | floorOffset: RoofTile
+					  | ~1: split(x) { r_courtyardWidth+wallOffset+wallThickness+collonadeFootprintWidth: RoofHigher(cPosition, cSide) | ~1: RoofTile
+					  }
+				  	}
+
+	  	else: 
+	  		alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+		
+			
+			split(x) {
+				wallOffset+wallThickness: RoofTile
+				 | r_courtyardWidth+wallThickness*2: split(z) { ~1: RoofTile | r_courtyardLength +wallThickness*2: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof(cPosition, cSide) | ~1: RoofTile}
+				  | wallOffset: RoofTile
+				  | ~1:  RoofHigher(cPosition, cSide)
+			  	}
+			
+
+  	
+  	case cPosition == "double":
+	  	case sunDirection == "south":
+	  		case floorOffset != 0:
+				alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				
+				
+		
+				split(z) {
+						   ~1: RoofTile
+						 	 |max(r_courtyardLength, l_courtyardLength)+2*collonadeFootprintWidth: split (x) 
+						 		{
+						 			wallOffset: RoofTile
+						 			| r_courtyardWidth + 2*collonadeFootprintWidth: split(z) {
+					 					~1: RoofTile
+					 					| r_courtyardLength+wallThickness*2: split(x) { ~1: RoofTile | r_courtyardWidth+wallThickness*2: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof(cPosition, cSide, "left", isSmallerCourtyard(r_courtyardLength, l_courtyardLength)) | ~1: RoofTile }
+					 					| ~1: RoofTile
+					 				}
+						 			| ~1: RoofTile
+						 			|l_courtyardWidth + 2*collonadeFootprintWidth: split(z) {
+					 					~1: RoofTile
+					 					| l_courtyardLength+wallThickness*2: split(x) { ~1: RoofTile | l_courtyardWidth+wallThickness*2: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof(cPosition, cSide, "left", isSmallerCourtyard(l_courtyardLength, r_courtyardLength)) | ~1: RoofTile }
+					 					| ~1: RoofTile
+					 				}
+						 			| wallOffset: RoofTile
+						 		} 
+						  	  
+			 			  | floorOffset: RoofTile
+						  | ~1: RoofHigher( cPosition, cSide)
+					  	}
+		  	
+		  	else: 
+		  		alignScopeToGeometry(yUp,0,0)
+					alignScopeToAxes(y)
+					setPivot(xyz, setPivotIndex2)
+				
+				
+		
+				split(z) {
+						   ~1: RoofTile
+						 	 |max(r_courtyardLength, l_courtyardLength)+wallThickness: split (x) 
+						 		{
+						 			wallOffset: RoofTile
+						 			| r_courtyardWidth + 2*collonadeFootprintWidth: split(z) {
+					 					~1: RoofTile
+					 					| r_courtyardLength+wallThickness: split(x) { ~1: RoofTile | r_courtyardWidth+wallThickness*2: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof(cPosition, cSide, "left", isSmallerCourtyard(r_courtyardLength, l_courtyardLength)) | ~1: RoofTile }
+					 					| ~1: RoofTile
+					 				}
+						 			| ~1: RoofTile
+						 			|l_courtyardWidth + 2*collonadeFootprintWidth: split(z) {
+					 					~1: RoofTile
+					 					| l_courtyardLength+wallThickness: split(x) { ~1: RoofTile | l_courtyardWidth+wallThickness*2: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof(cPosition, cSide, "left", isSmallerCourtyard(l_courtyardLength, r_courtyardLength)) | ~1: RoofTile }
+					 					| ~1: RoofTile
+					 				}
+						 			| wallOffset: RoofTile
+						 		} 
+						  	  
+			 			  | floorOffset: F.
+						  | ~1: RoofHigher( cPosition, cSide)
+				  	}
+	  	else: // EAST
+	  		case bFloor == true:
+	  		
+	  		alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				color("#A44A4A")
+				
+		
+				split(z) {
+						   ~1: R.
+						 	 |max(r_courtyardLength, l_courtyardLength)+2*collonadeFootprintWidth: split (x) 
+						 		{
+						 			wallOffset: R. 
+						 			| r_courtyardWidth + 2*collonadeFootprintWidth: split(z) {
+					 					~1: R.
+					 					| r_courtyardLength+wallThickness*2: split(x) { ~1: R. | r_courtyardWidth+wallThickness*2: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof(cPosition, cSide, "left", isSmallerCourtyard(r_courtyardLength, l_courtyardLength)) | ~1: R. }
+					 					| ~1: R.
+					 				}
+					 				|wallOffset: R.
+					 				| ~1: RoofHigher( cPosition, cSide)
+						 			|wallOffset: R.
+						 			|l_courtyardWidth + 2*collonadeFootprintWidth: split(z) {
+					 					~1: R.
+					 					| l_courtyardLength+wallThickness*2: split(x) { ~1: R. | l_courtyardWidth+wallThickness*2: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof(cPosition, cSide, "left", isSmallerCourtyard(l_courtyardLength, r_courtyardLength)) | ~1: R. }
+					 					| ~1: R.
+					 				}
+						 			| wallOffset: R.
+						 		} 
+						  	  
+						  | ~1: R.
+					  	}
+		  	else:
+		  			alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				color("#A44A4A")
+				
+		
+				split(z) {
+						   ~1: R.
+						 	 |max(r_courtyardLength, l_courtyardLength)+2*collonadeFootprintWidth: split (x) 
+						 		{
+						 			wallOffset: R. 
+						 			| r_courtyardWidth + 2*collonadeFootprintWidth: split(z) {
+					 					~1: R.
+					 					| r_courtyardLength+wallThickness*2: split(x) { ~1: R. | r_courtyardWidth+wallThickness*2: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof(cPosition, cSide, "left", isSmallerCourtyard(r_courtyardLength, l_courtyardLength)) | ~1: R. }
+					 					| ~1: R.
+					 				}
+					 				|wallOffset: R.
+					 				| ~1: R.//RoofHigher( cPosition, cSide)
+						 			|wallOffset: R.
+						 			|l_courtyardWidth + 2*collonadeFootprintWidth: split(z) {
+					 					~1: R.
+					 					| l_courtyardLength+wallThickness*2: split(x) { ~1: R. | l_courtyardWidth+wallThickness*2: s('1, '1+2 *wallHeightAbove, '1) t(0, -wallThickness, 0) color(wallColor) CollonadeRoof(cPosition, cSide, "left", isSmallerCourtyard(l_courtyardLength, r_courtyardLength)) | ~1: R. }
+					 					| ~1: R.
+					 				}
+						 			| wallOffset: R.
+						 		} 
+						  	  
+						  | ~1: R.
+					  	}
+		  	
+	  		
+	 else: NIL
+
+
+RoofSim -->
+
+			  	alignScopeToGeometry(yUp,0,0)
+				alignScopeToAxes(y)
+				setPivot(xyz, setPivotIndex2)
+				comp(f) {top: shapeO( 2, 2, 2, 2 ) 
+         { shape : M. | remainder : NIL }}
+
+
+	
+
+
+RoofHigher(type) -->
+	case type == "all":
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		color(wallColor)
+	
+		split(z) {  
+				wallThickness: t(0, -wallThickness, 0) comp(f) {top: WallWithWindows(buildingHeight+wallHeightAbove, "front")}
+			 | ~1: split(x) {wallThickness:  comp(f) {top: Wall(3,firstFloorHeight- wallThickness)} | ~1: t(0, firstFloorHeight - 2*wallThickness, 0) RoofTileHigher(1) | wallThickness:  comp(f) {top: Wall(3,firstFloorHeight- wallThickness)}}
+			 | wallThickness: t(0, -wallThickness, 0) comp(f) {top: Wall(2,firstFloorHeight)}
+		 }
+		
+	
+	case type == "right_empty":
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		
+		split(z) {  
+				wallThickness: t(0, -wallThickness, 0) comp(f) {top: Wall(3,firstFloorHeight)}
+			 | ~1: split(x) {  ~1: t(0, firstFloorHeight - 2*wallThickness, 0) RoofTileHigher(0) | wallThickness:  comp(f) {top: WallWithWindows(firstFloorHeight-wallThickness, "left")}}
+			 | wallThickness: t(0, -wallThickness, 0) comp(f) {top: Wall(2,firstFloorHeight)}
+		 }
+	 
+	 case type == "left_empty":
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		
+		split(z) {  
+				wallThickness: t(0, -wallThickness, 0) comp(f) {top: Wall(3,firstFloorHeight)}
+			 | ~1: split(x) {wallThickness:  comp(f) {top: WallWithWindows(firstFloorHeight-wallThickness, "right")} |  ~1: t(0, firstFloorHeight - 2*wallThickness, 0)  RoofTileHigher(1)}
+			 | wallThickness: t(0, -wallThickness, 0) comp(f) {top: Wall(2,firstFloorHeight)}
+		 }
+	
+	else: NIL
+
+
+
+	
+
+	  	
+RoofHigher( cPosition, cSide) -->
+	case cPosition == "central":
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+	
+		split(z) {  
+				wallThickness: t(0, -wallThickness, 0) comp(f) {top: WallWithWindows(firstFloorHeight, "front")}
+			 | ~1: t(0, firstFloorHeight - 2*wallThickness, 0) RoofTile
+		 }
+
+	case cPosition == "on side" && cSide == "left":
+		case sunDirection == "south":
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			split(x) {
+				wallThickness: s('1, firstFloorHeight, '1) color(wallColor) Wall.
+				| ~1: split(z) { wallThickness: t(0, -wallThickness, 0) comp(f) {top: WallWithWindows(firstFloorHeight, "front")} //s('1, firstFloorHeight, '1)  color(wallColor) Wall. 
+								| ~1: t(0, firstFloorHeight - 2*wallThickness, 0) RoofTileHigher(1)  }
+			}
+		else: // EAST
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			split(x) { 
+				 ~1: t(0, firstFloorHeight - 2*wallThickness, 0) RoofTile
+				 | wallThickness: t(0, -wallThickness, 0) comp(f) {top: WallWithWindows(firstFloorHeight, "left")}
+			}
+		
+	case cPosition == "on side" && cSide == "right":
+		case sunDirection == "south":
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			split(x) {
+				 ~1: split(z) { wallThickness:  t(0, -wallThickness, 0) comp(f) {top: WallWithWindows(firstFloorHeight, "front")} 
+								| ~1: t(0, firstFloorHeight - 2*wallThickness, 0) RoofTileHigher(1)  }
+				| wallThickness: s('1, firstFloorHeight, '1) color(wallColor) Wall.
+			}
+		else: // EAST
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+			split(x) { 
+				 wallThickness: t(0, -wallThickness, 0) comp(f) {top: WallWithWindows(firstFloorHeight, "left")}
+				 | ~1: t(0, firstFloorHeight - 2*wallThickness, 0) RoofTileHigher(1)
+			}
+		
+	case cPosition == "double":
+		case sunDirection == "south":
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+		
+			split(z) {  
+					wallThickness: t(0, -wallThickness, 0) comp(f) {top: WallWithWindows(firstFloorHeight, "front")}
+				 | ~1: t(0, firstFloorHeight - 2*wallThickness, 0) RoofTileHigher(1)
+			 }
+		 else: // east
+	 		alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			color(wallColor)
+		
+			split(z) {  
+					wallThickness: t(0, -wallThickness, 0) comp(f) {top: Wall(2,firstFloorHeight)}
+				 | ~1: split(x) {wallThickness:  comp(f) {top: WallWithWindows(firstFloorHeight-wallThickness, "right")} | ~1: t(0, firstFloorHeight - 2*wallThickness, 0) RoofTileHigher(1) | wallThickness:  comp(f) {top: WallWithWindows(firstFloorHeight-wallThickness, "left")}}
+				 | wallThickness: t(0, -wallThickness, 0) comp(f) {top: Wall(2,firstFloorHeight)}
+			 }
+		
+	else: NIL
+
+
+
+RoofTileHigher(idx) -->
+	case geometry.area(top) < 120:
+		50%:
+			print("area")
+			print(geometry.area(top))
+			color(idx, 0, 0)
+# 			color(roofColor)
+			 RoofGable
+		 else:
+		 	RoofTile
+		 
+	else:
+		print("area")
+		print(geometry.area(top))
+		RoofTile 
+# 		color(roofHigherColor)
+		
+RoofTileLow (idx) -->
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+	
+		color(roofColor) RoofRidge(idx)
+
+				
+RoofGable -->
+	alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		
+		
+# 		color(roofColor)
+		t(-wallThickness, wallThickness, -wallThickness)
+		s(scope.sx+2*wallThickness,'1, scope.sz+2*wallThickness)
+		
+	comp(f) {top: roofGable(15, 0.2, 0.2)  RoofTile.} 
+		
+		
+		
+RoofRidge(idx) -->
+	alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+# 	rotateScope(0,0,45)
+# 	t(-wallThickness, -wallThickness, -wallThickness)
+# 	s(scope.sx+wallThickness,'1, '1)
+	comp(f) {top:  roofShed(byHeight, 0.5, idx) RoofTile} 
+		
+RoofTile -->
+	color(roofColor) R.
+
+RoofTile(c) -->
+	color(0,c,0) R.
+
+ 
+HigherWall -->
+	 s('2, '2, '2) Wall
+
+
+R -->
+	alignScopeToGeometry(yUp,0,0)
+	alignScopeToAxes(y)
+	setPivot(xyz, setPivotIndex2)
+	split(y) {
+		~1: color(wallColor) Wall.
+		| ~1: X. 
+	
+	}
+
+# RoofHigher -->
+# 	s('1, firstFloorHeight, '1) color(wallColor) Wall.
+	
+	
+
+
+	
+	
+# Building  with ( 
+#    w           := scope.sx - 2*wallThickness
+#    h           := scope.sz - 2*wallThickness
+# )-->
+# 	extrude(2) 
+# 	extrude(buildingHeight)	split(y) {collonadeBaseHeight: CollonadeFootprint | ~1: PeristylCourtyardCollonade | collonadeBaseHeight: CourtyardRoof}
+# 	X.
+# 	offset(-3) comp(f) {inside: X. | border: NIL}
+		
+# 	shapeO(0.5,0.5,0.5,0.5) 
+# 	      { shape : X | remainder : NIL }
+# 	
+
+
+Courtyard(columnSides) -->
+	
+	case floorOffset != 0 || sunDirection == "east":
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		split(y) {collonadeBaseHeight: CollonadeFootprint(columnSides) | ~1: PeristylCourtyardCollonade(columnSides) | collonadeBaseHeight: CollonadeFootprintTop(columnSides)}
+	else:
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		t(0,0,wallThickness/2)
+		split(y) {collonadeBaseHeight: CollonadeFootprint(columnSides) | ~1: PeristylCourtyardCollonade(columnSides) | collonadeBaseHeight: CollonadeFootprintTop(columnSides)}
+
+	
+	
+#const collonadeFootprintWidth = 0.75
+CollonadeFootprint(columnSide) -->
+	case columnSide == "all":
+		color("#964B00")
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		split(x) {collonadeFootprintWidth:   X.
+		| ~1: split(z) {collonadeFootprintWidth:X. | ~1:NIL |  collonadeFootprintWidth: X.} 
+		| collonadeFootprintWidth: X.}
+		
+	case columnSide == "back":
+		color("#964B00")
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		
+		split(x) {collonadeFootprintWidth:    X.
+		| ~1: split(z) {collonadeFootprintWidth: X. | ~1:NIL |  collonadeFootprintWidth: X.} 
+		| collonadeFootprintWidth:  X.}
+		
+	else: NIL
+	
+
+# const collonadeTopWidth = column_diameter/2 + (collonadeFootprintWidth-column_diameter)/2
+const collonadeTopWidth = collonadeFootprintWidth
+CollonadeFootprintTop(columnSide) -->
+	case columnSide == "all":
+		color("#964B00")
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		split(x) {collonadeTopWidth :   X.
+		| ~1: split(z) {collonadeTopWidth :X. | ~1:NIL |  collonadeTopWidth : X.} 
+		| collonadeTopWidth : X.}
+		
+	case columnSide == "back":
+		color("#964B00")
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		
+		split(x) {collonadeTopWidth :    X.
+		| ~1: split(z) {collonadeTopWidth : X. | ~1:NIL |  collonadeTopWidth : X.} 
+		| collonadeTopWidth :  X.}
+		
+
+		
+	else: NIL
+	
+const collonadeTopOffset = 0.4
+CollonadeTop -->
+		color("#964B00")
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		split(x) {2*column_diameter:    X.
+		| ~1: split(z) {column_diameter:X. | ~1:NIL |  column_diameter: X.} 
+		| 2*column_diameter: X.}	
+	
+
+CollonadeRoof(type) -->
+	case type == "all":
+		color(wallColor)
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		
+		split(x) {wallThickness:  X.
+		| ~1: split(z) {wallThickness:X. | ~1:NIL |  wallThickness: X.} 
+		| wallThickness: X.}
+	case type == "U-shaped":
+		color(wallColor)
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		
+		split(x) {wallThickness:  X.
+		| ~1: split(z) {wallThickness:X. | ~1:NIL |  wallThickness: NIL} 
+		| wallThickness: X.}
+	else: NIL
+		
+	
+
+CollonadeRoof(cPosition, cSide) -->
+	case cPosition == "central":
+		case floorOffset != 0:
+			color(wallColor)
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+			split(x) {wallThickness:  X.
+			| ~1: split(z) {wallThickness:X. | ~1:NIL |  wallThickness: X.} 
+			| wallThickness: X.}
+		else: 
+			color(wallColor)
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+			split(x) {wallThickness:  X.
+			| ~1: split(z) {wallThickness:X. | ~1:NIL |  wallThickness: NIL} 
+			| wallThickness: X.}
+	
+	split(z) {1: extrude(collonadeBaseHeight) | ~1: NIL | 1:extrude(collonadeBaseHeight)}
+	
+
+	case cPosition == "on side" && (cSide == "right" || cSide == "left"): 
+		case sunDirection == "south":
+			color(wallColor)
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+			split(x) {wallThickness:  split(z) {wallThickness:X. | ~1:X.}
+			| ~1: split(z) {wallThickness:X. | ~1:NIL |  wallThickness: X.} 
+			| wallThickness: X.}
+			
+			split(z) {1: extrude(collonadeBaseHeight) | ~1: NIL | 1:extrude(collonadeBaseHeight)}
+		else:
+			color(wallColor)
+			alignScopeToGeometry(yUp,0,0)
+			alignScopeToAxes(y)
+			setPivot(xyz, setPivotIndex2)
+			
+			split(x) {wallThickness:  split(z) {wallThickness:X. | ~1:X. | wallThickness:X.}
+			| ~1: split(z) {wallThickness:X. | ~1:NIL |  wallThickness: X.} 
+			| wallThickness:  split(z) {wallThickness:X. | ~1: X. | wallThickness:X.}}
+			//s('1,wallHeightAbove,'1) X.
+			
+			split(z) {1: extrude(collonadeBaseHeight) | ~1: NIL | 1:extrude(collonadeBaseHeight)}
+			
+	
+	else: NIL
+
+
+
+
+CollonadeRoof(cPosition, cSide, whichCourtyard, ifUpper) -->
+	case  ifUpper:
+		color(wallColor)
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		
+		split(x) {wallThickness:  X.
+		| ~1: split(z) {wallThickness:X. | ~1:NIL |  wallThickness: ifNil()} 
+		| wallThickness: X.}
+	else:
+		color(wallColor)
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		
+		split(x) {wallThickness:  X.
+		| ~1: split(z) {wallThickness:X. | ~1:NIL |  wallThickness: X.} 
+		| wallThickness: X.}
+	
+	
+	
+			
+
+	
+X -->
+	alignScopeToGeometry(yUp,0,0)
+	alignScopeToAxes(y)
+	setPivot(xyz, setPivotIndex2)
+	s('1, '1 + wallHeightAbove, '1)  t(0, wallHeightAbove, 0) color(wallColor) Wall.
+
+
+
+PeristylCourtyardCollonade(type) -->
+	case type == "all":
+		comp(f) {side:  t(0,0,-(collonadeFootprintWidth-column_diameter)/2) CollonadeWall}
+		
+	case type == "back":
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		comp(f) {front: t(0,0,-(collonadeFootprintWidth-column_diameter)/2) CollonadeWall | side:  extrude(-collonadeFootprintWidth) s('1, '1, '1)  Wall.} // TODO: DO poprawy papierowe œciany (zamieniæ comp na split?)
+	else: NIL
+
+@Hidden
+import col: "MAP-CGA-Rules/Paphos/_MyColonnade.cga"
+CollonadeWall-->
+# 	t(0.2,0,-0.1)
+	
+	col.NoFirstNoLast(column_spacing)
+	
+
+
+
+
+
+
+
+CollonadeWall2-->
+# 	t(0.2,0,-0.1)
+	comp(f) {front: col.NoFirstNoLast(column_spacing)}
+	
+
+
+CourtyardRoof(columnSide) -->
+	case columnSide == "all":
+		color("#964B00")
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		split(x) {
+			  ~1: R.
+			| r_courtyardWidth-collonadeBaseSize*2.5: split(z) {~1: R. | r_courtyardLength-collonadeBaseSize*2.5: NIL | ~1: R.}
+			| ~1:  R.
+		}
+		
+	case columnSide == "back":
+		color("#964B00")
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+	
+		split(x) {
+			  ~1:  R.
+			| r_courtyardWidth-collonadeBaseSize*2.5: split(z) {~1:  R. | r_courtyardLength-collonadeBaseSize*2.5: NIL | ~1:  R.}
+			| ~1:   R.
+		}
+		
+	else: NIL
+
+
+
+// Helper rule
+ifNil() -->
+	case floorOffset == 0 && (sunDirection != "east"): NIL
+	else: X.
+
+isSmallerCourtyard(l1, l2) = 
+	case l1>=l2: true
+	else: false
+

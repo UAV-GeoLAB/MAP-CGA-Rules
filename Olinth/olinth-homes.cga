@@ -1,0 +1,1788 @@
+/**
+ * File:    olinth-homes.cga
+ * Author:  Artur Nowicki, Warsaw University of Technology
+ */
+
+version "2020.0"
+
+######################################################
+# BUILDING CONSTRUCTION CONSTANTS
+#
+
+# Parcel
+const parcelWidth 		  			= 17
+const parcelLength		  			= 17
+attr innerStreetWidth 			    = 1.5
+attr setBuildingTypeInnerNorth 		= 33% : "basic"
+									  33% : "tunnel"
+									  else : "l-annex"
+attr setBuildingTypeInnerSouth 		= 50% : "basic"
+									  else : "l-annex"
+attr setBuildingTypeOuterNorth 		= 20% : "basic"
+									  20% : "tunnel"
+									  20% : "l-annex"
+									  else : "l-shaped"
+attr setBuildingTypeOuterSouth 		= 30% : "basic"
+									  30% : "l-annex"
+									  else : "l-shaped"
+									  									  
+// for outer parcels sideType attribute depends on the side where road is
+ 
+# Main Building
+const mainBuildingLength  			= 7.6
+attr floorHeight 					= 3.5
+
+# Wings
+const wingLength 					= 8.6
+const smallWingLength 				= 5.6
+const bigWingWidth 					= 5.4
+const smallWingWidth 				= 4
+
+# Porch
+const porchDepth 					= 2
+const porchRailingWidth 			= 2
+const porchPillarWidth 				= 0.3
+const porchRailingLength 			= 0.15
+
+# Roof
+const roofHeight 					= 1.5
+const troughHeight 					= 0.3
+const troughWidth 					= 0.3
+const roofThickness 				= 0.2
+attr setRoofTypeEast 				= 50% : "gable" 
+									  else : "trough"
+attr setRoofTypeWest 				= 50% : "gable" 
+									  else : "trough"
+
+# Inner Lot
+const innerLotWidth 				= 6
+
+# Gate
+const gateHeight 					= 2.7
+const gateLength 					= 0.3
+const gateWidth 					= 2
+const wallRoofHeight 				= 0.1
+const wallRoofThickness 			= 0.1
+const vestibuleLength				= wingLength/4 + 0.40
+
+# Doors
+const singleDoorsWidth 				= 1.5
+const singleDoorHeight 				= 2.5
+
+# Window
+const normalWindowWidth 			= 0.76
+const normalWindowHeight 			= 0.97
+const smallWindowWidth 				= 0.6
+const smallWidnowHeight 			= 0.77
+
+# Stairs
+const stairsLength 					= 0.45
+#const stairsWidth
+const stairsHeight 					= 0.15
+const stairsSetback 				= 0.20
+const stairsLotLength 				= 5
+const stairsLotWidth 				= 1.2
+
+# Texture tiles
+const roofTextureWidth 				= 3
+const roofTextureLength 			= 2
+const roofTroughTextureWidth 		= 2
+const roofTroughTextureLength 		= 2
+
+# Misc
+const tunnelWidth 					= 2
+const lShapeLength 					= 5.5
+const lShapeDepth 					= 4
+
+######################################################
+# ASSET MANAGEMENT
+#
+
+# Doors
+const singleDoor 					= "assets/single_door/single_doors.fbx"
+const plainDoor 					= "assets/plain_door/plain_door.fbx"
+const doubleDoor 					= "assets/double_door/double_door.fbx"
+const doorPlainPartopen1			= "assets/models/door_plain_partopen1/door_plain_partopen1.fbx"
+const doorSinglePartopen1			= "assets/models/door_single_partopen1/door_single_partopen1.fbx"
+const doorSingleRoof				= "assets/models/single_door_roof/single_door_roof.fbx"
+const doubleDoorPartopen1			= "assets/models/double_door_partopen1/double_door_partopen1.fbx"
+const doubleDoorPillar				= "assets/models/double_door_pillar/double_door_pillar.fbx"
+const doubleDoorRoof					= "assets/models/double_door_roof/double_door_roof.fbx"
+
+# Windows
+const window 						= "assets/window.fbx"
+const windowPartOpen 				= "assets/window_part_open.fbx"
+const windowOpen 					= "assets/window_open.fbx"
+const windowShutterPartopen1		= "assets/models/window_shutter_partopen1/window_shutter_partopen1.fbx"
+const windowShutterPartopen2		= "assets/models/window_shutter_partopen2/window_shutter_partopen2.fbx"
+const windowSmallTruss				= "assets/models/window_small_truss/window_small_truss.fbx"
+const windowStoneTruss				= "assets/models/window_stone_truss/window_stone_truss.fbx"
+const windowTruss					= "assets/models/window_truss/window_truss.fbx"
+
+# Misc objects
+const stair 						= "assets/stairs_wood_ss.fbx"
+const railing1 						= "assets/railing.obj" // [X] shape
+const railing2 						= "assets/railing2.obj" // [III] shape
+const railing3 						= "assets/railing3.obj" // [/] shape
+const tile 							= "assets/models/tiles/tile.fbx"
+const tileTop						= "assets/models/tiles/tile_top.fbx"
+
+# Textures
+const randomDirtmap 				=  fileRandom("assets/tekstury_sciany/dirt.*.tif")
+const textureFacade 				= "assets/tekstury_sciany/tynk_czysty.jpg"
+const bumpmapFacade 				= "assets/tekstury_sciany/bump_1.jpg"
+const flatRoofTexture 				= "assets/tekstury_dach/dach_plaski.tif"
+const slatesTexture					= "assets/tekstury_dach/dachowki.tif"
+const testTexture 					= "builtin:uvtest.png"
+
+# Colors
+attr color1 			  			= "#BBBAFF"
+attr color2				  			= "#FFC2E2"
+attr color3				  			= "#F4FDB1"
+attr color4 			  			= "#708238"
+attr Red 				  			= "#ff0000"
+attr Green 				  			= "#00ff00"
+attr Blue 				  			= "#0000ff"
+attr Pink				  			= "#ff00ff"
+attr buildingColor 		  			= "#f5ebd5"
+attr roofColor 			  			= "#cba189"
+attr tilesColor						= "#742815"
+attr roadColor			  			= "#807e78"
+attr floorColor			  			= "#3f2f1e"
+
+######################################################
+# HELPERS
+#
+
+yAngle = convert(y, pivot, world, orient,0,0,0)
+
+# Pivots settings
+
+# OUTDATED:( 0 - SouthEast; 1 - NorthEast; 2 - NorthWest; 3 - SouthWest)
+setPivotIndexUncorrected = floor((yAngle+45)/90)
+setPivotIndex0 = setPivotIndexUncorrected+0 - floor((setPivotIndexUncorrected+0)/4)*4 
+setPivotIndex1 = setPivotIndexUncorrected+1 - floor((setPivotIndexUncorrected+1)/4)*4
+setPivotIndex2 = setPivotIndexUncorrected+2 - floor((setPivotIndexUncorrected+2)/4)*4
+setPivotIndex3 = setPivotIndexUncorrected+3 - floor((setPivotIndexUncorrected+3)/4)*4
+
+# Panels (from Piccoli)
+
+@Group("PANELS")
+@Group("Panels",6) @Order(1) @Range("None","On Sides", "Roofs", "All") @Description("Turn on to split the whole model into rectangular panels (usable e.g. for analysis)")
+attr Panels_Generate = "None"
+
+@Group("Panels") @Order(2) @Range(1,20) @Description("Note that panel size is adjusted/rounded to the geometry's dimensions on the side")
+attr Panel_Size = 2
+
+@Group("Panels") @Order(3) @Range(0,3) @Description("Distance of the sampling point in front of the panel's center.")
+attr Panel_Sampling_Point_Distance = 0.1
+
+getWorldDir = 
+	case geometry.isOriented(world.north)	: "north"
+	case geometry.isOriented(world.south)	: "south"
+	case geometry.isOriented(world.west)	: "west"
+	case geometry.isOriented(world.east)	: "east"
+	case geometry.isOriented(world.up)		: "up"
+	else									: "down"
+getLocalDir = 
+	case geometry.isOriented(object.front)	: "front"
+	case geometry.isOriented(object.back)	: "rear"
+	case geometry.isOriented(object.left)	: "left"
+	case geometry.isOriented(object.right)	: "right"
+	case geometry.isOriented(object.top)	: "top"
+	else: "bottom"	
+		   
+Panels(type) --> split(x,noAdjust){ ~Panel_Size: split(y){ ~Panel_Size: Panel(type) }* }*			
+
+Panel(type) -->
+	case geometry.area() < 0.02:
+		NIL	
+	else:
+		alignScopeToGeometry(zUp,0,world.lowest)
+		texture("")
+		report("ID",uid) # switching off texture
+		report("Type",type) report("Area",geometry.area)
+		report("Local Orientation",getLocalDir) report("World Orientation",getWorldDir) 
+		Panel.
+		[ s(0,0,0) center(xyz) t(0,0, Panel_Sampling_Point_Distance) # original: rand(Panel_Sampling_Point_Distance, Panel_Sampling_Point_Distance+1)
+		  comp(v){ 0: report("Z",scope.elevation) SamplingPoint. } ]	
+
+###################################################
+###################################################
+##
+##  RULES
+##
+##
+
+@Group("Attributes")
+@Group("Level of Detail",1) @Order(1) @Range("low", "high") @Description("Changes LOD of whole building.")
+attr LevelOfDetail = "low"
+
+@Group("Misc",2) @Order(1) @Range("north", "south")
+attr rowLot = "north"
+
+@Group("Misc") @Order(2) @Range("0","1","2","3","999")
+attr columnIndexLot = 1
+
+@Group("Misc") @Order(3) @Range("l-shaped","l-annex","basic","tunnel","Automatic")
+attr buildingTypeLot = "Automatic"
+
+@Group("Misc") @Order(4) @Range("left","right")
+attr setSideTypeInner 				= 50% : "left"
+									  else : "right"
+
+
+#attr for division
+attr repRow = ["a", "b"]
+attr repCol = [1,2]
+attr repSide = ["a", "b"]
+attr Area = geometry.area
+attr repArea = [1,2,3]
+attr parcelID = uid
+attr repID = [1,2,3]
+attr testID = 0		
+
+RandomRowValue = 50% : "north" 	
+				 else : "south"
+
+
+
+attr LOD 				= 0 //controls vegetation's detail
+slopeDegrees(sx,sy,sz) = geometry.angle(maxSlope)
+
+@Group ("VEGETATION")
+attr TreesNumber = 2
+attr TreeHeightMin = 5
+attr TreeHeightMax = 10
+
+@StartRule
+Insula --> 
+	case  slopeDegrees(scope.sx,scope.sy,scope.sz) > 13 :
+		NIL // this slope value can be changed to visualize different hypotheses (see Piccoli 2018, 253-9)
+# 		report("Area.Greenspace",geometry.area)
+# 		LotVegetation
+		
+	else:
+		innerRectangle(edge){ shape : Insula1 | remainder : InnerStreet }
+
+Insula1 -->
+	case scope.sx < 20 && scope.sz > 20 && scope.sz < 40 :
+ 		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+ 		split(z){ 	  ~parcelLength : Platform(RandomRowValue,split.index,50%:"left" else:"right")
+ 				| ~innerStreetWidth : InnerStreet
+ 				| 	  ~parcelLength : Platform(RandomRowValue,999,50%:"left" else:"right") }	
+		
+	case scope.sx < 20 && scope.sz < 20 :
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		Platform(RandomRowValue,split.index,50%:"left" else:"right")
+		
+	case scope.sx < 20  :
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		split(x){ ~parcelWidth : Platform(RandomRowValue,split.index,50%:"left" else:"right")
+				| {~parcelWidth : Platform(RandomRowValue,split.index,50%:"left" else:"right")}*
+				| ~parcelWidth : Platform(RandomRowValue,999,50%:"left" else:"right") }
+			
+	else:
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		split(z){ 	  ~parcelLength : split(x){ ~parcelWidth : Platform("south",split.index,50%:"left" else:"right") 
+											  | {~parcelWidth : Platform("south",split.index,50%:"left" else:"right")}*
+											  | ~parcelWidth : Platform("south",999,50%:"left" else:"right") }
+				| ~innerStreetWidth : InnerStreet
+				| 	  ~parcelLength : split(x){ ~parcelWidth : Platform("north",split.index,50%:"left" else:"right") 
+											  | {~parcelWidth : Platform("north",split.index,50%:"left" else:"right")}*
+											  | ~parcelWidth : Platform("north",999,50%:"left" else:"right") } }	
+	
+InnerStreet -->
+	#color(roadColor)
+	color("#a9a9a9")		
+									  
+# Lot -->
+# Parcel1(rowLot,columnIndexLot,setSideTypeInner,buildingTypeLot)
+
+# row/column
+# Lot(rowIndex, columnIndex) -->
+# Parcel(sideType) -->
+# 	case sideType == "left" : 
+# 		split(z){ ~wingLength : split(x){  smallWingWidth : EastWing(sideType)		//slicing goes from right to left
+# 									    |  ~innerLotWidth : InnerLot(sideType)
+# 									    |    bigWingWidth : WestWing(sideType) }
+# 				| mainBuildingLength : MainBuilding(sideType) }
+# 	case sideType == "right" : 
+# 		split(z){ ~wingLength : split(x){    bigWingWidth : EastWing(sideType)
+# 									    |  ~innerLotWidth : InnerLot(sideType)
+# 									    |  smallWingWidth : WestWing(sideType) }
+# 				| mainBuildingLength : MainBuilding(sideType) }
+# 	else :
+# 		print("Index Error - wrong sideType attribute in Parcel rule")
+# 		color(Red)
+
+LotDivided -->
+	Platform(rowLot, columnIndexLot, setSideTypeInner)
+
+Platform(row,columnIndex,sideType) -->
+	extrude(world.up.flatTop,0)
+	comp(f){ top : alignScopeToGeometry(yUp,0,0)
+				   alignScopeToAxes(y)
+				   setPivot(xyz, setPivotIndex2)
+				   Parcel(row,columnIndex,sideType)
+				   | side :  sides } 
+# 		   | side : color("#d4c4b1ff") sides. }
+   
+sides -->
+	color(buildingColor) 
+	setupProjection(0, world.zy, 3, 2)
+	set(material.colormap, textureFacade)
+	projectUV(0)
+	setupProjection(1, world.xy, 3, 2) 	
+	set(material.bumpmap, bumpmapFacade)  
+	projectUV(1)
+	
+
+Parcel(row,columnIndex,sideType) -->
+	case row == "north" :
+		case columnIndex == 0 : //outer right parcel
+			70% : Parcel1(row,columnIndex,"right","l-shaped")
+			10% : Parcel1(row,columnIndex,sideType,"l-annex")
+			10% : Parcel1(row,columnIndex,sideType,"tunnel")
+			else : Parcel1(row,columnIndex,sideType,"basic")
+		case columnIndex == 999 : //outer left parcel
+			70% : Parcel1(row,columnIndex,"left","l-shaped")
+			10% : Parcel1(row,columnIndex,sideType,"l-annex")
+			10% : Parcel1(row,columnIndex,sideType,"tunnel")
+			else : Parcel1(row,columnIndex,sideType,"basic")		
+		else : //inner parcels
+			33% : Parcel1(row,columnIndex,sideType,"l-annex")
+			33% : Parcel1(row,columnIndex,sideType,"tunnel")
+			else : Parcel1(row,columnIndex,sideType,"basic")		
+	case row == "south" :
+		case columnIndex == 0 : //outer right parcel
+			70% : Parcel1(row,columnIndex,"right","l-shaped")
+			15% : Parcel1(row,columnIndex,sideType,"l-annex")
+			else : Parcel1(row,columnIndex,sideType,"basic")
+		case columnIndex == 999 : //outer left parcel
+			70% : Parcel1(row,columnIndex,"left","l-shaped")
+			15% : Parcel1(row,columnIndex,sideType,"l-annex")
+			else : Parcel1(row,columnIndex,sideType,"basic")
+		else : //inner parcels
+			50% : Parcel1(row,columnIndex,sideType,"l-annex")
+			else : Parcel1(row,columnIndex,sideType,"basic")
+	else :
+		print("Error - wrong row name in Parcel rule")
+		 
+Parcel1(row,columnIndex,sideType,buildingType) -->
+	case buildingTypeLot == "Automatic" :
+		split(z){ ~wingLength : Parcel2(row,sideType,buildingType)
+				| mainBuildingLength : MainBuilding(row,columnIndex,sideType,buildingType) }
+	else :
+		split(z){ ~wingLength : Parcel2(row,sideType,buildingTypeLot)
+				| mainBuildingLength : MainBuilding(row,columnIndex,sideType,buildingTypeLot) }
+			
+Parcel2(row,sideType,buildingType) -->
+	case sideType == "left" :
+		split(x){  smallWingWidth : EastWing(row,sideType,buildingType)	//slicing from right to left
+ 				|  ~innerLotWidth : InnerLot(row,sideType,buildingType)
+ 				|    bigWingWidth : WestWing(row,sideType,buildingType) }	
+	case sideType == "right" :
+		split(x){    bigWingWidth : EastWing(row,sideType,buildingType)
+ 				|  ~innerLotWidth : InnerLot(row,sideType,buildingType)
+ 				|  smallWingWidth : WestWing(row,sideType,buildingType) }	
+	else :
+ 		print("Index Error - wrong sideType attribute in Parcel2 rule")
+ 		color(Red)	
+		
+Facade -->
+	case geometry.angle(azimuth)>0 && geometry.angle(azimuth)<90 :
+		color(buildingColor) 
+		setupProjection(0, world.xy, 3, 2)
+		set(material.colormap, textureFacade)
+		projectUV(0)
+		setupProjection(1, world.xy, 3, 2) 	
+		set(material.bumpmap, bumpmapFacade)  
+		projectUV(1)	
+# 		setupProjection(2, world.xy, 5, 8) 	
+# 		set(material.dirtmap, randomDirtmap)  
+# 		projectUV(2)
+	case geometry.angle(azimuth)>180 && geometry.angle(azimuth)<270 :
+		color(buildingColor) 
+		setupProjection(0, world.xy, 3, 2)
+		set(material.colormap, textureFacade)
+		projectUV(0)
+		setupProjection(1, world.xy, 3, 2) 	
+		set(material.bumpmap, bumpmapFacade)  
+		projectUV(1)
+# 		setupProjection(2, world.xy, 5, 8) 	
+# 		set(material.dirtmap, randomDirtmap)  
+# 		projectUV(2)	
+	case geometry.angle(azimuth)>90 && geometry.angle(azimuth)<180 :
+		color(buildingColor) 
+		setupProjection(0, world.zy, 3, 2)
+		set(material.colormap, textureFacade)
+		projectUV(0)
+		setupProjection(1, world.zy, 3, 2) 	
+		set(material.bumpmap, bumpmapFacade)  
+		projectUV(1)	
+# 		setupProjection(2, world.zy, 5, 8) 	
+# 		set(material.dirtmap, randomDirtmap)  
+# 		projectUV(2)
+	case geometry.angle(azimuth)>270 && geometry.angle(azimuth)<360 :
+		color(buildingColor) 
+		setupProjection(0, world.zy, 3, 2)
+		set(material.colormap, textureFacade)
+		projectUV(0)
+		setupProjection(1, world.zy, 3, 2) 	
+		set(material.bumpmap, bumpmapFacade)  
+		projectUV(1)
+# 		setupProjection(2, world.zy, 5, 8) 	
+# 		set(material.dirtmap, randomDirtmap)  
+# 		projectUV(2)	
+	else : 
+		print("Orientation Error - can't apply texture to plane")
+
+Floor --> color(floorColor)
+
+FloorReversed --> color(floorColor) reverseNormals
+
+# -----------------------------------------------------------------
+# East Wing
+# -----------------------------------------------------------------
+
+#RoofType
+EastWing(row,sideType,buildingType) -->
+	case buildingType == "basic" :
+		case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+			extrude(floorHeight)
+			comp(f){ top : EastWingRoof(sideType,setRoofTypeEast) 
+				   | front : Panels("Walls")
+				   | back : Panels("Walls")
+				   | left : Panels("Walls")
+				   | right : Panels("Walls") }
+		else :
+			extrude(floorHeight)
+			comp(f){ top : EastWingRoof(sideType,setRoofTypeEast) 
+				   | front : Facade
+				   | back : Facade
+				   | left : Facade
+				   | right : EastWingGroundFloorInnerSide(sideType) }
+	case buildingType == "tunnel" :
+		case sideType == "right" :
+			split(z){ smallWingLength : EastWingGroundFloor(row,sideType,buildingType)
+					| ~1 : split(x){ gateLength : extrude(gateHeight) WallSimple
+								   | ~1 : Grass } }
+		else : 
+			case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+				extrude(floorHeight)
+				comp(f){ top : EastWingRoof(sideType,setRoofTypeEast) 
+					   | front : Panels("Walls")
+					   | back : Panels("Walls")
+					   | left : Panels("Walls")
+					   | right : Panels("Walls") }						
+			else :
+				extrude(floorHeight)
+				comp(f){ top : EastWingRoof(sideType,setRoofTypeEast) 
+					   | front : Facade
+					   | back : Facade
+					   | left : Facade
+					   | right : EastWingGroundFloorInnerSide("right") }		
+	case buildingType == "l-annex" : 
+		case sideType == "left" :
+			case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+				extrude(floorHeight)
+				comp(f){ top : EastWingRoof(sideType,setRoofTypeEast) 
+					   | front : Panels("Walls")
+					   | back : Panels("Walls")
+					   | left : Panels("Walls")
+					   | right : Panels("Walls") }				
+			else :
+				extrude(floorHeight)
+				comp(f){ top : EastWingRoof(sideType,setRoofTypeEast) 
+					   | front : Facade
+					   | back : Facade
+					   | left : Facade
+					   | right : EastWingGroundFloorInnerSide("right") }
+		else :
+			Grass
+			shapeL(lShapeLength,lShapeDepth){ shape : mirror(false,false,true) 
+													  EastWingGroundFloor(row,sideType,buildingType)
+											| remainder : Grass }				
+	case buildingType == "l-shaped" :
+		case sideType == "right" :
+			extrude(2*floorHeight)
+			split(y){ floorHeight : EastWingGroundFloor(row,sideType,buildingType)
+					| floorHeight : EastWingFirstFloor(row,sideType,buildingType) }
+		else :
+			case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+				extrude(floorHeight)
+				comp(f){ top : WestWingRoof(sideType,setRoofTypeEast) 
+					   | front : Panels("Walls")
+					   | back : Panels("Walls")
+					   | left : Panels("Walls")
+					   | right : Panels("Walls") }					 
+			else :
+				extrude(floorHeight)
+				comp(f){ top : WestWingRoof(sideType,setRoofTypeEast) 
+					   | front : Facade
+					   | back : Facade
+					   | left : Facade
+					   | right : EastWingGroundFloorInnerSide(sideType) }
+	else :
+		print("Error - wrong buildingType in EastWing rule")
+
+EastWingGroundFloor(row,sideType,buildingType) -->
+	case buildingType == "l-shaped" :
+		case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+			comp(f){ front : Panels("Walls")
+				   | back : Panels("Walls")
+				   | left : Panels("Walls")
+				   | right : Panels("Walls") }			
+		else :
+			comp(f){ front : Facade
+				   | back : Facade
+				   | left : Facade
+				   | right : EastWingGroundFloorInnerSide("right") }		
+	else :
+		case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+			extrude(floorHeight)
+			comp(f){ top : EastWingRoof(sideType,setRoofTypeEast) 
+				   | front : Panels("Walls")
+				   | back : Panels("Walls")
+				   | left : Panels("Walls")
+				   | right : Panels("Walls") }		
+		else :
+			extrude(floorHeight)
+			comp(f){ top : EastWingRoof(sideType,setRoofTypeEast) 
+				   | front : Facade
+				   | back : Facade
+				   | left : Facade
+				   | right : EastWingGroundFloorInnerSide("left") }
+		   
+EastWingGroundFloorInnerSide(sideType) -->
+	case sideType == "left" :
+		split(x){ ~1 : Facade
+				| singleDoorsWidth : split(y){ singleDoorHeight : DoorsBuilding
+											 | ~1 : Facade }
+				| ~1 : Facade
+				| {~1 : Facade
+				  | normalWindowWidth : split(y){ 1.3 : Facade
+												| normalWindowHeight : WindowAsset
+												| ~1 : Facade }
+				  | ~1 : Facade }* }
+	case sideType == "right" :
+		split(x){ ~1 : Facade
+				| singleDoorsWidth : split(y){ singleDoorHeight : DoorsBuilding
+											 | ~1 : Facade }
+				| 1 : Facade }	
+	else : 
+		print("Index Error - wrong sideType attribute in EastWingGroundFloorInnerSide rule")
+
+EastWingFirstFloor(row,sideType,buildingType) -->
+	case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+		comp(f){ top : NIL
+			   | front : Panels("Walls")
+			   | back : Panels("Walls")
+			   | left : Panels("Walls")
+			   | right : Panels("Walls") }	
+	else :
+		comp(f){ top : NIL
+			   | front : Facade
+			   | back : WingWindows
+			   | left : WingWindows
+			   | right : WingWindows }
+		   	
+# -----------------------------------------------------------------
+# West Wing
+# -----------------------------------------------------------------	
+
+#RoofType
+WestWing(row,sideType,buildingType) -->
+	case buildingType == "basic" :
+		case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+			extrude(floorHeight)
+			comp(f){ top : WestWingRoof(sideType,setRoofTypeWest)
+				   | front : Panels("Walls")
+				   | back : Panels("Walls")
+				   | left : Panels("Walls")
+				   | right : Panels("Walls") }		
+		else :	
+			extrude(floorHeight)
+			comp(f){ top : WestWingRoof(sideType,setRoofTypeWest)
+				   | front : Facade
+				   | back : Facade
+				   | left : WestWingGroundFloorInnerSide(sideType)
+				   | right : Facade }
+	case buildingType == "tunnel" :
+		case sideType == "left" : 
+			split(z){ smallWingLength : WestWingGroundFloor(row,sideType,buildingType)
+					| ~1 : split(x){ ~1 : Grass
+								   | gateLength : extrude(gateHeight) WallSimple } }
+		else :
+			case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+				extrude(floorHeight)
+				comp(f){ top : WestWingRoof(sideType,setRoofTypeWest)
+					   | front : Panels("Walls")
+					   | back : Panels("Walls")
+					   | left : Panels("Walls")
+					   | right : Panels("Walls") }				
+			else :
+				extrude(floorHeight)
+				comp(f){ top : WestWingRoof(sideType,setRoofTypeWest)
+					   | front : Facade
+					   | back : Facade
+					   | left : WestWingGroundFloorInnerSide("left")
+					   | right : Facade }		
+	case buildingType == "l-annex" : 
+		case sideType == "left" :
+			Grass
+			shapeL(lShapeLength,lShapeDepth){ shape : mirror(true,false,true) 
+													  WestWingGroundFloor(row,sideType,buildingType)
+											| remainder : Grass }
+		else :
+			case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+				extrude(floorHeight)
+				comp(f){ top : WestWingRoof(sideType,setRoofTypeWest)
+					   | front : Panels("Walls")
+					   | back : Panels("Walls")
+					   | left : Panels("Walls")
+					   | right : Panels("Walls") }			
+			else :
+				extrude(floorHeight)
+				comp(f){ top : WestWingRoof(sideType,setRoofTypeWest)
+					   | front : Facade
+					   | back : Facade
+					   | left : WestWingGroundFloorInnerSide("left")
+					   | right : Facade }			
+	case buildingType == "l-shaped" :
+		case sideType == "left" :
+			extrude(2*floorHeight)
+			split(y){ floorHeight : WestWingGroundFloor(row,sideType,buildingType)
+					| floorHeight : WestWingFirstFloor(row,sideType,buildingType) }
+		else : 
+			case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+				extrude(floorHeight)
+				comp(f){ top : EastWingRoof(sideType,setRoofTypeWest)
+					   | front : Panels("Walls")
+					   | back : Panels("Walls")
+					   | left : Panels("Walls")
+					   | right : Panels("Walls") }		
+			else :
+				extrude(floorHeight)
+				comp(f){ top : EastWingRoof(sideType,setRoofTypeWest)
+					   | front : Facade
+					   | back : Facade
+					   | left : WestWingGroundFloorInnerSide(sideType)
+					   | right : Facade }
+	else :
+		print("Error - wrong buildingType in WestWing rule")
+
+WestWingGroundFloor(row,sideType,buildingType) -->
+	case buildingType == "l-shaped" :
+		case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+			comp(f){ front : Panels("Walls")
+				   | back : Panels("Walls")
+				   | left : Panels("Walls")
+				   | right : Panels("Walls") }		
+		else :
+			comp(f){ front : Facade
+				   | back : Facade
+				   | left : WestWingGroundFloorInnerSide("left")
+				   | right : Facade }
+	else:
+		case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+			extrude(floorHeight)
+			comp(f){ top : WestWingRoof(sideType,setRoofTypeWest)
+				   | front : Panels("Walls")
+				   | back : Panels("Walls")
+				   | left : Panels("Walls")
+				   | right : Panels("Walls") }
+		else :
+			extrude(floorHeight)
+			comp(f){ top : WestWingRoof(sideType,setRoofTypeWest)
+				   | front : Facade
+				   | back : Facade
+				   | left : WestWingGroundFloorInnerSide("right")
+				   | right : Facade }
+	
+WestWingGroundFloorInnerSide(sideType) -->
+	case sideType == "left" :
+		split(x){ 1 : Facade
+				| singleDoorsWidth : split(y){ singleDoorHeight : DoorsBuilding
+											 | ~1 : Facade }
+				| ~1 : Facade }
+	case sideType == "right" :
+		split(x){ ~1 : Facade
+				| singleDoorsWidth : split(y){ singleDoorHeight : DoorsBuilding
+											 | ~1 : Facade }
+				| ~1 : Facade
+				| {~1 : Facade
+				  | normalWindowWidth : split(y){ 1.3 : Facade
+												| normalWindowHeight : WindowAsset
+												| ~1 : Facade }
+				  | ~1 : Facade }* }
+	else : 
+		print("Index Error - wrong sideType attribute in WestWingGroundFloorInnerSide rule")
+		
+WestWingFirstFloor(row,sideType,buildingType) -->
+	case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+		comp(f){ top : NIL
+			   | front : Panels("Walls")
+			   | back : Panels("Walls")
+			   | left : Panels("Walls")
+			   | right : Panels("Walls") }
+	else :
+		comp(f){ top : NIL
+			   | front : Facade
+			   | back : WingWindows
+			   | left : WingWindows
+			   | right : WingWindows }
+		   
+# -----------------------------------------------------------------
+# Main Building
+# -----------------------------------------------------------------		
+
+MainBuilding(row,columnIndex,sideType,buildingType) -->
+	extrude(floorHeight*2)
+	split(y){ floorHeight : MainBuildingGroundFloor(row,columnIndex,sideType,buildingType)
+			| floorHeight : MainBuildingFirstFloor(row,columnIndex,sideType,buildingType) }
+			
+MainBuildingGroundFloor(row,columnIndex,sideType,buildingType) -->
+	case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+		comp(f){ top : Floor
+			   | bottom : FloorReversed
+			   | front : Panels("Walls")
+			   | back : Panels("Walls")
+			   | left : Panels("Walls")
+			   | right : Panels("Walls") }	
+	else :
+		comp(f){ top : Floor
+			   | bottom : FloorReversed
+			   | front : MainBuildingFront(0,sideType,buildingType,row)
+			   | back : MainBuildingBack(0,sideType,buildingType)
+			   | left : Facade
+			   | right : Facade }
+
+MainBuildingFirstFloor(row,columnIndex,sideType,buildingType) -->
+	case buildingType == "l-shaped" :
+		case sideType == "left" :
+			case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+				comp(f){ top : MainBuildingRoof
+					   | front : Panels("Walls")
+					   | back : Panels("Walls")
+					   | left : Panels("Walls")
+					   | right : Panels("Walls") }				
+			else :
+				comp(f){ top : MainBuildingRoof
+					   | front : MainBuildingFront(1,sideType,buildingType,row)
+					   | back : MainBuildingBack(1,sideType,buildingType)
+					   | left : Facade
+					   | right : WingWindows }		  
+		else :
+			case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+				comp(f){ top : MainBuildingRoof
+					   | front : Panels("Walls")
+					   | back : Panels("Walls")
+					   | left : Panels("Walls")
+					   | right : Panels("Walls") }
+			else :
+				comp(f){ top : MainBuildingRoof
+					   | front : MainBuildingFront(1,sideType,buildingType,row)
+					   | back : MainBuildingBack(1,sideType,buildingType)
+					   | left : WingWindows
+					   | right : Facade }		
+	else :
+		case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+			comp(f){ top : MainBuildingRoof
+				   | front : Panels("Walls")
+				   | back : Panels("Walls")
+				   | left : Panels("Walls")
+				   | right : Panels("Walls") }	
+		else :
+			comp(f){ top : MainBuildingRoof
+				   | front : MainBuildingFront(1,sideType,buildingType,row)
+				   | back : MainBuildingBack(1,sideType,buildingType)
+				   | left : Facade
+				   | right : Facade }		   
+	
+MainBuildingFront(floorIndex,sideType,buildingType,row) -->
+	case floorIndex == 0 :
+		case buildingType == "tunnel" :
+			case sideType == "left" :
+				split(x){ ~1 : Facade
+						| tunnelWidth : split(y){ ~1 : NIL | 0.30 : color(floorColor) bar. }
+						| gateLength : Facade }
+			else :
+				split(x){ gateLength : Facade
+						| tunnelWidth : split(y){ ~1 : NIL | 0.30 : color(floorColor) bar. }
+						| ~1 : Facade }			
+		else:
+			case row == "north" :
+				33% :
+					split(x){ 1 : Facade
+							| singleDoorsWidth : split(y){ singleDoorHeight : DoorsBuilding
+														 | ~1 : Facade }
+							| ~1 : Facade }
+				33% :
+					split(x){ ~1 : Facade
+							| singleDoorsWidth : split(y){ singleDoorHeight : DoorsBuilding
+														 | ~1 : Facade }
+							| ~1 : Facade }					
+				else : 
+					split(x){ ~1 : Facade
+							| singleDoorsWidth : split(y){ singleDoorHeight : DoorsBuilding
+														 | ~1 : Facade }
+							| 1 : Facade }
+			else :
+				Facade
+	case floorIndex == 1 :
+		split(x){ ~1 : Facade
+				| normalWindowWidth : split(y){ 1.3 : Facade
+											  | normalWindowHeight : WindowAsset
+											  | ~1 : Facade }
+				| ~1 : Facade }*	
+	else :
+		print("Index Error - wrong floorIndex in MainBuildingFront rule")
+
+MainBuildingBack(floorIndex,sideType,buildingType) -->
+ 	case sideType == "left" :
+ 		case floorIndex == 0 :
+	 		split(x){ bigWingWidth : MainBuildingInnerWallSide(floorIndex,sideType,buildingType)
+ 					| ~innerLotWidth : split(y){ ~1 : Porch(floorIndex,sideType,buildingType)
+ 											   | 0.15 : Floor }
+ 					| smallWingWidth : Facade }
+ 		else :
+ 			case buildingType == "l-shaped" :
+				split(x){ bigWingWidth : Facade
+						| ~innerLotWidth : split(y){ 0.15 : Floor	
+												   | ~1 : Porch(floorIndex,sideType,buildingType) }
+						| smallWingWidth : MainBuildingInnerWallSide(floorIndex,sideType,buildingType) } 			
+ 			else : 
+		 		split(x){ bigWingWidth : MainBuildingInnerWallSide(floorIndex,sideType,buildingType)
+ 						| ~innerLotWidth : split(y){ 0.15 : Floor	
+												   | ~1 : Porch(floorIndex,sideType,buildingType) }
+ 						| smallWingWidth : MainBuildingInnerWallRoofSide(floorIndex,sideType,buildingType) }			
+ 	case sideType == "right" :
+ 		case floorIndex == 0 :
+			split(x){ smallWingWidth : Facade
+					| ~innerLotWidth : split(y){ ~1 : Porch(floorIndex,sideType,buildingType)
+ 											   | 0.15 : Floor }
+					| bigWingWidth : MainBuildingInnerWallSide(floorIndex,sideType,buildingType) }
+		else : 
+			case buildingType == "l-shaped" :
+		 		split(x){ smallWingWidth : MainBuildingInnerWallSide(floorIndex,sideType,buildingType)
+ 						| ~innerLotWidth : split(y){ 0.15 : Floor	
+												   | ~1 : Porch(floorIndex,sideType,buildingType) }
+ 						| bigWingWidth : Facade }	
+			else :
+				split(x){ smallWingWidth : MainBuildingInnerWallRoofSide(floorIndex,sideType,buildingType)
+						| ~innerLotWidth : split(y){ 0.15 : Floor	
+												   | ~1 : Porch(floorIndex,sideType,buildingType) }
+						| bigWingWidth : MainBuildingInnerWallSide(floorIndex,sideType,buildingType) }				
+ 	else :
+ 		print("Index Error - wrong sideType in MainBuildingBack rule")
+
+MainBuildingInnerWallSide(floorIndex,sideType,buildingType) -->
+	case floorIndex == 0 :
+		case buildingType == "basic" || buildingType == "l-annex" :
+			Facade
+		case buildingType == "tunnel" :
+			case sideType == "left" :
+				split(x){ gateLength : Facade
+						| tunnelWidth : split(y){ ~1 : Tunnel | 0.30 : color(floorColor) bar. }
+						| ~1 : Facade }
+			else : 
+				split(x){ ~1 : Facade
+						| tunnelWidth : split(y){ ~1 : Tunnel | 0.30 : color(floorColor) bar. }
+						| gateLength : Facade }
+		else : print("nie tu")
+	case floorIndex == 1 :
+		case buildingType == "basic" || buildingType == "l-annex" || buildingType == "l-shaped" :
+			split(x){ ~1 : Facade
+					| singleDoorsWidth : split(y){ troughHeight : Facade
+												 | singleDoorHeight : DoorsBuilding
+												 | ~1 : Facade }
+					| ~1 : Facade }		
+		case buildingType == "tunnel" :
+			split(x){ ~1 : Facade
+					| normalWindowWidth : split(y){ 1.3 : Facade
+												  | normalWindowHeight : WindowAsset
+												  | ~1 : Facade }
+					| 2 : Facade
+					| normalWindowWidth : split(y){ 1.3 : Facade
+												  | normalWindowHeight : WindowAsset
+												  | ~1 : Facade }
+					| ~1 : Facade}
+		else : print("nie tu")
+	else :
+		print("Index Error - wrong floorIndex in MainBuildingInnerWallSide rule")
+
+MainBuildingInnerWallRoofSide(floorIndex,sideType,buildingType) -->
+	split(x){ ~1 : Facade
+			| normalWindowWidth : split(y){ 1.3 : Facade
+										  | normalWindowHeight : WindowAsset
+										  | ~1 : Facade }
+			| ~1 : Facade }
+
+
+# -----------------------------------------------------------------
+# Tunnel
+# -----------------------------------------------------------------	
+
+Tunnel -->
+	extrude(face.normal,-mainBuildingLength)
+	comp(f){ bottom : NIL
+		   | top : NIL
+		   | left : PorchFacade
+		   | right : PorchFacade
+		   | front : NIL
+		   | back : PorchFacade }
+		
+# -----------------------------------------------------------------
+# Porch
+# -----------------------------------------------------------------	
+
+Porch(floorIndex,sideType,buildingType) -->
+	extrude(face.normal, -porchDepth)
+	comp(f){ top : PorchTop
+		   | bottom : NIL
+		   | front : PorchFloor(floorIndex,sideType,buildingType)
+		   | back : PorchCeiling(floorIndex)
+		   | left : PorchFacade
+		   | right : PorchFacade }
+		   
+PorchTop -->
+	split(x){ ~1 : PorchFacade
+			| singleDoorsWidth : split(y) { singleDoorHeight : DoorsBuildingPorch
+										  | ~1 : PorchFacade }
+			| ~1 : PorchFacade }
+			
+PorchCeiling(floorIndex) -->
+	case floorIndex == 0 :
+		FloorReversed
+	else :
+		color(buildingColor) 
+		setupProjection(0, world.xz, 3, 2)
+		set(material.colormap, textureFacade)
+		projectUV(0)
+		setupProjection(1, world.xz, 3, 2) 	
+		set(material.bumpmap, bumpmapFacade)  
+		projectUV(1)
+		reverseNormals	
+			
+PorchFloor(floorIndex,sideType,buildingType) -->
+	case buildingType == "basic" || buildingType == "l-shaped" :
+		case sideType == "left" :
+			split(x){ { ~porchRailingWidth : split(y){ porchPillarWidth : Railing(floorIndex)
+													 | ~1 : NIL }
+					  | porchPillarWidth : split(y){ porchPillarWidth : Pillar
+												   | ~1 : NIL } }*
+					| ~2 : NIL }
+		case sideType == "right" :
+			split(x){ ~2 : NIL
+					| { porchPillarWidth : split(y){ porchPillarWidth : Pillar
+												   | ~1 : NIL } 
+					  | ~porchRailingWidth : split(y){ porchPillarWidth : Railing(floorIndex)
+													 | ~1 : NIL }	}* }
+		else :
+			print("Index Error - wrong sideType in PorchFloor rule")
+	case buildingType == "tunnel" || buildingType == "l-annex" :
+		case sideType == "left" :
+			split(x){ ~2 : NIL
+					| { porchPillarWidth : split(y){ porchPillarWidth : Pillar
+												   | ~1 : NIL } 
+					  | ~porchRailingWidth : split(y){ porchPillarWidth : Railing(floorIndex)
+													 | ~1 : NIL }	}* }
+		case sideType == "right" :
+			split(x){ { ~porchRailingWidth : split(y){ porchPillarWidth : Railing(floorIndex)
+													 | ~1 : NIL }
+					  | porchPillarWidth : split(y){ porchPillarWidth : Pillar
+												   | ~1 : NIL } }*
+					| ~2 : NIL }
+		else :
+			print("Index Error - wrong sideType in PorchFloor rule")	
+	else :
+		print("Error - wrong buildingType in PorchFloor rule")
+		
+Railing(floorIndex) -->
+	case floorIndex == 0 :
+		Floor
+	case floorIndex == 1 :
+		color(floorColor)
+		i(railing1)
+		r(-90,0,0)
+  		s('1,1,porchRailingLength)
+  		center(xz)
+	else : 
+		print("error - wrong floorIndex in porch railing rule")
+
+Pillar -->
+	extrude(-floorHeight+0.15)
+	color(floorColor)
+
+PorchFacade -->
+	case geometry.angle(azimuth)>0 && geometry.angle(azimuth)<90 :
+		color(buildingColor) 
+		setupProjection(0, world.xy, 3, 2)
+		set(material.colormap, textureFacade)
+		projectUV(0)
+		setupProjection(1, world.xy, 3, 2) 	
+		set(material.bumpmap, bumpmapFacade)  
+		projectUV(1)
+		reverseNormals	
+# 		setupProjection(2, world.xy, 5, 8) 	
+# 		set(material.dirtmap, randomDirtmap)  
+# 		projectUV(2)
+	case geometry.angle(azimuth)>180 && geometry.angle(azimuth)<270 :
+		color(buildingColor) 
+		setupProjection(0, world.xy, 3, 2)
+		set(material.colormap, textureFacade)
+		projectUV(0)
+		setupProjection(1, world.xy, 3, 2) 	
+		set(material.bumpmap, bumpmapFacade)  
+		projectUV(1)
+		reverseNormals
+# 		setupProjection(2, world.xy, 5, 8) 	
+# 		set(material.dirtmap, randomDirtmap)  
+# 		projectUV(2)	
+	case geometry.angle(azimuth)>90 && geometry.angle(azimuth)<180 :
+		color(buildingColor) 
+		setupProjection(0, world.zy, 3, 2)
+		set(material.colormap, textureFacade)
+		projectUV(0)
+		setupProjection(1, world.zy, 3, 2) 	
+		set(material.bumpmap, bumpmapFacade)  
+		projectUV(1)
+		reverseNormals	
+# 		setupProjection(2, world.zy, 5, 8) 	
+# 		set(material.dirtmap, randomDirtmap)  
+# 		projectUV(2)
+	case geometry.angle(azimuth)>270 && geometry.angle(azimuth)<360 :
+		color(buildingColor) 
+		setupProjection(0, world.zy, 3, 2)
+		set(material.colormap, textureFacade)
+		projectUV(0)
+		setupProjection(1, world.zy, 3, 2) 	
+		set(material.bumpmap, bumpmapFacade)  
+		projectUV(1)
+		reverseNormals
+# 		setupProjection(2, world.zy, 5, 8) 	
+# 		set(material.dirtmap, randomDirtmap)  
+# 		projectUV(2)	
+	else : 
+		print("Orientation Error - can't apply texture to plane")
+	
+# -----------------------------------------------------------------
+# Inner Lot
+# -----------------------------------------------------------------
+
+InnerLot(row,sideType,buildingType) -->
+	case row == "north" :
+		split(z){ gateLength : extrude(gateHeight) Wall(row,sideType,buildingType)
+				| ~1 : Courtyard(sideType,buildingType) }
+		WingRoofBase(sideType,buildingType)
+	else :
+		split(z){ vestibuleLength : VestibuleLot(row,sideType,buildingType)
+				| ~1 : Courtyard(sideType,buildingType) }
+		WingRoofBase(sideType,buildingType)		
+ 	
+	
+Courtyard(sideType,buildingType) -->
+	case buildingType == "basic" || buildingType == "l-shaped" :
+		case sideType == "left" :
+			split(z){ ~1 : Grass
+					| stairsLotLength : split(x){ ~1 : Grass
+												| stairsLotWidth : StairsLot } }
+		case sideType == "right" :
+			split(z){ ~1 : Grass
+					| stairsLotLength : split(x){ stairsLotWidth : StairsLot 
+												| ~1 : Grass } }
+		else :
+			print("Error Index - wrong sideType attribute in Courtyard rule")
+	case buildingType == "tunnel" || buildingType == "l-annex" :
+		case sideType == "left" :
+			split(z){ ~1 : Grass
+					| stairsLotLength : split(x){ stairsLotWidth : StairsLot 
+												| ~1 : Grass } }
+		case sideType == "right" :
+			split(z){ ~1 : Grass
+					| stairsLotLength : split(x){ ~1 : Grass
+												| stairsLotWidth : StairsLot } }
+		else :
+			print("Error Index - wrong sideType attribute in Courtyard rule")
+	else :
+		print("Error - wrong buildingType value in Courtyard rule")
+
+VestibuleLot(row,sideType,buildingType) -->
+	25% :
+		split(x){ 1.5 : split(z){ gateLength : extrude(gateHeight) WallSimple
+								| ~1 : Grass }
+				| ~1 : Vestibule("right") }
+	25% :
+		split(x){ ~1 : Vestibule("left")
+				| 1.5 : split(z){ gateLength : extrude(gateHeight) WallSimple
+								| ~1 : Grass } }				
+	else :
+		Vestibule("central")
+		
+Vestibule(type) -->
+	case type == "right" :
+		extrude(gateHeight)
+		comp(f){ top : VestibuleRoof
+			   | left : Facade
+			   | right : Facade
+			   | back : split(x){ ~1 : Facade
+			   					| gateWidth : Gate
+			   					| 0.5 : Facade }
+			   | front : Facade }
+	case type == "left" :
+		extrude(gateHeight)
+		comp(f){ top : VestibuleRoof
+			   | left : Facade
+			   | right : Facade
+			   | back : split(x){ 0.5 : Facade
+			   					| gateWidth : Gate
+			   					| ~1 : Facade }
+			   | front : Facade }	
+	else : 
+		extrude(gateHeight)
+		comp(f){ top : VestibuleRoof
+			   | left : Facade
+			   | right : Facade
+			   | back : split(x){ ~1 : Facade
+			   					| gateWidth : Gate
+			   					| ~1 : Facade }
+			   | front : Facade }
+			   
+VestibuleRoof -->
+	case Panels_Generate == "Roofs" || Panels_Generate == "All" :
+		roofShed(byHeight, wallRoofHeight*2, -setPivotIndex1)
+		comp(f){ top : Panels("Roof") | side : Panels("Walls") }
+	else :
+		roofShed(byHeight, wallRoofHeight*2, -setPivotIndex0)
+		comp(f){ top : extrude(wallRoofThickness) RoofTopShedVest | side : Facade }	
+		
+StairsLot -->
+	case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+		Grass
+	else :
+		Grass
+		EnvelopeStairs
+	
+EnvelopeStairs -->
+	extrude(floorHeight)
+	RecursiveSetbacks
+	
+RecursiveSetbacks -->
+	case scope.sy > stairsHeight :
+		split(y){ stairsHeight : Stair | ~1 : Setback}
+	else : 
+		s('1, stairsHeight, stairsLength) Stair
+		
+Setback -->
+	s('1,'1,scope.sz-stairsSetback)
+	t(0,0,stairsSetback) RecursiveSetbacks
+	
+Stair -->
+	i(stair)
+	mirror(true,false,true)
+	s('1,stairsHeight,stairsLength)	
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)
+		
+Grass -->
+	#color("#84c011")
+	#color("#a9a9a9")
+	NIL
+
+# -----------------------------------------------------------------
+# Wall
+# -----------------------------------------------------------------
+
+Wall(row,sideType,buildingType) -->
+	case row == "south" :
+		case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+			comp(f){ front : Panels("Walls")
+				   | top : WallRoof
+				   | back : Panels("Walls")	}
+		else :
+			comp(f){ front : split(x){ ~1 : Facade 
+				   					 | gateWidth : NIL 
+				   					 | ~1 : Facade}
+				   | top : WallRoof
+				   | back : split(x){ ~1 : Facade 
+				   					| gateWidth : Gate 
+		   							| ~1 : Facade} }
+	else :
+		case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+			comp(f){ front : Panels("Walls")
+				   | top : WallRoof
+				   | back : Panels("Walls")	}
+		else :
+			comp(f){ front : Facade
+				   | top : WallRoof
+				   | back : Facade }
+		   					
+WallSimple -->
+	case Panels_Generate == "On Sides" || Panels_Generate == "All" :
+		comp(f){ left : Panels("Walls")
+			   | top : WallRoof
+			   | right : Panels("Walls")
+			   | front : Panels("Walls")
+			   | back : Panels("Walls") }
+	else :
+		comp(f){ left : Facade
+			   | top : WallRoof
+			   | right : Facade
+			   | front : Facade
+			   | back : Facade }
+
+WallRoof -->
+	case Panels_Generate == "Roofs" || Panels_Generate == "All" :
+		roofGable(byHeight, wallRoofHeight)
+		comp(f){ top : Panels("Roof") | side : Panels("Walls") }
+	else :
+		color(roofColor)
+		roofGable(byHeight, wallRoofHeight)
+		comp(f){ top : extrude(wallRoofThickness) color(roofColor) RoofTop. | side : Facade }
+
+# -----------------------------------------------------------------
+# Roofs
+# -----------------------------------------------------------------
+
+MainBuildingRoof -->
+	case Panels_Generate == "Roofs" || Panels_Generate == "All" :
+		roofGable(byHeight, roofHeight)
+		comp(f){ top : Panels("Roof")
+			   | side : Panels("Walls") 
+ 			   | bottom : RoofBar }	
+	else :
+		case LevelOfDetail == "low" :
+			roofGable(byHeight, roofHeight)
+			comp(f){ top : extrude(roofThickness) RoofTopShed
+				   | side : Facade 
+ 				   | bottom : RoofBar }
+	 	case LevelOfDetail == "high" :
+ 			roofGable(byHeight, roofHeight)
+ 			comp(f){ top : RoofTopShed
+				   | side : Facade 
+ 				   | bottom : RoofBar }
+	 	else :
+ 			print("Error - Wrong detail name in LevelOfDetail attribute")		   	   			  
+
+RoofBar -->
+	case Panels_Generate == "Roofs" || Panels_Generate == "All" :
+		NIL
+	else :
+		case LevelOfDetail == "low" :
+			case scope.sx > 10 : 
+ 				split(y){ ~1 : NIL 
+ 					  	| 0.2 : s('1,'1,'1)
+ 						  	  	t(0,0,-roofHeight) 
+ 		   					  	color(roofColor)
+ 		   					  	extrude(-0.2) 
+ 		   					  	roofBot.
+	 		   		  	| ~1 : NIL }
+		 	else :
+ 			 	split(x){ ~1 : NIL 
+ 					  	| 0.2 : s('1,'1,'1)
+ 	  					  	  	t(0,0,-roofHeight) 
+ 	 						  	color(roofColor)
+ 	  						  	extrude(-0.2) 
+ 	  					  		roofBot.
+	 	  			  	| ~1 : NIL }	
+		case LevelOfDetail == "high" :
+			case scope.sx > 10 : 
+ 				split(y){ ~1 : NIL 
+ 					  	| 0.2 : s('1,'1,'1)
+ 	  					  	  	 t(0,0,-roofHeight) 
+ 	 						  	 color(roofColor)
+ 	  					  		 roofBarLOD
+	 		   		  	| ~1 : NIL }
+		 	else :
+ 			 	split(x){ ~1 : NIL 
+ 					  	| 0.2 : s('1,'1,'1)
+ 	  					  	  	 t(0,0,-roofHeight) 
+ 	 						  	 color(roofColor)
+ 	 						  	 roofBarLOD
+	 	  			  	| ~1 : NIL }
+ 		else :
+ 			print("Error - Wrong detail name in LevelOfDetail attribute")	
+
+roofBarLOD -->
+	alignScopeToGeometry(yUp,0,0)
+	alignScopeToAxes(y)
+	setPivot(xyz, setPivotIndex3)
+	i(tileTop)
+	mirror(false,false,false)
+	t(0,0,0)
+	s('1,0.15,'1)
+	set(material.specular.r, 0)
+	set(material.specular.g, 0)
+	set(material.specular.b, 0)
+	
+#Można dorobić żeby nie było krawędzi przy ścianie głównego budynku dla korytka
+#Dodać schodek dla korytka		   
+EastWingRoof(sideType,RoofType) -->
+	case sideType == "left" :
+		case Panels_Generate == "Roofs" || Panels_Generate == "All" :
+			roofShed(byHeight, 0.6*roofHeight, -setPivotIndex1)
+			comp(f){ top : Panels("Roof")
+				   | side : Panels("Walls") }
+		else :
+			case LevelOfDetail == "low" :
+				roofShed(byHeight, 0.6*roofHeight, -setPivotIndex1)
+				comp(f){ top : extrude(roofThickness) RoofTopShed
+					   | side : Facade }
+			case LevelOfDetail == "high" :
+				roofShed(byHeight, 0.6*roofHeight, -setPivotIndex1)
+				comp(f){ top : RoofTopShed
+					   | side : Facade }			
+	 		else :
+ 				print("Error - Wrong detail name in LevelOfDetail attribute")
+	case sideType == "right" :
+		case Panels_Generate == "Roofs" || Panels_Generate == "All" :
+			Panels("Roof")
+		else :
+			offset(-troughWidth)
+			comp(f){ inside : RoofTopTroughTexture
+				   | border : extrude(troughHeight) 
+				   			  comp(f){ top : RoofTopTroughTexture
+						   	  		 | side : Facade } }
+	else :
+		print("Index Error - wrong sideType attribute in EastWingRoof rule")
+
+#Można dorobić żeby nie było krawędzi przy ścianie głównego budynku dla korytka
+#Dodać schodek dla korytka
+WestWingRoof(sideType,RoofType) -->
+	case sideType =="left" :
+		case Panels_Generate == "Roofs" || Panels_Generate == "All" :
+			Panels("Roof")
+		else :
+			offset(-troughWidth)
+			comp(f){ inside : RoofTopTroughTexture
+				   | border : extrude(troughHeight) 
+				   			  comp(f){ top : RoofTopTroughTexture
+						   	  		 | side : Facade } }
+	case sideType == "right" :
+		case Panels_Generate == "Roofs" || Panels_Generate == "All" :
+			roofShed(byHeight, 0.6*roofHeight, -setPivotIndex3)
+			comp(f){ top : Panels("Roof")
+				   | side : Panels("Walls") }
+		else :
+			case LevelOfDetail == "low" :
+				roofShed(byHeight, 0.6*roofHeight, -setPivotIndex3)
+				comp(f){ top : extrude(roofThickness) RoofTopShed
+					   | side : Facade }
+			case LevelOfDetail == "high" :
+				roofShed(byHeight, 0.6*roofHeight, -setPivotIndex3)
+				comp(f){ top : RoofTopShed
+					   | side : Facade }		
+ 			else :
+ 				print("Error - Wrong detail name in LevelOfDetail attribute")			   
+	else :
+		print("Index Error - wrong sideType attribute in WestWingRoof rule")
+
+WingRoofHigh(sideType,buildingType) -->
+	case sideType == "right" :
+		case buildingType == "l-shaped" :
+			case Panels_Generate == "Roofs" || Panels_Generate == "All" :
+				roofShed(byHeight, roofHeight, -setPivotIndex1)
+				comp(f){ top : Panels("Roof")
+					   | side : Panels("Walls") }
+			else :
+				case LevelOfDetail == "low" :
+					roofShed(byHeight, roofHeight, -setPivotIndex1)
+					comp(f){ top : extrude(roofThickness) RoofTopShed
+						   | side : Facade }
+				case LevelOfDetail == "high" :
+					roofShed(byHeight, roofHeight, -setPivotIndex1)
+					comp(f){ top : RoofTopShed
+						   | side : Facade }				
+	 			else :
+ 					print("Error - Wrong detail name in LevelOfDetail attribute")
+		else :
+			case Panels_Generate == "Roofs" || Panels_Generate == "All" :
+				roofShed(byHeight, 0.6*roofHeight, -setPivotIndex1)
+				comp(f){ top : Panels("Roof")
+					   | side : Panels("Walls") }			
+			else :
+				roofShed(byHeight, 0.6*roofHeight, -setPivotIndex1)
+				comp(f){ top : extrude(roofThickness) RoofTopShed
+					   | side : Facade }	
+	else :
+		case buildingType == "l-shaped" :
+			case Panels_Generate == "Roofs" || Panels_Generate == "All" :
+				roofShed(byHeight, roofHeight, -setPivotIndex3)
+				comp(f){ top : Panels("Roof")
+					   | side : Panels("Walls") }			
+			else :
+				case LevelOfDetail == "low" :
+					roofShed(byHeight, roofHeight, -setPivotIndex3)
+					comp(f){ top : extrude(roofThickness) RoofTopShed
+						   | side : Facade }
+				case LevelOfDetail == "high" :
+					roofShed(byHeight, roofHeight, -setPivotIndex3)
+					comp(f){ top : RoofTopShed
+						   | side : Facade }			
+	 			else :
+ 					print("Error - Wrong detail name in LevelOfDetail attribute")		   
+		else : 
+			roofShed(byHeight, 0.6*roofHeight, -setPivotIndex3)
+				comp(f){ top : extrude(roofThickness) RoofTopShed
+					   | side : Facade }			
+RoofTopShed -->
+	case Panels_Generate == "Roofs" || Panels_Generate == "All" :
+		comp(f){ top : Panels("Roof")
+			   | side : Panels("Walls") } 
+	else :
+		case LevelOfDetail == "low" :
+			comp(f){ top : setupProjection(0, scope.xy, roofTextureWidth, roofTextureLength)
+						   set(material.colormap, slatesTexture)
+						   projectUV(0) RoofTop.
+				   | side : color(roofColor) RoofSide. } 
+		case LevelOfDetail == "high" :
+			splitTiles
+	 	else :
+ 			print("Error - Wrong detail name in LevelOfDetail attribute")
+
+RoofTopTroughTexture -->
+	color(buildingColor) 
+	setupProjection(0, world.xz, roofTroughTextureWidth, roofTroughTextureLength)
+	set(material.colormap, flatRoofTexture)
+	projectUV(0)
+	setupProjection(1, world.xz, roofTextureWidth, roofTextureLength) 	
+	set(material.bumpmap, bumpmapFacade)  
+	projectUV(1)
+
+splitTiles --> //Rule for splitting surface of the roof for placing of each indyvidual tile
+	split(x){ 0.55 : split(y){ 0.59 : Tiles }* }*
+		
+Tiles -->
+	alignScopeToGeometry(yUp,0,0)
+	i(tile)
+	s('1.14,'1,'1)
+	set(material.specular.r, 0)
+	set(material.specular.g, 0)
+	set(material.specular.b, 0)	
+
+#=======================================
+RoofTopShedVest -->
+	case Panels_Generate == "Roofs" || Panels_Generate == "All" :
+		comp(f){ top : Panels("Roof")
+			   | side : Panels("Walls") } 
+	else :
+		case LevelOfDetail == "low" :
+			comp(f){ top : setupProjection(0, scope.xy, roofTextureWidth, roofTextureLength)
+						   set(material.colormap, slatesTexture)
+						   projectUV(0) RoofTop.
+				   | side : color(roofColor) RoofSide. } 
+		case LevelOfDetail == "high" :
+			splitTilesVest
+	 	else :
+ 			print("Error - Wrong detail name in LevelOfDetail attribute")
+ 
+splitTilesVest --> //Rule for splitting surface of the roof for placing of each indyvidual tile
+	split(z){ 0.55 : split(x){ 0.59 : TilesVest }* }*
+	
+TilesVest -->
+	alignScopeToGeometry(yUp,0,0)
+	i(tile)
+	s('1.14,'1,'1)
+ 	mirror(false,true,true)
+	set(material.specular.r, 0)
+	set(material.specular.g, 0)
+	set(material.specular.b, 0)
+#=======================================
+
+WingRoofBase(sideType,buildingType) --> 
+	case buildingType == "l-shaped" :
+		case sideType == "left" :
+			t(0,2*floorHeight,0)
+			extrude(roofHeight)
+			comp(f){ right : RoofBaseTrim(sideType,buildingType,0,0,180) }
+		else : 
+			t(0,2*floorHeight,0)
+			extrude(roofHeight)
+			comp(f){ left : RoofBaseTrim(sideType,buildingType,180,0,0) }
+	else :
+		NIL
+	
+RoofBaseTrim(sideType,buildingType,rotScopeX,rotScopeY,rotScopeZ) -->
+	extrude(bigWingWidth)
+	rotateScope(rotScopeX,rotScopeY,rotScopeZ)
+	s(scope.sx+mainBuildingLength/2,'1,'1)
+	trim
+	t(0,0,-roofHeight)
+	comp(f){ front : WingRoofHigh(sideType,buildingType) }
+	
+# -----------------------------------------------------------------
+# Assets Placing
+# -----------------------------------------------------------------
+
+# Ogarnąć wymiarowanie drzwi i okien, żeby było sparametryzowane
+Gate -->
+	25%:
+		i(doubleDoorPartopen1)
+		mirror(true,false,true)
+		t(-0.2,0,-0.3)
+		s('1.2,'1,'1)
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)	
+	25%:
+		i(doubleDoorPillar)
+		mirror(true,false,true)
+		t(-0.2,0,-0.3)
+		s('1.2,'1,'1)
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)
+	25%:
+		case LevelOfDetail == "high" :
+			i(doubleDoorRoof)
+			mirror(true,false,true)
+			t(-0.49,0,-0.3)
+			s('1.45,'1.05,'1)
+			set(material.specular.r, 0)
+			set(material.specular.g, 0)
+			set(material.specular.b, 0)
+		else :
+			i(doubleDoor)
+			mirror(true,false,true)
+			t(-0.2,0,-0.3)
+			s('1.2,'1,'1)
+			set(material.specular.r, 0)
+			set(material.specular.g, 0)
+			set(material.specular.b, 0)
+	else:
+		i(doubleDoor)
+		mirror(true,false,true)
+		t(-0.2,0,-0.3)
+		s('1.2,'1,'1)
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)
+		
+WindowAsset -->
+	6%: 
+		split(x){ ~1 : Facade
+				| normalWindowWidth/2 : WindowGap
+				| ~1 : Facade }
+	10%:
+		i(window)
+		mirror(true,false,true)
+		s('1.31,'1,'1)
+		t(-0.12,0,-0.15)
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)
+	12%:
+		i(windowShutterPartopen1)
+		mirror(true,false,true)
+		s('1.31,'1,'1)
+		t(-0.12,0,-0.15)
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)
+	12%:
+		i(windowShutterPartopen2)
+		mirror(true,false,true)
+		s('1.31,'1,'1)
+		t(-0.12,0,-0.15)
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)
+	12%:
+		i(windowSmallTruss)
+		mirror(true,false,true)
+		s('1.31,'1,'1)
+		t(-0.12,0,-0.15)
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)
+	12%:
+		i(windowStoneTruss)
+		mirror(true,false,true)
+		s('1.31,'1,'1)
+		t(-0.12,0,-0.15)
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)
+	12%:
+		i(windowTruss)
+		mirror(true,false,true)
+		s('1.31,'1,'1)
+		t(-0.12,0,-0.15)
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)
+	12%: 
+	    i(windowPartOpen)
+		mirror(true,false,true)
+		s('1.31,'1,'1)
+		t(-0.12,0,-0.15)
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)
+	else: 
+		split(x){ ~1 : Facade
+				| smallWindowWidth : split(y){ ~1 : Facade
+											 | smallWidnowHeight : WindowAssetOpen
+											 | ~1 : Facade }
+				| ~1 : Facade }		
+
+WingWindows -->
+	split(x){ ~1 : Facade
+			| normalWindowWidth : split(y){ 1.3 : Facade
+										  | normalWindowHeight : WindowAsset
+										  | ~1 : Facade }
+			| ~1 : Facade
+			| normalWindowWidth : split(y){ 1.3 : Facade
+										  | normalWindowHeight : WindowAsset
+										  | ~1 : Facade }
+			| ~1 : Facade }	
+			
+WindowGap -->
+	extrude(face.normal,-0.3)
+	comp(f){ bottom : NIL
+		   | top : color(0,0,0) Blank.
+		   | left : PorchFacade
+		   | right : PorchFacade
+		   | front : PorchFacade
+		   | back : PorchFacade }
+
+WindowAssetOpen -->
+    i(windowOpen)
+	mirror(true,false,true)
+	s('1.4,'1,'1)
+	t(-0.12,0,-0.22)
+	set(material.specular.r, 0)
+	set(material.specular.g, 0)
+	set(material.specular.b, 0)
+		
+DoorsBuilding -->
+	case LevelOfDetail == "low" :
+		50%:
+			i(doorSinglePartopen1)
+			mirror(true,false,true)
+			s('1.3,'1,'1)
+			t(-0.225,0,-0.25)
+			set(material.specular.r, 0)
+			set(material.specular.g, 0)
+			set(material.specular.b, 0)
+		else:
+			i(singleDoor)
+			mirror(true,false,true)
+			s('1.3,'1,'1)
+			t(-0.225,0,-0.25)
+			set(material.specular.r, 0)
+			set(material.specular.g, 0)
+			set(material.specular.b, 0)	
+	case LevelOfDetail == "high" :
+		40%:
+			i(doorSinglePartopen1)
+			mirror(true,false,true)
+			s('1.3,'1,'1)
+			t(-0.225,0,-0.25)
+			set(material.specular.r, 0)
+			set(material.specular.g, 0)
+			set(material.specular.b, 0)
+		20%:
+			i(doorSingleRoof)
+			mirror(true,false,false)
+			s('2,'1.35,'1)
+			t(-0.75,0,-0.20)
+			set(material.specular.r, 0)
+			set(material.specular.g, 0)
+			set(material.specular.b, 0)
+		else:
+			i(singleDoor)
+			mirror(true,false,true)
+			s('1.3,'1,'1)
+			t(-0.225,0,-0.25)
+			set(material.specular.r, 0)
+			set(material.specular.g, 0)
+			set(material.specular.b, 0)
+	else : 
+		print("Error - Wrong detail name in LevelOfDetail attribute")
+	
+DoorsBuildingPorch -->
+	50%:
+		i(doorPlainPartopen1)
+		mirror(true,false,false)
+		s('1.3,'1,'1)
+		t(-0.225,0,-0.05)
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)
+	else:
+		i(plainDoor)
+		mirror(true,false,false)
+		s('1.3,'1,'1)
+		t(-0.225,0,-0.05)
+		set(material.specular.r, 0)
+		set(material.specular.g, 0)
+		set(material.specular.b, 0)
+		
+		
+//VEGETATION
+LotVegetation--> 
+	alignScopeToAxes (y)
+	TreeDensity
+	
+	
+TreeDensity--> 	
+	70% : 
+		Garden
+		
+	else : 
+		Garden
+		offset (-1, inside)
+		Trees
+		
+const meadow_tex = "assets/garden/meadow2.jpg"
+Garden --> 
+	setupProjection (0, scope.xz, 25, 25, rand(10), rand(5), 0)
+	texture (meadow_tex)	
+	projectUV (0)
+		
+		
+Trees --> 
+	scatter(surface, TreesNumber, gaussian) { Tree }
+
+
+//Plants (from Esri/LumenRT vegetation library):
+const Buckthorn = "assets/Plants/Mediterranean_Buckthorn/Mediterranean_Buckthorn_Model_0.obj"
+const Laurel = "assets/Plants/Bay_Laurel/Bay_Laurel_Model_0.obj"
+const Ficus = "assets/Plants/Ficus/Ficus_Model_0.obj"
+
+Tree -->
+	case LOD > 0:
+		30% : 
+			alignScopeToAxes (y)
+			s(7,rand(TreeHeightMin,TreeHeightMax), 7) i(Buckthorn) 
+			t (0, -1, 0)
+			r(0,rand(360),0) 
+			
+		30% : 
+			alignScopeToAxes (y)
+			s(5,rand(TreeHeightMin,TreeHeightMax), 5) i(Laurel)
+			t (0, -1, 0)
+			r(0,rand(360),0) 
+			
+		else : 
+			alignScopeToAxes (y)
+			s(5,rand(TreeHeightMin,TreeHeightMax), 5) i(Ficus)
+			t (0, -1, 0)
+			r(0,rand(360),0) 
+		
+	else:
+		alignScopeToAxes (y)
+		s(5,rand(TreeHeightMin,TreeHeightMax), 5) i("assets/Plants/Ficus/Ficus_Fan_0.obj") 
+		r(0,rand(360),0) 

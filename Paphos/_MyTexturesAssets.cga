@@ -1,0 +1,248 @@
+/**
+ * File:    TexturesAssets.cga
+ * Created: 13 Feb 2014 14:38:55 GMT
+ * Updated: June 2017
+ * Author:  Marie Saldana
+ */
+
+version "2017.0"
+
+///////REFERENCED ATTRIBUTES
+@Group("General")@Range("HIGH","MED","LOW")
+attr LOD				= "LOW"
+const highLOD 			= LOD == "HIGH"
+const medLOD			= LOD == "MED"
+const lowLOD			= LOD == "LOW"
+
+@Group("General")@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+attr order_						= "DORIC"
+	const tuscan					= order_ == "TUSCAN"
+	const doric						= order_ == "DORIC"
+	const ionic						= order_ == "IONIC"
+	const corinthian				= order_ == "CORINTHIAN"
+
+//////TEXTURES
+const test 					= "builtin:uvtest.png"
+const floorTex 				= fileRandom("floor/color/tile.*.jpg")			
+const roofTex 				= fileRandom("roof/textures/color/roof.*.jpg")
+const wallTex 				= fileRandom("wall/color/dirtmap.*.jpg")
+const solidWallTex			= "wall/color/dirtmap.01.jpg"
+const baseTex 				= fileRandom("wall/base_color/dirtmap.*.jpg")
+const woodTex 				= fileRandom("doors/textures/color/wood.*.jpg")
+const blockTex				= fileRandom("entablature/textures/color/block.*.jpg")
+const tallBlockTex			= fileRandom("entablature/textures/color/tallBlock.*.jpg")
+//const sandTex				= "ground/ground_2.jpg"
+const pavementTex			= fileRandom("ground/color/pavers.*.jpg")
+//const waterTex				= "ground/water.png"
+const groundTex				= fileRandom("ground/color/ground.*.jpg")
+const grassTex				= "ground/color/ground.03.jpg"
+//const groundTexBW			= fileRandom("ground/bw/ground_*_BW.jpg")
+//const greenGroundTex		= fileRandom("green/green_0*.jpg")
+const streetTex				= "streets/color/basaltpavers.jpg"
+const curbTex				= "streets/color/basaltpavers.jpg"
+const sidewalkTex			= fileRandom("ground/color/pavers.*.jpg")
+
+///////ASSETS
+///CELLA
+const doorAsset 			= 	case highLOD ||medLOD: "doors/models/door.obj" 
+								else: "builtin:cube"
+const doorCorniceAsset 		=	case highLOD ||medLOD:"doors/models/door_cornice.obj" 
+								else: "builtin:cube"
+const topdoorAsset 			= 	case highLOD ||medLOD:"doors/models/door_window.obj" 
+								else: "builtin:cube"
+const railingAsset			= 	33%:"doors/models/railing.obj"33%:"doors/models/railing2.obj"else:"doors/models/railing3.obj"
+
+///ROOF
+const antefixAsset 			= 	case highLOD || medLOD: "roof/models/antefix.obj" 
+								else: "builtin:cube"
+const acroterionAsset 		= 	case highLOD || medLOD: "roof/models/acroterion.obj" 
+								else: "builtin:cube"
+const roofBrickBottomAsset	= 	"roof/models/roofbrick_bottom.obj"
+const roofBrickRound 		= 	"roof/models/roofbrick_round.obj"
+
+///PEDIMENT
+const geisonAsset 			= 	case highLOD: "entablature/models/geison.obj" 						
+								else: "builtin:cube"
+const simaAsset 			= 	case highLOD: "entablature/models/sima.obj" 								
+								else: "builtin:cube"
+///ENTABLATURE
+const architraveAsset 		= 	case highLOD || medLOD: "entablature/models/architrave.obj" 					
+								else: "builtin:cube"
+const friezeAsset 			= 	case highLOD || medLOD: "entablature/models/frieze.obj"
+								else: "builtin:cube"
+const mutuleAsset 			= 	case highLOD : "entablature/models/mutule.obj"
+								else: "builtin:cube"
+const triglyphAsset 		= 	case highLOD || medLOD: "entablature/models/triglyph.obj" 	
+								else: "builtin:cube"
+const guttaeAsset 			= 	case highLOD || medLOD :"entablature/models/guttae.obj" 
+								else: "builtin:cube"
+const corniceAsset			= 	case highLOD && corinthian || medLOD && corinthian: "entablature/models/cornice.obj"
+								else: "builtin:cube"
+
+///COLUMNS
+const flutedShaftAsset		= 	case highLOD: "columns/models/shaft_fluted_highLOD.obj"					
+								case medLOD: "columns/models/shaft_fluted_medLOD.obj"  
+								else: "columns/models/shaft_smooth_lowLOD.obj" 
+const smoothShaftAsset		= 	case highLOD: "columns/models/shaft_smooth_highLOD.obj"					
+								case medLOD: "columns/models/shaft_smooth_medLOD.obj"  
+								else: "columns/models/shaft_smooth_lowLOD.obj" 
+const echinusAsset 			= 	case highLOD || medLOD: "columns/models/echinus.obj" 
+								else: "columns/models/echinus_lowLOD.obj"
+const abacusAsset 			= 	case highLOD || medLOD: "columns/models/abacus.obj" 
+								else: "builtin:cube"
+const capitalAsset	= 			case tuscan && highLOD: "columns/models/capital_tuscan_highLOD.obj"	
+								case tuscan && medLOD: "columns/models/capital_tuscan_medLOD.obj"
+								case ionic && highLOD: "columns/models/capital_ionic_highLOD.obj"	
+								case ionic && medLOD: "columns/models/capital_ionic_medLOD.obj"	
+								case corinthian && highLOD || corinthian && medLOD: "columns/models/capital_corinthian_medLOD.obj"	
+								case corinthian && lowLOD: "columns/models/capital_corinthian_lowLOD.obj"
+# 								case corinthian && lowLOD: "my_models/detale/kolumnada/corinthian_capitel.obj"		
+								else: "builtin:cube"
+const baseAsset				= 	case tuscan && highLOD: "columns/models/base_tuscan_highLOD.obj" 
+								case tuscan && medLOD: "columns/models/base_tuscan_medLOD.obj"
+								case ionic && highLOD: "columns/models/base_ionic_highLOD.obj"
+								case ionic && medLOD: "columns/models/base_ionic_medLOD.obj"		
+								case ionic && lowLOD: "base_ionic_lowLOD.obj"
+								case corinthian && highLOD || corinthian && medLOD: "columns/models/base_corinthian_medLOD.obj"	 
+								
+								else: "builtin:cube"
+const ionicCapitalCorner	= 	case highLOD: "columns/models/capital_ionic_corner_highLOD.obj"	
+								case medLOD: "columns/models/capital_ionic_corner_medLOD.obj"	
+								else: "builtin:cube"
+								
+///////ARCH
+const archAsset				= 	"assets/arch/arch.obj"
+const archModuleAsset		= 	"assets/arch/arch_module.obj"
+
+///////PRIMITIVES
+const arch					= 	"assets/primitives/cylinder_int.obj"	
+const tumulusAsset			=   "assets/primitives/tumulus.obj"
+const pyramidAsset			= 	"assets/primitives/pyramid.obj"
+const obeliskAsset			= 	"assets/primitives/obelisk.obj"
+const cylinderAsset			= 	"assets/primitives/cylinder_vert.obj"
+
+							
+///////START
+
+
+Block(n) -->
+	comp(f) {all: setupProjection(0,scope.xy,'1,'1)
+			projectUV(0)
+			Texture(n)}
+						
+Block(n,x) -->
+	comp(f) {all: setupProjection(0,scope.xy,x,x)
+			projectUV(0)
+			Texture(n)}
+			
+Block(n,x,z) -->
+	comp(f) {all: setupProjection(0,scope.xy,x,z)
+			projectUV(0)
+			Texture(n)}
+			
+Block(n,x,z,k) -->
+	comp(f) {all: setupProjection(0,scope.xy,x,z,k)
+			projectUV(0)
+			Texture(n)}
+
+Block(n,x,z,k,q) -->
+	comp(f) {all: setupProjection(0,scope.xy,x,z,k,q)
+			projectUV(0)
+			Texture(n)}
+
+WholeBlock(n) -->
+	setupProjection(0,scope.xy,'1,'1)
+	projectUV(0)
+	Texture(n)
+	
+WholeBlock(n,x) -->
+	setupProjection(0,scope.xy,x,x)
+	projectUV(0)
+	Texture(n)
+
+WholeBlock(n,x,z) -->
+	setupProjection(0,scope.xy,x,z)
+	projectUV(0)
+	Texture(n)
+	
+WholeBlock(n,x,z,k) -->
+	setupProjection(0,scope.xy,x,z,k)
+	projectUV(0)
+	Texture(n)
+	
+WholeBlock(n,x,z,k,q) -->
+	setupProjection(0,scope.xy,x,z,k,q)
+	projectUV(0)
+	Texture(n)
+	
+GroundBlock(n,x)-->
+	setupProjection(0,scope.xz,x,x)
+	projectUV(0)
+	Texture(n)
+	
+GroundBlock(n,x,k)-->
+	setupProjection(0,scope.xz,x,x,k)
+	projectUV(0)
+	Texture(n)
+	
+
+Texture(n) -->
+	case n == "wall":
+		set(material.name,"wall")
+		texture(wallTex)
+	case n == "solid_wall":
+		set(material.name,"wall")
+		texture(solidWallTex)
+	case n == "base":
+		set(material.name,"base")
+		texture(baseTex)
+	case n == "roof":
+		set(material.name,"roof")
+		texture(roofTex)
+	case n == "wood": 
+		//color(wood)
+		set(material.name,"wood")
+		texture(woodTex)
+	case n == "floor": 
+		set(material.name,"floor")
+		texture(floorTex)
+	case n == "block": 
+		set(material.name,"block")
+		texture(blockTex)
+	case n == "tallBlock":
+		set(material.name,"block")
+		texture(tallBlockTex)
+//	case n == "sand": 
+//		set(material.name,"sand")
+//		texture(sandTex)
+	case n == "pavement": 
+		set(material.name,"pavement")
+		texture(pavementTex)
+//	case n == "water": 
+//		set(material.name,"water")
+//		texture(waterTex)
+	case n == "ground": 
+		set(material.name,"ground")
+		texture(groundTex)
+	case n == "grass": 
+		set(material.name,"grass")
+		texture(grassTex)
+//	case n == "ground_BW": 
+//		set(material.name,"ground")
+//		texture(groundTex)
+	case n == "street": 
+		set(material.name,"street")
+		texture(streetTex)
+	case n == "curb": 
+		set(material.name,"curb")
+		texture(curbTex)
+	case n == "sidewalk": 
+		set(material.name,"sidewalk")
+		texture(sidewalkTex)
+//	case n == "green": 
+//		set(material.name,"green")
+//		texture(greenGroundTex)
+	
+	else: Texture.
+	
+			
