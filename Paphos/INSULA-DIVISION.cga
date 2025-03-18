@@ -1,0 +1,395 @@
+/**
+ * File:    _insula-division.cga
+ * Created: 22 Apr 2021 18:58:25 GMT
+ * Author:  Artur Nowicki, Jakub Modrzewski
+ 	Warsaw University of Technology 
+ */
+
+version "2020.1"
+
+######################################################
+# BUILDING CONSTRUCTION CONSTANTS
+#
+
+
+# export attributes
+attr repRow = ["a", "b"]
+attr repCol = [1,2]
+attr repSide = ["a", "b"]
+
+attr parcelWidth 		  			= 25
+const parcelLength		  			= 14.4
+attr innerStreetWidth 			    = 0
+attr setSideTypeInner 				= 50% : "left"
+									  else : "right"
+attr setBuildingTypeInnerNorth 		= 33% : "basic"
+									  33% : "tunnel"
+									  else : "l-annex"
+attr setBuildingTypeInnerSouth 		= 50% : "basic"
+									  else : "l-annex"
+attr setBuildingTypeOuterNorth 		= 20% : "basic"
+									  20% : "tunnel"
+									  20% : "l-annex"
+									  else : "l-shaped"
+attr setBuildingTypeOuterSouth 		= 30% : "basic"
+									  30% : "l-annex"
+									  else : "l-shaped"
+									  									  
+// for outer parcels sideType attribute depends on the side where road is
+ 
+# Main Building
+const mainBuildingLength  			= 70% : 7.6/2
+									  else : 7.6
+attr floorHeight 					= 3.5
+
+# Wings
+const wingLength 					= 8.6
+const smallWingLength 				= 5.6
+const bigWingWidth 					= 5.4
+const smallWingWidth 				= 50% : 2*4
+									  else : 4
+
+# Porch
+const porchDepth 					= 2*3/4
+const porchRailingWidth 			= 2
+const porchPillarWidth 				= 0.3
+const porchRailingLength 			= 0.15
+
+# Roof
+const roofHeight 					= 1.5
+const troughHeight 					= 0.3
+const troughWidth 					= 0.3
+const roofThickness 				= 0.2
+attr setRoofTypeEast 				= 50% : "gable" 
+									  else : "trough"
+attr setRoofTypeWest 				= 50% : "gable" 
+									  else : "trough"
+
+# Inner Lot
+const innerLotWidth 				= 6
+
+# Gate
+const gateHeight 					= 2.7
+const gateLength 					= 0.3
+const gateWidth 					= 2
+const wallRoofHeight 				= 0.1
+const wallRoofThickness 			= 0.1
+const vestibuleLength				= wingLength/4
+
+# Doors
+const singleDoorsWidth 				= 1.5
+const singleDoorHeight 				= 2.5
+
+# Window
+const normalWindowWidth 			= 0.76
+const normalWindowHeight 			= 0.97
+const smallWindowWidth 				= 0.6
+const smallWidnowHeight 			= 0.77
+
+# Stairs
+const stairsLength 					= 0.45
+#const stairsWidth
+const stairsHeight 					= 0.15
+const stairsSetback 				= 0.20
+const stairsLotLength 				= 5
+const stairsLotWidth 				= 1.2
+
+# Texture tiles
+const roofTextureWidth 				= 3
+const roofTextureLength 			= 2
+const roofTroughTextureWidth 		= 2
+const roofTroughTextureLength 		= 2
+
+# Misc
+const tunnelWidth 					= 2
+const lShapeLength 					= 5.5
+const lShapeDepth 					= 4
+
+######################################################
+# ASSET MANAGEMENT
+#
+
+# Doors
+const singleDoor 					= "assets/single_door/single_doors.fbx"
+const plainDoor 					= "assets/plain_door/plain_door.fbx"
+const doubleDoor 					= "assets/double_door/double_door.fbx"
+const doorPlainPartopen1			= "assets/models/door_plain_partopen1/door_plain_partopen1.fbx"
+const doorSinglePartopen1			= "assets/models/door_single_partopen1/door_single_partopen1.fbx"
+const doorSingleRoof				= "assets/models/single_door_roof/single_door_roof.fbx"
+const doubleDoorPartopen1			= "assets/models/double_door_partopen1/double_door_partopen1.fbx"
+const doubleDoorPillar				= "assets/models/double_door_pillar/double_door_pillar.fbx"
+const doubleDoorRoof					= "assets/models/double_door_roof/double_door_roof.fbx"
+
+# Windows
+const window 						= "assets/window.fbx"
+const windowPartOpen 				= "assets/window_part_open.fbx"
+const windowOpen 					= "assets/window_open.fbx"
+const windowShutterPartopen1		= "assets/models/window_shutter_partopen1/window_shutter_partopen1.fbx"
+const windowShutterPartopen2		= "assets/models/window_shutter_partopen2/window_shutter_partopen2.fbx"
+const windowSmallTruss				= "assets/models/window_small_truss/window_small_truss.fbx"
+const windowStoneTruss				= "assets/models/window_stone_truss/window_stone_truss.fbx"
+const windowTruss					= "assets/models/window_truss/window_truss.fbx"
+
+# Misc objects
+const stair 						= "assets/stairs_wood_ss.fbx"
+const railing1 						= "assets/railing.obj" // [X] shape
+const railing2 						= "assets/railing2.obj" // [III] shape
+const railing3 						= "assets/railing3.obj" // [/] shape
+const tile 							= "assets/models/tiles/tile.fbx"
+const tileTop						= "assets/models/tiles/tile_top.fbx"
+
+# Textures
+const randomDirtmap 				=  fileRandom("assets/tekstury_sciany/dirt.*.tif")
+const textureFacade 				= "assets/tekstury_sciany/tynk_czysty.jpg"
+const bumpmapFacade 				= "assets/tekstury_sciany/bump_1.jpg"
+const flatRoofTexture 				= "assets/tekstury_dach/dach_plaski.tif"
+const slatesTexture					= "assets/tekstury_dach/dachowki.tif"
+const testTexture 					= "builtin:uvtest.png"
+
+# Colors
+attr color1 			  			= "#BBBAFF"
+attr color2				  			= "#FFC2E2"
+attr color3				  			= "#F4FDB1"
+attr color4 			  			= "#708238"
+attr Red 				  			= "#ff0000"
+attr Green 				  			= "#00ff00"
+attr Blue 				  			= "#0000ff"
+attr Pink				  			= "#ff00ff"
+attr buildingColor 		  			= "#f5ebd5"
+attr roofColor 			  			= "#cba189"
+attr tilesColor						= "#742815"
+attr roadColor			  			= "#807e78"
+attr floorColor			  			= "#3f2f1e"
+
+######################################################
+# HELPERS
+#
+
+yAngle = convert(y, pivot, world, orient,0,0,0)
+
+# Pivots settings
+
+# OUTDATED:( 0 - SouthEast; 1 - NorthEast; 2 - NorthWest; 3 - SouthWest)
+setPivotIndexUncorrected = floor((yAngle+45)/90)
+setPivotIndex0 = setPivotIndexUncorrected+0 - floor((setPivotIndexUncorrected+0)/4)*4 
+setPivotIndex1 = setPivotIndexUncorrected+1 - floor((setPivotIndexUncorrected+1)/4)*4
+setPivotIndex2 = setPivotIndexUncorrected+2 - floor((setPivotIndexUncorrected+2)/4)*4
+setPivotIndex3 = setPivotIndexUncorrected+3 - floor((setPivotIndexUncorrected+3)/4)*4
+
+###################################################
+###################################################
+##
+##  IMPORTS
+##
+##
+
+#import homes: "olinth-homes.cga"
+
+###################################################
+###################################################
+##
+##  RULES
+##
+##
+
+attr rowLot = "north"
+attr columnIndexLot = 1
+attr buildingTypeLot = "l-shaped"
+
+RandomRowValue = 50% : "north" 	
+				 else : "south"
+
+@Enum("21", "22", "23", "64", "46", "62", "26", "62V") 
+attr merge = 25%: "64" 25%:"46" 25%: "62" 
+						25%: "26" else: "62V"
+
+NewInsula -->
+	case merge == "21":
+		innerRectangle(edge){ shape : Insula21 | remainder : NIL }
+	case merge == "22":
+		innerRectangle(edge){ shape : Insula22 | remainder : NIL }
+	case merge == "23":
+		innerRectangle(edge){ shape : Insula23 | remainder : NIL }
+	case merge == "64":
+		innerRectangle(edge){ shape : Insula64 | remainder : NIL }
+	case merge == "46":
+		innerRectangle(edge){ shape : Insula46 | remainder : NIL }
+	case merge == "62":
+		innerRectangle(edge){ shape : Insula62 | remainder : NIL }
+	case merge == "26":
+		innerRectangle(edge){ shape : Insula26 | remainder : NIL }
+	case merge == "62V":
+		innerRectangle(edge){ shape : Insula62V | remainder : NIL }
+	
+	else: NIL
+	
+
+Insula21 -->
+	alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+	split(x) {
+		~2*parcelWidth: split(z) {
+				~parcelLength: X.
+				| ~parcelLength: X.
+			}
+		| parcelWidth: X.
+		| ~2*parcelWidth: split(z) {
+				~parcelLength: X.
+				| ~parcelLength: X.
+			}
+	}
+	
+	
+Insula22 -->
+	alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+	split(x) {
+
+		~2*parcelWidth: split(z) {
+				~parcelLength: X.
+				| ~parcelLength: X.
+			}
+		| ~parcelWidth: X.
+		| ~parcelWidth: X.
+		| ~parcelWidth: X.
+	}
+	
+	Insula23 -->
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		split(x) {
+				~2*parcelWidth: split(z) {
+					~parcelLength: X.
+					| ~parcelLength: X.
+				}
+				| ~2*parcelWidth: split(z) {
+					~parcelLength: X.
+					| ~parcelLength: X.
+				}
+			
+			| ~parcelWidth: X.
+		}
+		
+Insula64 -->
+	alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		split(x) {
+				~2*parcelWidth: X.
+				| ~3*parcelWidth: X.
+		}
+
+Insula46 -->
+	alignScopeToGeometry(yUp,0,0)
+	alignScopeToAxes(y)
+	setPivot(xyz, setPivotIndex2)
+		split(x) {
+				~3*parcelWidth: X.
+				| ~2*parcelWidth: X.
+		}
+
+Insula62 --> 
+		alignScopeToGeometry(yUp,0,0)
+	alignScopeToAxes(y)
+	setPivot(xyz, setPivotIndex2)
+		split(x) {
+		 ~2*parcelWidth:  split(z) {
+					~parcelLength: X.
+					| ~parcelLength: X.
+				}
+				| ~3*parcelWidth: X.
+			
+		}
+
+		
+Insula26 --> 
+		alignScopeToGeometry(yUp,0,0)
+	alignScopeToAxes(y)
+	setPivot(xyz, setPivotIndex2)
+		split(x) {
+				~3*parcelWidth: X.
+				| ~2*parcelWidth:  split(z) {
+					~parcelLength: X.
+					| ~parcelLength: X.
+				}
+		}
+		
+
+Insula62V --> 
+		alignScopeToGeometry(yUp,0,0)
+	alignScopeToAxes(y)
+	setPivot(xyz, setPivotIndex2)
+		split(x) {
+				parcelWidth: X.
+				| parcelWidth: X.
+				| ~3*parcelWidth: X.
+				
+		}
+
+
+Insula --> 
+	innerRectangle(edge){ shape : Insula1 | remainder : NIL }
+
+Insula1 -->
+	case scope.sx < 20 && scope.sz > 20 && scope.sz < 40 :
+ 		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+ 		split(z){ 	  ~parcelLength : Parcel(RandomRowValue,split.index,50%:"left" else:"right")
+ 				| ~innerStreetWidth : InnerStreet
+ 				| 	  ~parcelLength : Parcel(RandomRowValue,999,50%:"left" else:"right") }	
+		
+	case scope.sx < 20 && scope.sz < 20 :
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		Parcel(RandomRowValue,split.index,50%:"left" else:"right")
+		
+	case scope.sx < 20  :
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		split(x){ ~parcelWidth : Parcel(RandomRowValue,split.index,50%:"left" else:"right")
+				| {~parcelWidth : Parcel(RandomRowValue,split.index,50%:"left" else:"right")}*
+				| ~parcelWidth : Parcel(RandomRowValue,999,50%:"left" else:"right") }
+			
+	else:
+		alignScopeToGeometry(yUp,0,0)
+		alignScopeToAxes(y)
+		setPivot(xyz, setPivotIndex2)
+		split(z){ 	  ~parcelLength : split(x){ ~parcelWidth : Parcel("south",split.index,50%:"left" else:"right") 
+											  | {~parcelWidth : Parcel("south",split.index,50%:"left" else:"right")}*
+											  | ~parcelWidth : Parcel("south",999,50%:"left" else:"right") }
+				| ~innerStreetWidth : InnerStreet
+				| 	  ~parcelLength : split(x){ ~parcelWidth : Parcel("north",split.index,50%:"left" else:"right") 
+											  | {~parcelWidth : Parcel("north",split.index,50%:"left" else:"right")}*
+											  | ~parcelWidth : Parcel("north",999,50%:"left" else:"right") } }	
+	
+InnerStreet -->
+	#color(roadColor)
+# 	color("#a9a9a9")
+	NIL
+	
+Parcel(row,columnIndex,sideType) -->
+	report("ID", uid)
+	report("Row", row)
+	report("Column", columnIndex)
+	report("Side", sideType)
+	report("Area", geometry.area)
+
+
+attr Area = geometry.area
+attr repArea = [1,2,3]
+attr parcelID = uid
+attr repID = [1,2,3]
+attr testID = 0									  
+
+Test -->
+	X
+	
+RoadLot -->
+	extrude(0.10)
+	color(roadColor)
