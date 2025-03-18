@@ -7,7 +7,7 @@
 version "2017.0"
 
 @Hidden 
-import tex : "MAP-CGA-Rules/Paphos/_MyTexturesAssets.cga" 
+import tex : "_TexturesAssets.cga" 
 
 #-------General
 

@@ -1631,7 +1631,7 @@ PeristylCourtyardCollonade(type) -->
 	else: NIL
 
 @Hidden
-import col: "MAP-CGA-Rules/Paphos/_MyColonnade.cga"
+import col: "MAP-CGA-Rules/Paphos/_Colonnade.cga"
 CollonadeWall-->
 # 	t(0.2,0,-0.1)
 	
