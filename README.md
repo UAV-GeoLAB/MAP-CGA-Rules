@@ -27,9 +27,20 @@ CGA rules are divided into Olinth, Roman and Paphos rules.
 ## Authors
 CGA Programmers: Jakub Modrzewski, Artur Nowicki; Warsaw University of Technology
 
+
+
 Architectural consultant: Anna Kubicka-Sowińska, Wrocław University of Science and Technology
 
 GIS Consultant: Wojciech Ostrowski, Warsaw University of Technology
+
+## Attribution
+
+In our rules we used fragments of code prepared by Saldana (2015).
+
+Saldaña, M. (2015). An Integrated Approach to the Procedural Modeling of Ancient Cities and 
+Buildings. Digital Scholarship in the Humanities, 30(suppl_1), i148–i163. 
+https://doi.org/10.1093/llc/fqv013
+
 
 
 ## Funding
