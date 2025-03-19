@@ -1,3 +1,3 @@
 # Walls Rules
-Procedural rules for citywalls
+WALLS.cga: procedural rule for citywalls.
 ![Logo](/img/walls.png)
