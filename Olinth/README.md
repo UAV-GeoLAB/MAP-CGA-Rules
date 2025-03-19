@@ -1,6 +1,5 @@
 # Olinth-Rules
-Procedural rules for the typology of classical houses in Olinth
-- Greece
-![Logo](../img/olinth.png)
+OLINTH_HOMES.cga: procedural rule for the typology of classical houses in Olinth
+![Logo](olinth.png)
 
 

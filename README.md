@@ -1,17 +1,18 @@
 # MAP-CGA-Rules
 In this repository you will find the CGA rules (available in ESRI CityEngine Software) prepared for project "MA-P Maloutena and Agora in the layout of Paphos: Modelling the cityscape of the Hellenistic and Roman capital of Cyprus project".
 
-CGA rules are divided into Olinth and Paphos rules.
+CGA rules are divided into Olinth, Roman and Paphos rules.
 
 |── Olinth (Procedural rules for the typology of classical houses in Olinth)\
-&emsp;─ OLINTH-HOMES.cga\
+&emsp;─ OLINTH-HOMES.cga
+
+|── Roman\
 &emsp;─ ROMAN-HOMES.cga
 
 |── Paphos\
 &emsp;─ PAPHOS-HOMES-PHASE1.cga\
 &emsp;─ PAPHOS-HOMES-PHASE2.cga\
 &emsp;─ PAPHOS-HOMES-PHASE3.cga
-&emsp;─ ROMAN-HOMES.cga
 
 |── INSULA-DIVISION\
 &emsp;─ INSULA-DIVISION.cga (rule for dividing insula to parcels)\
