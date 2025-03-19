@@ -1,5 +1,5 @@
 # Olinth-Rules
-Procedural rules for Paphos buildings with courtyards (for different phases)
+Procedural rules for Paphos buildings with courtyards
 ![Logo](paphos-withattrs.png)
 
 

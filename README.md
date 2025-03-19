@@ -14,7 +14,7 @@ CGA rules are divided into Olinth, Roman and Paphos rules.
 &emsp;─ PAPHOS-HOMES-PHASE2.cga\
 &emsp;─ PAPHOS-HOMES-PHASE3.cga
 
-|── INSULA-DIVISION\
+|── Insula-Division\
 &emsp;─ INSULA-DIVISION.cga (rule for dividing insula to parcels)\
 &emsp;─ parcel_export.py (script for exporting extracted parcels by INSULA-DIVISION rule)
 
