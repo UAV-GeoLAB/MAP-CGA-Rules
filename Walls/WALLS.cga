@@ -1,0 +1,549 @@
+/**
+ * File:    paphos-walls.cga
+ * Created: 8 Mar 2022 07:47:35 GMT
+ * Author:  Jakub Modrzewski, Warsaw University of Technology
+ */
+
+version "2021.1"
+
+
+import g: "gatewall.cga"
+import cd: "citydoor.cga"
+
+@Group("WALL DETAILS")
+attr wallHeight = 7.5  # Height from base to the beginning of crenels
+attr crenelsWidth = 1
+attr crenelsHeight = 1
+attr crenelsFlatRoofHeight = 0.2
+attr wallEarthDepth = 2
+attr differencePavementCrenels = 1.5
+attr stonebaseHeight = 6
+attr doorWidth = 6
+
+@Group("PAVEMENT DETAILS")
+attr pavamentWidth = 3.5
+
+
+
+
+@Enum("basic", "flat", "none")
+attr crenelsType = "flat" 
+
+@Hidden
+pavementHeight = wallHeight - differencePavementCrenels + wallEarthDepth  # pavement Height
+wallWidth = pavamentWidth + crenelsWidth
+
+
+
+######################################################
+# ASSET MANAGEMENT
+
+# Doors
+const doorSinglePartopen1			= "assets/opening_01.fbx"
+const TowerDoor 					= "assets/opening_01.fbx"
+
+const window 						= "assets/window.fbx"
+const window_truss 					= "assets/models/window_truss/window_truss.fbx"
+const window_stone_truss			= "assets/models/window_stone_truss/window_stone_truss.fbx"
+const window_part_open 				= "assets/bump_map/window_part_open.fbx"
+
+
+
+
+# Textures
+const bumpmapFacade 				= "assets/tekstury_sciany/bump_1.jpg"
+const flatRoofTexture 				= "assets/roofs/dach_plaski.tif"
+const textureFacade 				= "assets/tekstury_sciany/tynk_czysty.jpg"
+const towerRoof_tex = "assets/roof.03.jpg"
+
+const stoneBaseTexture = "assets/mur01.tif"
+
+# const randomDirtmap 				=  fileRandom("assets/tekstury_sciany/dirt.*.tif")
+const randomDirtmap 				=  "assets/tekstury_sciany/dirt1.tif"
+# 										else: "assets/tekstury_sciany/dirt.6.tif"
+
+@Colors
+attr buildingColor 		  			= "#f5ebd5"
+attr floorColor			  			= "#3f2f1e"
+attr roofColor 			  			= "#cba189"
+
+Joint -->
+	Street
+
+
+
+Street -->
+	CutStreetHorns
+	print(geometry.height)
+	
+
+
+
+CutStreetHorns -->  
+# podział na przestrzeń muru i "pobocze"
+# u - along the street direction
+# v - along the width
+	split(v, unitSpace, 0) { 
+		0.5: NIL
+		| wallWidth: StreetNoHorns  # przestrzen na mur
+		| ~1: NIL
+	}
+	
+	
+	
+StreetNoHorns -->
+# podział mur na ściany (WallPart), chodnik góra i dół, wieże (WallOuterTowers)
+	split(v,unitSpace,0) {
+		crenelsWidth : WallPart |
+		~1: WallPartBack 	
+	}
+	
+	
+######################################
+# outer wall
+######################################
+OuterWallPavement -->
+	PavementTexturing
+WallPart -->
+# move the shape below the terrain and extrude it
+# 	create the ribs (BLANKi)
+   WallOuterCrenels
+   print(geometry.height)
+	alignScopeToAxes(y)
+	t(0,-wallEarthDepth,0)
+	extrude(world.up, wallHeight + wallEarthDepth)  
+	comp(f) {bottom:NIL | top:OuterWallHorizontalTexturing | 
+	all:   split(y) {stonebaseHeight: StoneBase("wall") | ~1: WallVerticalTexturing2} }
+
+WallPartBack -->
+# ściana tylnia - na wysokości chodnika
+	alignScopeToAxes(y)
+	t(0, -wallEarthDepth,0)
+	extrude(world.up, pavementHeight ) 
+	comp(f) {top: OuterWallPavement |  
+		 all: split(y) {stonebaseHeight: StoneBase("wall") | ~1: WallVerticalTexturing2} }
+	
+WallOuterCrenels -->
+# blanki
+	case crenelsType == "basic":
+	split(u,unitSpace,0) {
+		~1: NIL |
+		2: alignScopeToAxes(y)
+		t(0,wallHeight,0)
+		extrude(world.up, crenelsHeight) 
+		split(y){
+			(geometry.lowerheight): comp(f) {
+				bottom: NIL | top : roofRidge(byHeight, 0.4) RoofCrenel | side: WallVerticalTexturing2} |
+			~1: NIL } | 
+		~1: NIL }*
+	case crenelsType == "flat":
+
+		CrenelsFlatRoof
+		alignScopeToAxes(y)
+		t(0,wallHeight,0)
+	 	extrude(world.up, crenelsHeight)
+	 	
+	 	split(u,unitSpace,0) {	
+	 		~1.5: comp(f) {side: WallVerticalTexturing2} |
+	 		0.5:  split(y) {'0.2: comp(f) {top: WallHorizontalTexturing | side: WallVerticalTexturing2} | ~1: NIL | '0.2: comp(f) {bottom: WallHorizontalTexturing  | side: WallVerticalTexturing2 }} |
+	 		~1.5: comp(f) {side: WallVerticalTexturing2}
+	 	}*
+	 	
+	else:
+		NIL
+		 	
+
+
+	 	
+CrenelsFlatRoof -->
+# 	s('1,'1,'1.3)
+	alignScopeToAxes(y)
+#  	alignScopeToGeometry(yUp,any, world.lowest)
+	t(0,wallHeight + crenelsHeight, 0)
+	extrude(crenelsFlatRoofHeight)
+	
+	comp(f) {top:  FlatRoofVerticalTexturing | side: FlatRoofVerticalTexturing} 
+# 	FlatRoofVerticalTexturing
+# 	PavementTexturing
+# 	rotateScope(0,0,90)
+
+	
+	
+# 	extrude(world.up, 0.1)			
+
+		
+	
+RoofCrenel -->
+	comp(f) {side: FlatRoofVerticalTexturing  | bottom: NIL | all: CubeWall}
+# 	BaseRoofCrenel.
+# 	s('1,'1.1,'1)
+# 	t(0,-0.05,0)
+# 	roofRidge(byHeight, 0.4)	
+
+roofcrenel_tex = fileRandom("roofs/limestone")
+RoofCrenelTexturing -->
+	OuterWallHorizontalTexturing
+# 	setupProjection(0, scope.xy, scope.sx, scope.sy)
+# 	texture(roofcrenel_tex)
+# 	projectUV(0)
+	
+
+sidewalkHeight = .15
+ 	
+ 	
+Crossing -->
+	t(0,-sidewalkHeight,0)
+	InsertTower
+		
+		
+@Group("WALL DETAILS")
+@Angle
+attr towerAngle = 90
+attr upperFloorHeight = 4
+attr manualWidth = false
+attr towerWidth = 20
+attr towerOffset = -8
+
+
+
+
+firsfFloorHeight =  pavementHeight + differencePavementCrenels + crenelsHeight+ crenelsFlatRoofHeight
+
+InsertTower -->
+	case manualWidth:
+		r(0,towerAngle,0)
+		center(xz)
+		alignScopeToAxes(y)
+	 	s('1,'1,'1)
+		t(towerOffset,-wallEarthDepth + 0.15,0)
+		primitiveCube(towerWidth, firsfFloorHeight+upperFloorHeight, towerWidth)
+		split(y){ pavementHeight : TowerGroundFloor | differencePavementCrenels + crenelsHeight+ crenelsFlatRoofHeight: TowerFirstFloor  | ~upperFloorHeight: UpperFloor}  
+	else:
+		r(0,towerAngle,0)
+		center(xz)
+		alignScopeToAxes(y)
+		t(towerOffset,-wallEarthDepth + 0.15,0)
+		primitiveCube(max(scope.sx, scope.sy), firsfFloorHeight+upperFloorHeight, max(scope.sx, scope.sy))
+		split(y){ pavementHeight : TowerGroundFloor | differencePavementCrenels + crenelsHeight+ crenelsFlatRoofHeight: TowerFirstFloor  | ~upperFloorHeight: UpperFloor}  
+
+# 	comp(f) {top: roofRidge(byHeight, 1) TowerRoof| front: WallInPavement | back: WallInPavement | all: CubeWall}
+
+
+
+TowerFirstFloor -->
+	comp(f) {top: NIL | bottom: Floor | front: WallInPavement | back: WallInPavement | left: TowerFacade | right: TowerFacade}
+		
+Floor -->
+# 	color(floorColor)
+	PavementTexturing
+# 	alignScopeToGeometry(zUp, any, world.lowest)
+# 	setupProjection(0, scope.xy, outerWallMapSizeHorizontal, outerWallMapSizeVertical, 0, 0, 1)
+# 	projectUV(0)
+# 	translateUV(0,rand(1),rand(1))
+# # 	texture(fileRandom("assets/outerWall/OuterWallTexture_v*.jpg"))	
+# 	texture("assets/streets/StoneFloor_1.jpg")	
+	
+TowerFacade -->
+	33%:
+		split(y) {
+			~2: CubeWall |
+			1: split(x) {~1: CubeWall | 1: TowerWindow(window) | 2: CubeWall | 1: TowerWindow(window) | ~1: CubeWall} |
+			~0.5: CubeWall
+		}
+	33%:
+		split(y) {
+			~2: CubeWall |
+			1: split(x) {~1: CubeWall | 1: TowerWindow(window_truss) | 2: CubeWall | 1: TowerWindow(window_truss) | ~1: CubeWall} |
+			~0.5: CubeWall
+		}
+	else:
+		split(y) {
+			~2: CubeWall |
+			1: split(x) {~1: CubeWall | 1: TowerWindow(window_part_open) | 2: CubeWall | 1: TowerWindow(window_part_open) | ~1: CubeWall} |
+			~0.5: CubeWall
+		}
+	
+	
+	
+TowerWindow(asset) -->
+	i(asset)
+	mirror(true,false,true)
+	s('1.4,'1,'1)
+	t(-0.2,0,-0.10)
+	set(material.specular.r, 0)
+	set(material.specular.g, 0)
+	set(material.specular.b, 0)
+	
+
+
+TowerGroundFloor -->
+# 	split(y) {stonebaseHeight: StoneBase("tower") | ~1: comp(f) {top: NIL | all: WallVerticalTexturing} }
+	split(y) {stonebaseHeight: comp(f) {side: TowerTexturing} | ~1: comp(f) {side: WallVerticalTexturing2} }
+	
+TowerTexturing -->
+		color(wallColor)
+		setupProjection(0, scope.xy, 2,3) # scope is zUp after comp(f) !
+		projectUV(0)
+		texture( stoneBaseTexture )
+	
+
+
+# FacadeGroundFloor -->
+# 	split(y) { '0.5: StoneBase | ~1: WallVerticalTexturing}
+	
+
+StoneBase(onObject) -->
+# 	alignScopeToAxes(x)
+# 	setupProjection(0, scope.xy, 1, 2)
+	case onObject == "tower":
+		comp(f) {side: 
+			set(material.colormap, stoneBaseTexture)
+		}
+			
+# 	projectUV(0)
+		L.
+# 	color("#a6a6a6") 
+# 	alignScopeToAxes(y)
+# 	comp(f) {
+# 		left:
+# 			setupProjection(0, world.xz, 3, 8)
+# 			set(material.colormap, stoneBaseTexture)
+# 			projectUV(0)
+# 			L.
+# 		| right:
+# 			setupProjection(0, world.xy, 3, 8)
+# 			set(material.colormap, stoneBaseTexture)
+# 			projectUV(0)
+# 			L.
+# 		| all:
+# 			setupProjection(0, world.xy, 8, 5)
+# 			set(material.colormap, stoneBaseTexture)
+# 			projectUV(0)
+# 			L.
+# 	}
+		
+# 	setupProjection(1, world.xy, 3, 2) 	
+# 	set(material.bumpmap, bumpmapFacade)  
+# 	projectUV(1)
+	else:
+		WallTexturing
+		
+	
+
+
+UpperFloor -->
+comp(f) {top: roofRidge(byHeight, 1.5) TowerRoof  | bottom: NIL | left: TowerFacade | right: TowerFacade | all: WallVerticalTexturing2}
+
+
+TowerRoof -->
+	comp(f) {top:  RoofCubeTexturing  | all: WallVerticalTexturing2}
+	
+attr facadeTexDimHorizontal = 6
+attr facadeTexDimVertical = 4
+attr wallColor 						= "#f5ebd5"
+
+WallTexturing -->
+	
+		color(wallColor)
+		setupProjection(0, scope.xy, facadeTexDimHorizontal, facadeTexDimVertical) # scope is zUp after comp(f) !
+		projectUV(0)
+		texture( stoneBaseTexture )
+	
+
+ 	
+
+RoofCubeTexturing -->
+	setupProjection(0, scope.xy, 4, 2)
+	texture(towerRoof_tex)
+	projectUV(0)
+	
+
+
+# Doors
+const TowerDoorWidth 				= 1.5
+attr TowerDoorHeight 				= 2.5
+attr offset_ldoor					= 2.5
+attr offset_rdoor					= towerWidth - offset_ldoor
+
+WallInPavement -->
+	
+	case geometry.isOriented(object.left): 
+		
+	split(x){offset_ldoor: CubeWall | TowerDoorWidth: split(y){
+		TowerDoorHeight: DoorTower | ~1: CubeWall}
+		| ~1: CubeWall}
+	
+	else:
+	 split(x){offset_rdoor: CubeWall | TowerDoorWidth: split(y){
+		TowerDoorHeight: DoorTower | ~1: CubeWall}
+		| ~1: CubeWall}
+	
+
+DoorTower -->
+	
+	i(doorSinglePartopen1)
+	mirror(true,false,true)
+	s('1.3,'1,'1)
+	t(-0.225,0,-0.25)
+	set(material.specular.r, 0)
+	set(material.specular.g, 0)
+	set(material.specular.b, 0)
+	
+	
+CubeWall -->
+	color(buildingColor)
+	WallVerticalTexturing2 
+	
+	
+	
+StreetWithGate -->
+	split(x) {
+		~0.25: Street |
+		3: g.Street| 
+		~1: Street 
+	}
+	
+
+
+
+StreetWithDoor -->
+	split(x) {
+			~1: Street |
+			doorWidth: cd.Street | 
+			~1: Street 
+		}
+
+
+
+# 		
+# 	}
+# 	
+# 	Street
+# Gate -->
+# 	split(y) {
+# 		
+# 	
+# 	}
+	
+# 	OuterWallHorizontalTexturing
+	
+##############################################
+# OuterWallTexturing
+##############################################
+
+
+	
+
+outerWallMapSizeVertical = 38.5
+outerWallMapSizeHorizontal = 21
+
+OuterWallVerticalTexturing -->
+	PavementTexturing
+# 	OuterWallVerticalTexturingChosenTexture(fileRandom("assets/textures/limestone.jpg"))
+
+OuterWallVerticalTexturingChosenTexture(chosenTexture) -->	
+	setupProjection(0, scope.xy, outerWallMapSizeHorizontal, outerWallMapSizeVertical, 0, 0, 1)
+	projectUV(0)
+	translateUV(0,rand(1),0)
+	texture(chosenTexture)
+		set(material.bumpmap, chosenTexture)
+	set(material.bumpValue, rand(-.15,-.35))
+
+OuterWallHorizontalTexturing -->
+# 	OuterWallHorizontalTexturingChosenTexture(fileRandom("assets/textures/limestone.jpg"))
+	PavementTexturing
+
+OuterWallHorizontalTexturingChosenTexture(chosenTexture) -->	
+	alignScopeToGeometry(zUp, any, world.lowest)
+	setupProjection(0, scope.xy, outerWallMapSizeHorizontal, outerWallMapSizeVertical, 0, 0, 1)
+	projectUV(0)
+	translateUV(0,rand(1),rand(1))
+	texture(fileRandom("assets/textures/limestone.jpg"))
+	
+	
+	
+# PavementTexturing --> 
+# 	tileUV(0,8,8)
+# 	translateUV(0, rand(1), rand(1))
+# 	texture("assets/streets/StoneFloor_1.jpg")	
+	
+
+const roofTroughTextureWidth 		= 2
+const roofTroughTextureLength 		= 2
+const roofTextureWidth 				= 3
+const roofTextureLength 			= 2
+
+
+
+
+	
+PavementTexturing -->
+	color(buildingColor) 
+	setupProjection(0, scope.xy, roofTroughTextureWidth, roofTroughTextureLength)
+	set(material.colormap, flatRoofTexture)
+	projectUV(0)
+	setupProjection(1, scope.xy, roofTextureWidth, roofTextureLength) 	
+	set(material.bumpmap, bumpmapFacade)  
+	projectUV(1)
+
+
+FlatRoofVerticalTexturing -->
+	color(roofColor)
+	setupProjection(0, scope.xy, roofTroughTextureWidth, roofTroughTextureLength)
+	set(material.colormap, flatRoofTexture)
+	projectUV(0)
+	setupProjection(1, scope.xy, roofTextureWidth, roofTextureLength) 	
+	set(material.bumpmap, bumpmapFacade)  
+	projectUV(1)
+	
+	
+	
+FlatRoofHorizontalTexturing -->
+
+	color(roofColor) 
+	setupProjection(0, world.xy, 3, 2)
+	set(material.colormap, textureFacade)
+	projectUV(0)
+	setupProjection(1, world.xy, 3, 2) 	
+	set(material.bumpmap, bumpmapFacade)  
+	projectUV(1)
+
+
+WallVerticalTexturing -->
+	color(buildingColor) 
+	setupProjection(0, world.xy, 3, 2)
+	set(material.colormap, textureFacade)
+	projectUV(0)
+	setupProjection(1, world.xy, 3, 2) 	
+	set(material.bumpmap, bumpmapFacade)  
+	projectUV(1)
+# 	setupProjection(2, world.xy, 5,8) 	
+# 	set(material.dirtmap, randomDirtmap)  
+# 	projectUV(2)	
+	
+	
+WallVerticalTexturing2 -->
+	color(buildingColor) 
+	setupProjection(0, scope.xy, 3, 2)
+	set(material.colormap, textureFacade)
+	projectUV(0)
+	setupProjection(1, scope.xy, 3, 2) 	
+	set(material.bumpmap, bumpmapFacade)  
+	projectUV(1)	
+	
+WallHorizontalTexturing -->
+	
+		color(buildingColor) 
+		setupProjection(0, world.xz, 3, 2)
+		set(material.colormap, textureFacade)
+		projectUV(0)
+		setupProjection(1, world.xz, 3, 2) 	
+		set(material.bumpmap, bumpmapFacade)  
+		projectUV(1)	
+		
+# 		setupProjection(2, world.xy, 5, 8) 	
+# 		set(material.dirtmap, randomDirtmap)  
+# 		projectUV(2)
+	
+		
+	
