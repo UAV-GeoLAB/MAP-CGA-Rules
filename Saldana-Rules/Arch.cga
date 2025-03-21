@@ -1,0 +1,332 @@
+/**
+ * File:    RomanArch.cga
+ * Created: 18 Feb 2014 08:34:41 GMT
+ * Author:  Marie Saldana
+ */
+
+version "2013.1"
+
+import col : "_Colonnade.cga"		(colonnadeType = "ARCADE", plinthH = 0)//(LOD  = LOD, order_ = order_,plinthH = plinthH, column_diameter = archColumnDiameter, columnSpacing = columnSpacing, column = column, architrave = architrave, frieze = frieze, metopes = metopes, triglyph = triglyph, cornice = cornice) 
+import tex : "_TexturesAssets.cga"	 
+
+#-------Scene Settings
+
+@Group("SceneSettings",0)
+attr elevation 	= 0
+
+@Group("SceneSettings",0) @Range(-800,300)
+attr YEAR		= 0
+
+@Group("SceneSettings",0) @Range("OFF","ON")
+attr Materials_View		= "OFF"
+	const materials			= Materials_View == "ON"
+	const noMaterials		= Materials_View == "OFF"
+
+@Group("SceneSettings",0)@Range("HIGH","MED","LOW")
+attr LOD					= "LOW"
+	const highLOD 				= LOD == "HIGH"
+	const medLOD				= LOD == "MED"
+	const lowLOD				= LOD == "LOW"
+	
+#--------Materials
+	
+@Group ("Materials",1) @Range("Under Construction","Brick","Travertine", "Marble", "None", "Varied")
+attr Material				= 	case noMaterials && YEAR >= start_date && YEAR <= end_date: "Varied"
+								case materials && YEAR >= construction_start && YEAR <=construction_end: "Under Construction"
+								case materials && YEAR >= brick_start && YEAR <=brick_end: "Brick"
+								case materials && YEAR >= travertine_start && YEAR <=travertine_end: "Travertine"
+								case materials && YEAR >= marble_start && YEAR <=marble_end: "Marble"
+								else: "None"
+								
+	const constr				= Material == "Under Construction" 
+	const brick					= Material == "Brick"
+	const trav					= Material == "Travertine"
+	const marble				= Material == "Marble"
+	const noModel				= Material == "None"
+		
+
+const MaterialColor			= 	case constr: construction_color
+								case brick: brick_color
+								case trav: travertine_color
+								case marble: marble_color							
+								else: wall
+
+#--------General
+
+@Group("General",2)@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+attr order_				= "DORIC"
+	const tuscan			= order_ == "TUSCAN"
+	const doric				= order_ == "DORIC"
+	const ionic				= order_ == "IONIC"
+	const corinthian		= order_ == "CORINTHIAN"
+
+@Group("General",2)@Range("SINGLE","DOUBLE","TRIPLE")
+attr arch_type				= "SINGLE"
+	const single			= arch_type == "SINGLE"
+	const double			= arch_type	== "DOUBLE"
+	const triple			= arch_type == "TRIPLE"
+
+
+#-------Proportions	
+@Group("Proportions",3)	
+attr length					= 15
+@Group("Proportions",3)
+attr width					= 4
+
+
+const M						= case triple: length/3 else: length/2
+const m 					= M*.375
+const p 					= m*.0933
+const k						= p*4.75
+
+
+
+#-------Orders
+@Group("Orders",4)
+attr column_diameter		= M/10
+
+@Group("Orders",4)
+attr orderBaseH				= M/2
+	
+	
+const columnSpacing		= 	col.columnSpacing
+const entablatureH		= 	col.entablatureH*column_diameter					
+const corniceProjection = 	column_diameter*.25								
+const baseCorniceH		= .1
+
+											
+#-------Time Periods
+
+@Group ("Time Period",8) @Order(0) @Range(-800,300)
+attr start_date	= 0
+@Group ("Time Period",8) @Order(0) @Range(-800,300)
+attr end_date	= 0
+@Group ("Time Period",8) @Order(1) @Range(-800,300)
+attr construction_start	= 0
+@Group ("Time Period",8) @Order(2) @Range(-800,300)
+attr construction_end	= 0
+@Group ("Time Period",8) @Order(3) @Range(-800,300)
+attr brick_start		= 0
+@Group ("Time Period",8) @Order(4) @Range(-800,300)
+attr brick_end			= 0
+@Group ("Time Period",8) @Order(5) @Range(-800,300)
+attr travertine_start	= 0
+@Group ("Time Period",8) @Order(6) @Range(-800,300)
+attr travertine_end		= 0
+@Group ("Time Period",8) @Order(7) @Range(-800,300)
+attr marble_start       = 0
+@Group ("Time Period",8) @Order(8) @Range(-800,300)
+attr marble_end			= 0
+
+#-------Colors
+@Group("Colors",9)@Range( "#EEEEEE", "#F5F5F5","#FFFFFF","#E0E0D1","#AAAAA0")
+attr wall					= case noMaterials  || materials && noModel: 20% : "#EEEEEE" 20% : "#F5F5F5" 20% : "#FFFFFF" 20% : "#E0E0D1" else : "#AAAAA0" else: MaterialColor
+@Group("Colors",9)@Range( "#EEEEEE", "#F5F5F5","#FFFFFF","#E0E0D1","#AAAAA0")
+attr column					= case noMaterials  || materials && noModel: 20% : "#EEEEEE" 20% : "#F5F5F5" 20% : "#FFFFFF" 20% : "#E0E0D1" else : "#AAAAA0" else: MaterialColor
+@Group("Colors",9)
+attr architrave				= case noMaterials  || materials && noModel: "#E8DCC5" else: MaterialColor
+@Group("Colors",9)
+attr frieze					= case noMaterials  || materials && noModel: "#EBD8B5" else: MaterialColor
+@Group("Colors",9)
+attr metopes				= case noMaterials  || materials && noModel: "#EBD8B5" else: MaterialColor
+@Group("Colors",9)
+attr triglyph				= case noMaterials  || materials && noModel: "#B5B59F" else: MaterialColor
+@Group("Colors",9)
+attr cornice				= case noMaterials  || materials && noModel: "#C9C0AD" else: MaterialColor
+
+
+const construction_color	= "#F7EB9E" 
+const brick_color			= "#705C46" 
+const travertine_color		= "#E2E8D1" 
+const marble_color			= "#F79E9E"
+
+const blue					= "#0066FF"
+const red					= "#FF3300"
+const green					= "#33CC33"
+const pink					= "#FF6699"
+const cyan					= "#00FFFF"
+const purple				= "#6600CC"
+const orange				= "#FF9900"
+
+
+								  
+////////////
+///////START
+Lot -->
+t(0,elevation,0)
+print(scope.sx)
+print(scope.sz)
+innerRect
+s(length,0,width)
+LotSplit
+
+LotSplit -->
+case triple:
+extrude(p*70)
+color(wall)
+split(y){~1: LowerMass
+			split(y){M*1.5:NIL
+					|~1:comp(f){side:col.Entablature(columnSpacing,column_diameter)}
+					}
+		|p*20: Attic
+		}
+		
+case double:
+extrude(p*40)
+color(wall)
+split(y){~1: LowerMass
+			split(y){M*1.5:NIL
+					|~1:comp(f){side:col.Entablature(columnSpacing,column_diameter)}
+					}
+		|p*10: Attic
+		}
+		
+else: 
+extrude (p*60)
+color(wall)
+split(y){M*1.5:LowerMass
+		|~1: comp(f){side:col.Entablature(columnSpacing,column_diameter)}
+		|p*10: Attic
+		}
+
+
+
+LowerMass -->
+case triple: 
+split(x){p*10/3: 	s('1,M*1.5,'1) Wall
+		|p*10/3:	Order
+		|~1:   		s('1,M*1.5,'1) LateralArch
+		|p*10/3: 	Order
+		|M:			s('1,M*1.5,'1) Arch
+		|p*10/3: 	Order
+		|~1: 		s('1,M*1.5,'1) LateralArch
+		|p*10/3: 	Order
+		|p*10/3:	s('1,M*1.5,'1) Wall
+		}
+		
+case double :
+split(x){~1: Wall
+		|M*.75: Arch
+		|~1: Wall
+		|M*.75: Arch
+		|~1: Wall
+		}
+		
+
+else: 
+split(x){k:			SingleArchOrder
+		|k*2: 		Wall
+		|~1: 		Arch
+		|k*2:		Wall
+		|k: 		SingleArchOrder
+		}
+		
+
+		
+Arch -->
+case double:
+split(y){M*.6:split(x){p*10/3:split(z){column_diameter*col.baseW:Plinth(scope.sy)
+									|~1:Wall
+									|column_diameter*col.baseW:Plinth(scope.sy)
+									}
+					|~1: NIL
+					|p*10/3:split(z){column_diameter*col.baseW:Plinth(scope.sy)
+									|~1:Wall
+									|column_diameter*col.baseW:Plinth(scope.sy)
+									}
+					}
+		|~1:i(tex.archAsset)
+		tex.WholeBlock("wall",M*1.5)
+		}
+		
+else:
+split(y){M:split(x){p*10/3:split(z){column_diameter*col.baseW:Plinth(scope.sy)
+									|~1:Wall
+									|column_diameter*col.baseW:Plinth(scope.sy)
+									}
+					|~1: NIL
+					|p*10/3:split(z){column_diameter*col.baseW:Plinth(scope.sy)
+									|~1:Wall
+									|column_diameter*col.baseW:Plinth(scope.sy)
+									}
+					}
+		|~1:i(tex.archAsset)
+		tex.WholeBlock("wall",M*1.5)
+		}
+		
+LateralArch -->
+split(y){19*p:split(x){p*10/3:split(z){column_diameter*col.baseW:Plinth(scope.sy)
+									|~1:Wall
+									|column_diameter*col.baseW:Plinth(scope.sy)
+									}
+					|~1: NIL
+					|p*10/3:split(z){column_diameter*col.baseW:Plinth(scope.sy)
+									|~1:Wall
+									|column_diameter*col.baseW:Plinth(scope.sy)
+									}
+					}
+		|M-19*p:i(tex.archAsset)
+		tex.WholeBlock("wall",M*1.5)
+		|~1: Wall
+		}
+
+Order -->
+	comp(f){front: split(y){M*1.5:Wall ColumnMass|~1:Entablature}
+			|back: split(y){M*1.5:Wall ColumnMass|~1:Entablature}
+			| side: Wall}
+			
+SingleArchOrder -->
+	comp(f){front: Wall t(0,0,-column_diameter/2) ColumnMass
+			|back: Wall t(0,0,-column_diameter/2) ColumnMass
+			| side: Wall}
+			
+ColumnMass -->
+	split(y){orderBaseH: Plinth(scope.sy)
+			|~1: Column
+			}
+			
+Plinth(yDim) -->
+		s('1,'1,column_diameter*col.baseW)
+		i("builtin:cube")
+		center(x)
+		split(y){baseCorniceH*yDim: mirror(true,true,false)Cornice 
+				|~1: Wall 
+				|baseCorniceH*yDim: Cornice
+				}
+		
+Column -->
+		set(trim.vertical,false)
+		s(column_diameter,'1,column_diameter)
+		color(column)
+		i("builtin:cube")
+		center(x)
+		col.Column(scope.sx,1,1)
+		
+Cornice -->
+		comp(f){side:	color(cornice)	
+						s('2,'1,corniceProjection) 
+						center(x)
+						i(tex.corniceAsset) 
+						tex.WholeBlock("block")
+				|top: 	Wall
+				}
+
+Attic --> 
+	split(y){baseCorniceH*scope.sy: mirror(true,true,false)Cornice
+			|~1: Wall 
+			|baseCorniceH*scope.sy: Cornice
+			}
+
+Entablature -->
+	s('1,'1,column_diameter)
+	i("builtin:cube")
+	comp(f){side:col.Entablature(columnSpacing,column_diameter)
+			|top:Wall
+			|bottom:Wall
+			}
+
+Wall -->
+	tex.Block("wall",M*1.5)
+	
+
+

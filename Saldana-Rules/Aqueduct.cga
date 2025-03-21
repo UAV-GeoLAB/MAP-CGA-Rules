@@ -1,0 +1,77 @@
+/**
+ * File:    Aqueduct.cga
+ * Created: 28 Oct 2014 19:46:54 GMT
+ * Author:  msaldana
+ */
+
+version "2014.1"
+
+import tex : "_TexturesAssets.cga"
+
+@Group("General",0)@Range("HIGH","MED","LOW")
+attr LOD				= "LOW"
+	const highLOD 		= LOD == "HIGH"
+	const medLOD		= LOD == "MED"
+	const lowLOD		= LOD == "LOW"
+	
+#-------Arcade
+
+attr elevation 			= 0
+
+attr archWidth 			= height/1.5 
+
+attr height	= 10
+
+const wallWidth	  = archWidth/2
+
+const lowerArchH	  = height/2
+
+const upperArchH	  = archWidth*1.25
+
+@Range("1","2","3")
+attr levels 	  = "1"
+
+const archH				= 1.5*archWidth
+
+const archColumnDiameter= 	archWidth/10
+
+attr wall					=  "#EEEEEE"
+
+
+Lot --> 
+	t(0,elevation,0)
+	extrude(world.y,height)
+	//Arches
+	Levels 
+	
+Levels -->
+	case levels == "1":
+	Arches
+	case levels == "2":
+	split(y){~lowerArchH: Arches|~upperArchH: UpperArches}
+	else:
+	split(y){~lowerArchH: Arches|~upperArchH: UpperArches|~upperArchH: UpperArches}
+	
+Arches -->
+	split(x){{~wallWidth: Wall |~archWidth: Passage }* 
+			|~wallWidth: Wall}
+			
+UpperArches -->
+	split(x){{~wallWidth: Wall |~archWidth: UpperPassage }* 
+			|~wallWidth: Wall}
+
+
+Passage -->
+	split(y) {~1: NIL |archWidth/2: Arch|archWidth/4: Wall}
+	
+UpperPassage -->
+	split(y) {~1: NIL |archWidth/2: Arch|archWidth/4: Wall}
+
+Arch -->
+	set(trim.vertical,false)
+	i (tex.arch)
+	tex.WholeBlock("wall")
+	
+Wall -->
+	color(wall)	
+	tex.Block("wall",archWidth*1.5)

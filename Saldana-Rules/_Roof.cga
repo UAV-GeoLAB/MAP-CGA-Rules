@@ -1,0 +1,275 @@
+/**
+ * File:    Roof.cga
+ * Created: 17 Feb 2014 07:55:36 GMT
+ * Author:  Marie Saldana
+ */
+
+version "2017.0"
+
+@Hidden 
+import tex: "_TexturesAssets.cga" (LOD = LOD)
+
+@Hidden 
+import col : "_Colonnade.cga"	
+
+#-------General
+
+@Group("General",0)@Range("HIGH","MED","LOW")
+attr LOD				= "LOW"
+const highLOD 			= LOD == "HIGH"
+const medLOD			= LOD == "MED"
+const lowLOD			= LOD == "LOW"
+
+@Group("General",0)@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+attr order_						= "DORIC"
+	const tuscan					= order_ == "TUSCAN"
+	const doric						= order_ == "DORIC"
+	const ionic						= order_ == "IONIC"
+	const corinthian				= order_ == "CORINTHIAN"
+	
+const tile						= 	columnHeight
+	
+#------Columns
+
+@Group("Colonnade",2)
+attr column_diameter 			= 	1
+
+const columnSpacing				= 	col.column_spacing
+const columnHeight				= 	col.columnHeight
+
+#-------Roof
+
+const roofThickness				= 	0.2
+
+@Group("Roof")@Range(true,false)			
+attr antefix					= 	false
+
+@Group("Roof")
+attr roof_angle					= 	case tuscan: 19
+									case ionic: 13.6
+									else: 15
+
+const MidAcroH					= 	column_diameter*2.5
+const SideAcroH					= 	column_diameter*1.75
+
+#-------Pediment
+@Group("Pediment")
+attr pediment_windows			= 	0
+
+const pedimentWidth 			= 	column_diameter
+#Sima
+const simaLength 				= 	pedimentWidth*1.1			
+const simaHeight 				= 	case tuscan:			pedimentWidth*0.5 	
+									case doric: 			pedimentWidth*0.27
+									else: 					pedimentWidth*0.5
+const simaWidth 				= 	columnSpacing *0.5 
+
+#Geison									
+const geisonProjection 			= 	column_diameter*col.geisonProjection //column_diameter *0.5
+
+#Cornice
+const corniceH					= 	column_diameter*col.corniceH
+
+////////////
+///////START	
+
+TempleRoof(n,w,h) -->
+	[t(0,0.15,-0.05)Roof(w,h)]
+	set(trim.vertical,false)
+	split(y){ h*0.02: Antefixes(n,w,h) }
+
+	
+Roof(w,h) -->
+	case highLOD : 
+		set(trim.horizontal,true)
+		split(y,noAdjust){ ~h : BottomBrickRow(w) }*
+		split(y,noAdjust){ ~h*0.8 : TopBrickRow(w,h) 
+						 | { ~h   : TopBrickRow(w,h) }*
+						 | ~h*1.2 : TopBrickRow(w,h) }
+	else :
+		extrude(roofThickness)
+		tex.Block("roof",4,24)
+
+OverhangRoof(w,h) -->
+	case highLOD : 
+		set(trim.horizontal,true)
+		split(y,noAdjust){ ~h : BottomBrickRow(w) }*
+		split(y,noAdjust){ ~h*0.8 : TopBrickRow(w,h) 
+						 | { ~h   : TopBrickRow(w,h) }*
+						 | ~h*1.2 : TopBrickRow(w,h) }
+	else :
+		tex.Block("roof",4,24)
+	
+BottomBrickRow(w) -->	 
+	s('1,'1.02,'1) r(scopeCenter,-3,0,0) 
+	split(x){ ~w : i(tex.roofBrickBottomAsset) BottomBrick. }*
+
+TopBrickRow(w,h) -->
+	t(0,0.05,w*0.1) 
+	split(x){ ~w*0.8   : NIL 
+			| { ~w*0.4 : TopBrick(h)
+			|   ~w*0.6 : NIL }* 
+			| ~w*0.4   : TopBrick(h)
+			| ~w*0.8   : NIL }
+
+TopBrick(h) -->
+	r(scopeCenter,-3,0,0) s('1,scope.sy+h*0.15,scope.sx*0.45)
+	i(tex.roofBrickRound) TopBrick.
+
+Ridge(offsetX,w,h) -->
+	case highLOD :
+		t(offsetX,0,w*0.1)
+		s(scope.sx-offsetX,w*0.5,w*0.2) center(y) i("builtin:cube") 
+		rotateScope(0,0,-90)
+		split(y){ ~h : TopBrick(h) }*
+	else:
+		NIL
+
+///////ANTEFIXES
+
+Antefixes(n,w,h) -->
+	case scope.sx < n *3:
+		split(x){ ~ n : split(x){~1: Antefixa(w,h) | ~1: Antefixa(w,h) } }* 
+		t('1,0,0) s(w*0.4,'1,'1) Antefixa(w,h)
+	else:
+		split(x){   ~ n : split(x){~1: NIL      | ~1: Antefixa(w,h) }
+				| { ~ n : split(x){~1: Antefixa(w,h) | ~1: Antefixa(w,h) } }* }
+
+Antefixa(w,h) -->
+	case antefix == true :
+		s(w*0.4,h*0.2,'1) t('-0.5,0,0) i(tex.antefixAsset) Antefixa.
+		tex.WholeBlock("block")
+	else: NIL	
+
+TopAcroteria(w) -->
+case antefix == true :
+	i("builtin:cube")
+	s(simaLength/2,MidAcroH/2,MidAcroH)
+	//t('-1,0,0)
+	center(y)
+	setPivot(zxy,5)
+	i(tex.acroterionAsset)
+	[mirror(false,false,true)t(0,0,-w+geisonProjection)/*t(0,0,-w-geisonProjection)*/ tex.WholeBlock("block")]
+	tex.WholeBlock("block")
+
+else: NIL
+
+SideAcroteria(w) -->
+case antefix == true :
+	i("builtin:cube")
+	s(simaLength/2,SideAcroH/2,SideAcroH)
+	//t('-1,0,0)
+	setPivot(zxy,5)
+	i(tex.acroterionAsset)
+	rotate(rel,pivot,0,0,-roof_angle) 
+	t('1,'.25,0)
+	tex.WholeBlock("block")
+	t(0,0,-w+geisonProjection)
+	mirror(false,false,true)
+	Anfefix.
+
+
+
+
+else: NIL
+	
+///////PEDIMENT
+
+Pediment(n) -->
+	t(0,0,-pedimentWidth) s('0.995,'1,'1) center(x)	
+	[reverseNormals PedimentWindow]	
+	extrude(pedimentWidth-geisonProjection) 	
+	alignScopeToAxes(y)
+	t(0,-.2,0)
+	comp(f){ top = comp(f){ 0: Simas(0) RankingGeisons(n,1) | 1: Simas(1) RankingGeisons(n,0) }
+			//|back: reverseNormals tex.Block("wall", tile)
+			} 											
+
+PedimentWindow -->
+	case pediment_windows == 3:
+	split(x){~1: PedimentWall|1: SmOpening|~1: PedimentWall|2.5: Opening|~1: PedimentWall|1: SmOpening|~1: PedimentWall}
+	
+	else: PedimentWall
+	
+SmOpening -->
+	split(y){1:split(x){.2:Frame|~1:NIL|.2:Frame}
+			|.2: Cornice
+			|~1: PedimentWall
+			}
+									
+	
+Opening -->
+	split(y){2.75:split(x){.4:Frame|~1:NIL|.4:Frame}
+			|.5: Cornice
+			|~1: PedimentWall
+			}
+
+PedimentWall -->
+	extrude(pedimentWidth-geisonProjection)
+	tex.Block("wall", tile)
+	
+Cornice -->
+	s('1,'1,'1.1) 
+	i(tex.doorCorniceAsset)
+	tex.Block("block")
+
+Frame -->
+	extrude(pedimentWidth-geisonProjection)
+	tex.Block("block")
+	
+Simas(side) -->
+	case tuscan:
+		t('-0.1*side,0,0) s('1.1,simaLength,corniceH) i("builtin:cube")
+		tex.Block("block")
+	else:
+		t('-0.1*side,0,0) s('1.1,simaLength,simaHeight) i("builtin:cube") 	
+		split(x){ ~simaWidth : i(tex.simaAsset) tex.Block("block")}*	
+
+RankingGeisons(n,side) -->
+	case tuscan:
+		t('0.03*side,0,0) s('0.97,simaLength,simaHeight)
+		rotateScope(-90,180,0)
+ 		s('1,simaHeight*0.9,column_diameter) 
+ 		t(0,'-1,0) i("builtin:cube")
+ 		tex.Block("block")
+ 	else:
+ 		t('0.03*side,0,0) s('0.97,simaLength,simaHeight)
+		rotateScope(-90,180,0)
+ 		s('1,corniceH*0.9,1) t(0,'-1,0) i("builtin:cube")
+ 		split(x){ ~ n/4.3: Geison }*		
+	
+Geison -->
+case corinthian:	
+	set(trim.vertical,true) 
+	t(0,0,column_diameter/2)
+	s('1,'1, column_diameter/2) 
+	i(tex.corniceAsset)
+	tex.Block("block")
+else:	
+	set(trim.vertical,true) 
+	t(0,0,geisonProjection- column_diameter/2 ) s('1,'1, column_diameter ) 
+	i(tex.geisonAsset)
+	tex.Block("block")
+
+Beam -->
+	i("builtin:cube")
+	s('1,column_diameter,column_diameter*1.5)
+	center(y)
+	t(0,0,-column_diameter*1.5)
+	tex.Block("wood")
+	
+Ceiling -->
+	reverseNormals		
+	split(y){pedimentWidth-geisonProjection*2: TiltRoof1 |~1: NIL | pedimentWidth-geisonProjection*2:TiltRoof2}
+
+TiltRoof1 -->	
+	set (trim.horizontal,true)
+	roofShed (15)
+	tex.Block("roof", 4,24)
+	
+TiltRoof2 -->	
+	set (trim.horizontal,true)
+	roofShed (15,2)
+	comp(f) {top:tex.Block ("roof",4,24)}
+
+		

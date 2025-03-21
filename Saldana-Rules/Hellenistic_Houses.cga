@@ -1,0 +1,326 @@
+/**
+ * File:    HellenisticHouses.cga
+ * Created: 30 Jan 2015 20:56:29 GMT
+ * Author:  msaldana
+ */
+
+version "2017.0"
+
+@Hidden 
+import col : "_Colonnade.cga" 
+
+@Hidden 
+import tex : "_TexturesAssets.cga"
+
+@Hidden 	
+import rf:   "_Roof.cga" 			
+
+#-------Scene Settings
+
+@Group("SceneSettings",0)@Range("HIGH","MED","LOW")
+attr LOD					= "LOW"
+	const highLOD 				= LOD == "HIGH"
+	const medLOD				= LOD == "MED"
+	const lowLOD				= LOD == "LOW"
+
+#--------General
+
+@Group("General",1)
+attr elevation 	= 0
+
+@Group("General",1)
+attr generate_roof 			= true
+
+@Group("General",1)@Range("various","grass")
+attr ground_type			= "grass"
+
+
+const height 				= rand (2.3,6)
+const stories				= 50%: 2 else: 1
+const wallThickness			= .3
+const windowW				= .5
+const windowH				= .6
+const doorW					= rand(.8,1)
+const doorH					= rand(2,2.2)
+
+#--------Colonnade
+attr column_diameter		= (height-1)/12
+
+@Group("General",1)@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+attr order_					= "DORIC"
+	const tuscan				= order_ == "TUSCAN"
+	const doric					= order_ == "DORIC"
+	const ionic					= order_ == "IONIC"
+	const corinthian			= order_ == "CORINTHIAN"
+	
+const peristyle 			= 50%:false else: true	
+
+////////////
+///////START
+
+Lot -->
+alignScopeToAxes(y)
+Lot(rand(.9,1.1))
+
+Lot(n) -->
+
+split(z){'.4*n:  Back(scope.sy,n,rand(1.9,3.1))
+		|~1: Middle(scope.sy,n,rand(1.9,3.1)) 
+		|'.2*n: alignScopeToAxes(y) Front(scope.sy) }
+
+
+Front(yDim) -->
+extrude(world.y,100)
+split(y){yDim:comp(f){side:WallSide}
+		|height*.5:comp(f){front:EntranceWall
+						 	|side:WallSide
+						 	|top:Roof
+						 	}
+		|~1: NIL
+		}
+
+Middle(yDim,n,r) -->
+case peristyle == false:
+extrude(world.y,100)
+split(y){yDim:comp(f){side:WallSide
+					|top:split(x){wallThickness: extrude(2)comp(f){all:WallSide}
+								|~1: Ground 
+								|wallThickness: extrude(2)comp(f){all:WallSide}
+								}
+					}
+		|1: NIL
+		}
+		
+else:
+extrude(world.y,100)
+split(y){yDim:comp(f){side:WallSide
+					|top:split(x){~1: tex.WholeBlock("floor",.5)SidePeristyleLeft(n,r)
+								|'.5: Ground
+								|~1: tex.WholeBlock("floor",.5)SidePeristyleRight(n,r)
+
+								}
+					}
+		|1: NIL
+		}
+
+Back(yDim,n,r) -->
+extrude(world.y,100)
+split(y){yDim:comp(f){top:tex.WholeBlock("floor",.5)
+					 			|side:WallSide
+					 			}
+		|height*n:House(n,r)
+		|~1: NIL}			
+		
+	
+House(n,r)-->
+case height > 4.5 && peristyle == false:				
+					split(x){'.75: split(y){'.5: comp(f){front: Prostas(n,r) t(0,0,-2)EntranceWall	
+																|side: set(trim.vertical,false)Wall
+																}
+													|'.05: comp(f){top:tex.WholeBlock("floor",.5)
+																|side:WallSide
+																|bottom: WallSide
+																}
+													|'.4: comp(f){front:Prostas(n,r)Railing t(0,0,-2)EntranceWall
+																|side: set(trim.vertical,false)Wall
+													 			}
+													|'.05: comp(f){side:WallSide
+																	|top: Roof
+																	|bottom: WallSide
+																	}
+													}
+								|~1: split(y){'.5: comp(f){front:WindowWall(n)
+															|side:WallSide
+															}
+											|'.4:comp(f){front:WindowWall(n)
+														|side:WallSide
+														|top: tex.WholeBlock("floor",.5)
+														}
+											|'.1:comp(f){side:Wall}
+											}		
+
+								}
+
+
+case height >4.5 && peristyle == true:
+split(x){~1: split(y){'.5: comp(f){front:WindowWall(n)
+															|side:WallSide
+															}
+											|'.4:comp(f){front:WindowWall(n)
+														|side:WallSide
+														|top: tex.WholeBlock("floor",.5)
+														}
+											|'.1:comp(f){side:Wall}
+											}	
+										|'.5: split(y){'.5: comp(f){front: Prostas(n,r) t(0,0,-2)EntranceWall	
+																|side: set(trim.vertical,false)Wall
+																}
+													|'.05: comp(f){top:tex.WholeBlock("floor",.5)
+																|side:WallSide
+																|bottom: WallSide
+																}
+													|'.4: comp(f){front:Prostas(n,r)Railing t(0,0,-2)EntranceWall
+																|side: set(trim.vertical,false)Wall
+													 			}
+													|'.05: comp(f){side:WallSide
+																	|top: Roof
+																	|bottom: WallSide
+																	}
+													}
+								|~1: split(y){'.5: comp(f){front:WindowWall(n)
+															|side:WallSide
+															}
+											|'.4:comp(f){front:WindowWall(n)
+														|side:WallSide
+														|top: tex.WholeBlock("floor",.5)
+														}
+											|'.1:comp(f){side:Wall}
+											}		
+
+								}
+
+case height <= 4.5 && peristyle == false:				
+					split(x){'.75: split(y){'.5: comp(f){front: Prostas(n,r) t(0,0,-2)EntranceWall	
+																|side: set(trim.vertical,false)Wall
+																}
+													|'.05: comp(f){top:tex.WholeBlock("floor",.5)
+																|side:WallSide
+																|bottom: WallSide
+																}
+													|'.05: comp(f){side:WallSide
+																	|top: Roof
+																	|bottom: WallSide
+																	}
+													}
+								|~1: split(y){'.5: comp(f){front:WindowWall(n)
+															|side:WallSide
+															}
+											|'.4:comp(f){front:WindowWall(n)
+														|side:WallSide
+														|top: tex.WholeBlock("floor",.5)
+														}
+											|'.1:comp(f){side:Wall}
+											}		
+
+								}
+
+					
+else:
+split(x){~1: split(y){'.5: comp(f){front:WindowWall(n)
+															|side:WallSide
+															}
+											|'.4:comp(f){front:WindowWall(n)
+														|side:WallSide
+														|top: tex.WholeBlock("floor",.5)
+														}
+											|'.1:comp(f){side:Wall}
+											}	
+										|'.5: split(y){'.5: comp(f){front: Prostas(n,r) t(0,0,-2)EntranceWall	
+																|side: set(trim.vertical,false)Wall
+																}
+													|'.05: comp(f){top:tex.WholeBlock("floor",.5)
+																|side:WallSide
+																|bottom: WallSide
+																}
+													|'.05: comp(f){side:WallSide
+																	|top: Roof
+																	|bottom: WallSide
+																	}
+													}
+								|~1: split(y){'.5: comp(f){front:WindowWall(n)
+															|side:WallSide
+															}
+											|'.4:comp(f){front:WindowWall(n)
+														|side:WallSide
+														|top: tex.WholeBlock("floor",.5)
+														}
+											|'.1:comp(f){side:Wall}
+											}		
+
+								}
+
+
+SidePeristyleRight(n,r) -->
+setPivot(xyz,4)
+extrude(world.y,100)
+split(y){height*n:	split(y){'.5: comp(f){front: Prostas(n,r) t(0,0,-2)EntranceWall	
+																|side: set(trim.vertical,false)Wall
+																}
+													|'.05: comp(f){top:tex.WholeBlock("floor",.5)
+																|side:WallSide
+																|bottom: WallSide
+																}
+													|'.05: comp(f){side:WallSide
+																	|top: Roof
+																	|bottom: WallSide
+																	}
+													}
+			
+		|~1: NIL
+		}
+
+SidePeristyleLeft(n,r) -->
+setPivot(xyz,1)
+extrude(world.y,100)
+split(y){height*n:	split(y){'.5: comp(f){front: Prostas(n,r) t(0,0,-2)EntranceWall	
+																|side: set(trim.vertical,false)Wall
+																}
+													|'.05: comp(f){top:tex.WholeBlock("floor",.5)
+																|side:WallSide
+																|bottom: WallSide
+																}
+													|'.05: comp(f){side:WallSide
+																	|top: Roof
+																	|bottom: WallSide
+																	}
+													}
+			
+					|~1: NIL
+					}
+					
+Prostas(n,r) -->
+col.NoFirstNoLast(col.column_spacing*3)
+
+Wall -->
+extrude(-wallThickness)
+tex.Block("wall",col.columnHeight)
+
+WallSide -->
+tex.Block("wall",col.columnHeight)
+
+WindowWall(n) -->
+split(x){~1:WallSide
+		|windowW*n:split(y){'.6:WallSide
+						|windowH*n:tex.WholeBlock("wood")
+						|~1:WallSide
+						}
+		|~1:WallSide
+		}
+		
+Railing -->
+t(0,0,-column_diameter/2) 
+split(y){1:s(scope.sx-wallThickness*2,'1,.05)
+			center(xz)
+			split(x){~1:i(tex.railingAsset)tex.WholeBlock("wood")}*
+		|~1: NIL
+		}
+
+EntranceWall -->
+split(x){~1:WallSide
+		|doorW: split(y){doorH:tex.WholeBlock("wood")
+						|~1: WallSide
+						}
+		|~1:WallSide
+		}
+
+Roof -->
+roofGable(12)
+comp(f){top:tex.Block("roof",4,24)
+		|side: WallSide
+		}
+
+Ground -->
+case ground_type == "various":
+	tex.Block("ground",1)
+else:
+	tex.Block("grass",1)

@@ -1,0 +1,472 @@
+/**
+ * File:    Basilica.cga
+ * Created: 17 Feb 2014 11:38:21 GMT
+ * Updated: June 2017
+ * Author:  Marie Saldana
+ */
+
+
+version "2017.0"
+
+@Hidden
+import bu  : "_BasilicaUpperStorey.cga" (order_ = upper_order, column_diameter = upper_column_diameter, plinth_height = upper_plinth_height)
+
+@Hidden
+import col : "_Colonnade.cga"			
+
+@Hidden
+import tex : "_TexturesAssets.cga" 
+
+@Hidden	
+import rf:   "_Roof.cga" 	
+
+#-------Scene Settings
+
+@Group("SceneSettings",0)
+attr elevation 	= 0
+
+@Group("SceneSettings",0)@Range("HIGH","MED","LOW")
+attr LOD					= "LOW"
+	const highLOD 				= LOD == "HIGH"
+	const medLOD				= LOD == "MED"
+	const lowLOD				= LOD == "LOW"
+
+#--------General
+
+@Group("General",1)@Order(1)@Range("REPUBLICAN","IMPERIAL","MARKET")
+@Description("Market Basilica is a massing model of a Hellenistic type, specifically found at Magnesia on the Maeander")
+attr type 						= "REPUBLICAN"
+	const republican				= type == "REPUBLICAN"
+	const imperial					= type == "IMPERIAL"
+	const market					= type == "MARKET"
+									
+#--------Base
+	
+@Group("Base",2)@Order(1)
+attr steps						= 5	
+
+@Group("Base",2)
+attr extra_steps_down			= 0
+
+@Group("Base",2)
+attr step_depth 				= .35	
+
+@Group("Base",2)
+attr step_height 				= .2
+
+@Group("Base",2)@Range(true,false)
+attr show_steps					= true
+
+const baseHeight 				= step_height*steps+step_height*extra_steps_down
+
+#--------Ground Floor
+
+@Group("Ground Floor",3)@Order(1)@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+@Description("architectural order of the lower storey")
+attr order_						= "TUSCAN"
+	const tuscan					= order_ == "TUSCAN"
+	const doric						= order_ == "DORIC"
+	const ionic						= order_ == "IONIC"
+	const corinthian				= order_ == "CORINTHIAN"
+
+
+@Hidden@Group("Ground Floor",3)@Order(1)@Range("SHOPS", "NO_SHOPS")#REVISIT - DOESN'T WORK (MAKE T/F)
+attr with_shops					= "NO_SHOPS"
+	const shops						= with_shops == "SHOPS"
+	const noShops					= with_shops == "NO_SHOPS"
+	
+@Group("Ground Floor",3)@Order(2)@Range(true,false)
+@Description("adds a porch and door at the back of the building")
+attr back_entrance				= false
+
+@Group("Ground Floor",3)@Order(3)
+attr porch_depth 				= aisle_width
+
+@Group("Ground Floor",3)@Order(4)@Range(true,false)
+@Description("removes door so that interior is visible. works best for republican type")
+attr show_interior				= false
+
+@Group("Ground Floor",3)@Order(5)
+attr aisle_width				= 	case columns:column_spacing*2
+									else: arch_width
+
+const groundFloorHeight 		= columnHeight+entablatureH+railingH
+const entablatureH				= column_diameter*col.entablatureH
+const railingH					= 1
+								
+#--------Upper Floor
+
+@Group("Upper Floor",4)@Order(1)@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+@Description("architectural order of the upper storey")
+attr upper_order						= "DORIC"
+
+@Group("Upper Floor",4)@Order(1)@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+attr upper_plinth_height				= case columns: 0 else:(bu.column_spacing*.75+upper_column_diameter)/2
+
+const upperFloorHeight 			= upper_wall_height+upper_baseWall+upper_column_height+upperEntablatureH+upper_railingH
+const upper_column_height		= bu.columnHeight
+const upper_column_diameter		= column_diameter*.75 
+const uppercolumn_spacing		= bu.column_spacing
+const upperEntablatureH			= upper_column_diameter*col.entablatureH
+const upper_wall_height			= upper_column_height*.75
+const upper_baseWall			= case republican: 0 else: railingH+upper_column_height*.22
+const upper_railingH			= case republican: 0 else: railingH
+
+#--------Colonnade
+
+@Hidden@Group("Colonnade",5)@Order(3)@Range("COLONNADE","ARCADE")
+attr colonnade_type		= 	case republican: "COLONNADE" else: "ARCADE"							
+	const columns		= colonnade_type == "COLONNADE"
+	const arches		= colonnade_type == "ARCADE"
+	
+@Group("Colonnade",5)@Order(4)
+@Description("diameter of lower colonnade")
+attr column_diameter			= 	case arches: archColumnDiameter else: 0.6
+
+@Group("Colonnade",5)@Range(true,false)
+attr no_front_colonnade	= false
+
+@Group("Colonnade",5)
+attr plinth_height					= 	case columns: 0 else:(column_spacing+column_diameter)/2
+
+@Group("Colonnade",5)
+attr column_spacing				= 	case tuscan && columns: 	column_diameter*4
+									case doric && columns: 		column_diameter*2.5
+									case ionic && columns: 		column_diameter*5.5	
+									case corinthian && columns: column_diameter*9
+									case tuscan && arches: 		archColumnDiameter*4
+									case doric && arches: 		archColumnDiameter*2.5
+									case ionic && arches: 		archColumnDiameter*5.5	
+									else: 						archColumnDiameter*9
+									
+const archColumnDiameter		= arch_width/10	
+							
+#-------Arcade
+
+@Group("Colonnade","Arcade",5)
+attr arch_width					= 	3
+
+@Group("Colonnade","Arcade",5)@Range("Front Side", "Both Sides", "Off")
+attr show_orders					 	= "Front Side"
+	const singleSide				= show_orders == "Front Side"
+	const bothSides					= show_orders == "Both Sides"
+	const ordersOff					= show_orders == "Off"
+
+
+const columnHeight				= case columns:col.columnHeight 
+									else: col.archH
+
+#--------Walls & Doors
+
+const wallThickness 			= 	case columns:column_diameter+col.columnOffset
+									else: .33
+const doorD						= 0.4
+const doorFrameW				= 0.4
+const doorFrameH				= 0.6
+const entranceFrameW			= doorFrameW+0.1
+
+
+#--------Roof
+
+@Group("Roof",6)@Range("Flat", "Angled")
+@Description("Republican type only")
+attr roof_type					= "Flat"
+
+@Group("Roof",6)
+attr roof_angle					= 	case market: 	18.5
+									else:			20
+
+const roofThickness 			= 0.5
+
+const roofBrickW 				= column_spacing *0.25
+const roofBrickH 				= column_spacing *0.35
+
+#--------Texture Size
+
+const tile 						= columnHeight
+
+#-------Market Basilica
+
+@Group("Market Basilica",7)
+@Description("Market Basilica is a massing model of a Hellenistic type, specifically found at Magnesia on the Maeander")
+attr height 				= 10
+
+
+
+////////////
+///////START
+
+Lot -->
+case market:
+	innerRect
+	MarketBasilica
+else:
+	innerRect
+	t(0,elevation,0)
+	Base
+	t(0,baseHeight-extra_steps_down*step_height, 0)
+	InnerOffset
+	extrude(world.y, groundFloorHeight + upperFloorHeight)
+	Mass
+
+Mass -->
+case republican:
+	split(y){groundFloorHeight : GroundFloor| ~1 : NIL}
+else:
+	split(y){groundFloorHeight : GroundFloor| ~1 : s(scope.sx-aisle_width*2-wallThickness*2,'1,'1) center(x)t(0,-railingH,0)bu.UpperVolume}
+
+///////BASE
+	
+Base -->
+	t(0,-extra_steps_down*step_height,0)
+	extrude(baseHeight)
+	set(trim.horizontal, true)
+	comp(f){front: Stairs | left : BaseWall  |right:  BaseWall |back: BaseBack}	
+
+BaseBack -->
+	case back_entrance == true: Stairs
+	else: BaseWall
+
+BaseWall -->
+	tex.Block("wall", tile)
+
+Stairs -->
+case show_steps == true:
+	alignScopeToAxes(y)
+	set(trim.vertical, true)
+	split(y){~step_height :  extrude((split.total - split.index) * step_depth) Step}*
+else: BaseWall
+
+Step -->
+	tex.Block("wall", tile)	
+	
+///////GROUND FLOOR
+
+GroundFloor -->
+case republican:
+	split(y){columnHeight: s('1,'1,scope.sz-porch_depth)
+						comp(f)	{front: t(0,0,porch_depth)FrontColonnade  
+											t(0,0,-porch_depth-wallThickness)
+											s(scope.sx-wallThickness*2,scope.sy+entablatureH-.1,'1)
+											center(x)
+											split(y){~1:split(x){~1:Wall|column_spacing:Entrance(scope.sx)|~1:Wall}
+													|entablatureH:Wall
+													}
+									|back: BackEntrance
+									|side: s(scope.sx-column_diameter*2,'1,'1)center(x)Wall
+									|bottom: s('1,scope.sy+porch_depth,'1)t(0,-porch_depth,0)reverseNormals tex.Block("floor",.5)
+									}
+			|entablatureH: comp(f){side:col.Entablature(column_spacing,column_diameter)
+									|top:offset(-aisle_width-wallThickness)
+											comp(f){border: Ceiling
+													|inside: NIL //InnerCeiling.
+													}}
+			|~1: comp(f){side:Railing}}
+else:
+	split(y){columnHeight:comp(f)	{side:  s(scope.sx-col.archColumnBaseW,'1,'1)center(x)col.ArcadeStart
+									|bottom: reverseNormals tex.Block("floor",.5)
+									}
+			|entablatureH: comp(f){side:col.Entablature(column_spacing,column_diameter)
+								  |top:offset(-aisle_width*2-wallThickness)
+									   comp(f){border: Ceiling
+											 |inside: extrude(upperFloorHeight)
+													  split(y){upper_column_height+upper_baseWall+upperEntablatureH:comp(f){side: split(x){~1:Wall|arch_width:Entrance(scope.sx)|~1:Wall}}
+															|~1: comp(f){side:UpperWindows |top: Roof}
+															}
+															
+										  }
+								  }
+			|~1: comp(f){side:Wall}
+			}
+
+FrontColonnade -->
+case no_front_colonnade == true: NIL
+else: col.FirstLastFlush(column_spacing)
+				
+BackEntrance -->
+case back_entrance == true:
+
+	col.FirstLastFlush(column_spacing) 
+	t(0,0,-porch_depth)
+	s(scope.sx-wallThickness*2,scope.sy+entablatureH-.1,'1)
+	center(x)
+	split(y){~1:split(x){~1:Wall|column_spacing:Entrance(scope.sx)|~1:Wall}
+			|entablatureH:Wall
+			}
+else: Wall
+
+Ceiling -->
+case roof_type == "Flat":
+tex.Block("floor",.5)
+reverseNormals
+t(0,0,-.1)
+tex.Block("roof",4,24)	
+else:
+OuterRoof
+
+InnerCeiling -->
+case scope.sy >aisle_width*2 && republican:
+	split(y){aisle_width: Ceiling|~1:NIL|aisle_width: Ceiling}
+case scope.sy <=aisle_width*2 && republican: NIL
+else: offset(-aisle_width,border) Ceiling
+
+Railing -->
+case roof_type == "Flat": Wall
+else: NIL
+
+///////INNER VOLUME
+InnerOffset -->
+case republican: 
+		offset(-aisle_width-wallThickness,inside)Inner
+else: offset(-aisle_width-wallThickness,inside)
+		InnerVolume
+
+Inner -->
+case scope.sz>aisle_width*2:
+	InnerVolume
+	
+else: InnerVolume
+
+InnerVolume -->
+case republican && show_interior == true:
+	extrude(groundFloorHeight+upperFloorHeight)
+	split(y){columnHeight: comp(f){	back:col.FirstFlushNoLast(column_spacing)
+									|left:col.FirstFlushNoLast(column_spacing)
+									|right:col.FirstFlushNoLast(column_spacing)}
+			|entablatureH: comp(f){	back:col.Entablature(column_spacing, column_diameter)
+									|left:col.Entablature(column_spacing, column_diameter)
+									|right:col.Entablature(column_spacing, column_diameter)}
+			|~1:bu.UpperVolume}
+case republican && show_interior == false:
+	extrude(groundFloorHeight+upperFloorHeight)
+	split(y){columnHeight+entablatureH: NIL
+			|~1:bu.UpperVolume}
+else:	
+	extrude(groundFloorHeight+upperFloorHeight)
+	split(y){columnHeight: comp(f){	side: split(x){~1:Wall|arch_width:Entrance(scope.sx)|~1:Wall}}
+			|entablatureH: comp(f){side:col.Entablature(column_spacing, column_diameter)}
+			|~1:NIL}
+					
+
+///////WALLS
+
+Wall -->
+	extrude (-wallThickness)
+	tex.Block("wall", tile)
+	
+Wall(thickness) --> 	
+	s('1,'1,thickness) t(0,0,'-1) i("builtin:cube")
+	tex.Block("wall", tile)
+
+
+///////DOOR
+
+Entrance(x) --> 
+	t(0,0,- step_depth *0.2) 
+	split(y){ step_height *0.5    : t(0,0,step_depth*0.5) Wall( wallThickness+step_depth) 
+			| ~1			  			: split(x){ entranceFrameW : Wall | ~1 : DoorMain(x) | entranceFrameW : Wall } 
+			| entranceFrameW 			: Wall  
+			}
+
+DoorMain(x) -->  
+	t(0,0,-wallThickness*0.15) 
+	split(y){ ~1          : split(x){ doorFrameW : DoorFrame(wallThickness*0.8) | ~1 : Door | doorFrameW : DoorFrame(wallThickness*0.8) } 
+			| doorFrameH  : Wall(wallThickness*0.8) DoorCornice }
+
+Door --> 
+case show_interior == false:
+	s('1,'1,doorD) 
+	t(0,0,'-1) 
+	i(tex.doorAsset)
+	tex.Block("wood")
+else: NIL
+	
+DoorFrame(thickness)-->
+	s('1,'1,thickness) 
+	t(0,0,'-1) 
+	i("builtin:cube")
+	tex.Block("wood")
+
+DoorCornice -->	
+	s('1,'1,.2) 
+	i(tex.doorCorniceAsset)
+	tex.Block("wood")
+	
+///////WINDOWS
+
+UpperWindows -->
+case republican:
+split(x){~column_spacing:t(column_diameter,0,0)s(scope.sx-column_diameter,'1,'1)WindowWall
+			|{~column_spacing:WindowWall}*
+			|~column_spacing:s(scope.sx-column_diameter,'1,'1)WindowWall}
+else: 
+split(x){~arch_width:WindowWall
+			|{~arch_width:WindowWall}*
+			|~arch_width:WindowWall}
+			
+WindowWall -->
+	split(x){~1: Wall
+			|col.orderW: split(y){~1: Wall
+									  |~1: t(0,0,(-wallThickness+column_diameter)/2)Window.
+									  |~1: Wall}
+			|~1: Wall}
+
+///////ROOf
+
+Roof -->
+	roofGable(roof_angle, 1)
+	Roof1
+
+OuterRoof -->
+	roofShed (roof_angle)
+	comp(f){top:  rf.Roof(roofBrickW,roofBrickH)|bottom: tex.Block("wall")}
+	
+Roof1 -->
+	comp(f){bottom: NIL|vertical: Wall|top:  rf.Roof(roofBrickW,roofBrickH)}
+	
+///////MARKET BASILICA TYPE
+
+MarketBasilica -->
+	innerRect
+	Lot2(scope.sz)
+
+Lot2(zDim) -->
+	t(0,elevation,0)
+	split(z){zDim*.05: Apse(zDim)|zDim*.18: Bema(zDim) |~1: Nave(zDim)|zDim*.08: Narthex(zDim)  } 
+
+Nave(zDim) -->
+	extrude(height/2)
+	comp(f) {top: split(x){'.25: Aisle(split.index) |~1: CenterNave(zDim) |'.25: Aisle(split.index)} |side: Wall}
+
+CenterNave(zDim) -->
+	extrude (height/2)
+	comp(f) {top: roofGable(roof_angle)MarketBasilicaRoof|side: Wall}
+
+Aisle(n) -->
+case n == 2:
+	extrude(height/4)
+	comp(f){top:roofShed(roof_angle*.8,1)MarketBasilicaRoof|side: Wall}
+
+else :
+	extrude(height/4)
+	comp(f){top:roofShed(roof_angle*.8,3)MarketBasilicaRoof|side: Wall}
+
+MarketBasilicaRoof -->
+	comp(f) {top: rf.Roof(1,1) | side: Wall}
+
+Bema(zDim) -->
+	extrude(height*.6)
+	comp(f) {top: roofGable(roof_angle)MarketBasilicaRoof |side: Wall}
+
+Apse(zDim) -->
+	extrude(height/2)
+	comp(f) {top: roofShed (roof_angle,2) MarketBasilicaRoof |side: Wall}
+
+Narthex(zDim) -->
+	extrude(height/2)
+	comp(f) {top: roofShed (roof_angle) MarketBasilicaRoof |side: Wall}
+	print((zDim*.15)+(zDim*.09)+(zDim*.07))
+
+
+
+

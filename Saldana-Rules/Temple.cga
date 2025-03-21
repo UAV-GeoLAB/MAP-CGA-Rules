@@ -1,0 +1,1059 @@
+/**
+ * File:    Temple.cga
+ * Created: 13 Feb 2014 11:48:55 GMT
+ * Updated: June 2017
+ * Author:  Marie Saldana
+ */
+
+version "2017.0"
+
+@Hidden 
+import col : "_Colonnade.cga" 
+
+@Hidden 		
+import tex : "_TexturesAssets.cga" 
+
+@Hidden 	
+import rf:   "_Roof.cga" 
+
+#-------Scene Settings
+
+@Group("SceneSettings",0)@Range("HIGH","MED","LOW")
+@Description("Level of Detail")
+attr LOD					= "MED"
+	const highLOD 				= LOD == "HIGH"
+	const medLOD				= LOD == "MED"
+	const lowLOD				= LOD == "LOW"
+
+#--------General
+
+@Group("General",1)
+attr elevation 	= 0
+	
+#--------Base
+
+#----------------Stylobate
+
+@Group ("Base","Stylobate",2)@Order(1)
+@Description("allows input of a specific stylobate_length and stylobate_width \n otherwise uses shape dimensions.")
+attr resize_stylobate				= false	
+
+@Group ("Base","Stylobate",2)@Order(2)
+@Description("if resize_stylobate is enabled, sets stylobate length \n does not include steps")
+attr stylobate_length				= 30
+
+@Group ("Base","Stylobate",2)@Order(3)
+@Description("if resize_stylobate is enabled, sets stylobate width")
+attr stylobate_width				= 20
+
+@Group ("Base","Stylobate","Tholos",2)
+@Description("if resize_stylobate is enabled, sets tholos diameter")
+attr tholos_diameter				= 15
+
+#----------------Steps
+
+@Group ("Base","Steps",3)@Order(1)@Range("FRONT","FRONT_NARROW","ARMS","SIDE","SIDE+FRONT","ALL_SIDES")
+@Description("type of stairs \n FRONT: steps full width of building front \n FRONT_NARROW: steps width of the opening between center columns \n ARMS: steps between projecting podium arms, length of arms corresponds to the number of steps \n SIDE: front podium/rostrum with lateral steps \n SIDE+FRONT: podium/rostrum with front and lateral steps \n ALL_SIDES: steps around all sides of the building")
+attr stair_type				= 	case tuscan || corinthian || Tshape: "ARMS"
+								else: "ALL_SIDES"
+	const front					= stair_type == "FRONT"
+	const frontNarrow			= stair_type == "FRONT_NARROW"
+	const arms					= stair_type == "ARMS"
+	const side					= stair_type == "SIDE"
+	const both					= stair_type == "SIDE+FRONT"
+	const allSides				= stair_type == "ALL_SIDES"
+
+@Group ("Base","Steps",3)@Order(2)
+@Description("number of steps")
+attr steps					= 5	
+	
+@Group ("Base","Steps",3)@Order(3)
+attr step_height			= 0.28
+
+@Group ("Base","Steps",3)@Order(4)
+attr tread_depth			= 0.4
+
+@Group ("Base","Steps",3)@Order(5)
+@Description("if ground in front is lower than building elevation, adds additional steps extending down")
+attr extra_steps_down		= 0
+
+#------------------Rostrum Style Base
+
+@Group ("Base","Rostrum style options",4)@Order(1)
+@Description ("number of front-facing steps in FRONT+SIDE stair type.")
+attr front_steps				= steps/2
+
+@Group ("Base","Rostrum style options",4)@Order(2)
+@Description ("depth of the podium in SIDE and FRONT+SIDE stair types")
+attr podium_depth			= column_diameter*2
+
+#------------------Podium Arms
+@Group ("Base","Podium Arms",5)
+@Description("width of podium arms")	
+attr arm_width					= case tholos: column_diameter
+							  else: column_diameter*3
+
+@Group ("Base","Podium Arms",5)
+@Description("when less than height of stairs, breaks podium arms into steps")	
+attr arm_height					= steps*step_height
+
+const baseH					= steps*step_height
+
+#--------Peristyle
+
+@Group("Peristyle",6)@Range("NONE","PERIPTERAL","DIPTERAL","CLOSED_ALAE","T-SHAPE","THOLOS")
+@Description ("arrangement of the columns \n NONE: no columns on sides \n PERIPTERAL: columns on all sides \n DIPTERAL: double row of columns on all sides \n CLOSED_ALAE: columns on sides and solid back wall \n T-SHAPE: projecting, narrower porch \n THOLOS: round temple  ")
+attr peristyle_type			=	case tuscan: "NONE"
+								else: "PERIPTERAL"
+	const noPeristyle			= peristyle_type == "NONE"                                                                                                                                                                                                                                                                                                                     
+	const peripteral 			= peristyle_type == "PERIPTERAL"
+	const dipteral				= peristyle_type == "DIPTERAL"
+	const closedAlae			= peristyle_type == "CLOSED_ALAE"
+	const Tshape				= peristyle_type == "T-SHAPE" #REVISIT DEFAULTS
+	const tholos				= peristyle_type == "THOLOS" 
+	
+@Group ("Peristyle",6)@Range("DISTYLE","TETRASTYLE","HEXASTYLE","OCTASTYLE","DECASTYLE")
+@Description ("the number of columns in the rows along width of the building \n DISTYLE: 2 \n TETRASTYLE: 4 \n HEXASTYLE: 6 \n OCTASTYLE: 8 \n DECATYLE: 10")
+attr portico_style			= 	case tuscan: "TETRASTYLE"
+								else: "HEXASTYLE"
+	const distyle				= 	portico_style == "DISTYLE"
+	const tetrastyle			= 	portico_style == "TETRASTYLE"
+	const hexastyle				= 	portico_style == "HEXASTYLE"
+	const octastyle				= 	portico_style == "OCTASTYLE"
+	const decastyle				=	portico_style == "DECASTYLE"
+	
+@Group ("Peristyle",6) 
+@Description ("eliminates the inner row of columns if dipteral peristyle is selected")
+attr pseudo					= false
+
+#--------------Pronaos
+
+@Group ("Peristyle","Pronaos",7) 
+@Description ("number of full rows of columns in front")
+attr pronaos_prostyle		= case noPeristyle && !tuscan || Tshape && !tuscan: 1
+							case tuscan: 2								
+							else: 0	
+
+@Group ("Peristyle","Pronaos",7)
+@Description ("depth of projecting walls in front (as rows of columns)")
+attr pronaos_antis			= 0
+
+@Group ("Peristyle","Pronaos",7)
+@Description ("number of columns missing in the center of the prostyle rows in front")
+attr pronaos_prostyle_gap	= 0	
+
+#--------------Posticum
+
+@Group ("Peristyle","Posticum",8)
+@Description ("number of full rows of columns in back")
+attr posticum_prostyle		= 0	
+
+@Group ("Peristyle","Posticum",8)
+@Description ("depth of projecting walls in back (as rows of columns)")
+attr posticum_antis			= 0
+
+@Group ("Peristyle","Posticum",8)
+@Description ("number of columns missing in the center of the prostyle rows in back")
+attr posticum_prostyle_gap	= 0	
+
+#--------Peristyle: Colonnade
+
+@Group("Colonnade",9)@Order(1)@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+@Description("architectural order")
+attr order_					= "DORIC"
+	const tuscan				= order_ == "TUSCAN" 
+	const doric					= order_ == "DORIC"
+	const ionic					= order_ == "IONIC"
+	const corinthian			= order_ == "CORINTHIAN"
+
+@Group ("Colonnade",9)@Order(2)
+@Description ("controls most of the proportions of the architectural order including column (building) height")
+attr column_diameter		= 	1
+
+@Group ("Colonnade",9)
+@Description("additional width for the opening between the two center columns in front (as a factor of column_spacing)")
+attr center_opening_front	= 	1 
+
+@Group ("Colonnade",9)
+@Description("additional width for the opening between the two center columns in back (as a factor of column_spacing)")
+attr center_opening_back	= 	1 
+
+@Group ("Colonnade",9)
+@Description("if false, eliminates columns between walls in antis (front)")
+attr antis_columns_front	= true
+
+@Group ("Colonnade",9)
+@Description("if false, eliminates columns between walls in antis (back)")
+attr antis_columns_back		= true	
+
+@Group ("Colonnade",9)@Range("5","10","20")
+@Description("for tholos temples, number of columns along the perimeter")
+attr tholos_colonnade		= "10"
+
+@Group ("Colonnade",9)
+@Description("when resize_cella is enabled, manually sets spacing of prostyle rows. works with prostyle (peristyle_type = NONE) only.")
+attr side_spacing			= 2.5
+
+const columnHeight			= 	col.columnHeight			
+const peristyleH			= 	columnHeight+entablatureH
+const columnOffset 			=  	(col.baseW*column_diameter-column_diameter)/2
+								
+#--------Entablature
+			
+const entablatureH			= 	column_diameter*col.entablatureH
+const architraveD			= 	column_diameter
+							
+#--------Cella
+
+@Group ("Cella",10)@Order(1)#REVISIT! PROSTYLE ONLY. SIDE SPACING DOES NOT WORK
+@Description("works with prostyle (peristyle_type = NONE) only. enables manual input of cella length. Use side_spacing and pronaos_prostyle to set row placement.")
+attr resize_cella			= false
+
+@Group ("Cella",10)@Order(2)
+@Description("works with prostyle (peristyle_type = NONE) only. manually sets cella length. Use side_spacing and pronaos_prostyle to set row placement.")
+attr cella_length			= 10
+
+@Group ("Cella",10)@Order(3)
+@Description("t-shape type only, as a factor of the porch width. the porch is the width of the shape.")
+attr cella_width					= 1.5
+
+@Group ("Cella",10)@Range("single","triple")
+@Description ("number of cella doors")
+attr cella_type				= "single"
+	const oneCella				= cella_type == "single"
+	const threeCellae 			= cella_type == "triple"
+
+@Group ("Cella",10)
+@Description ("adds back door (posticum cella)")
+attr posticum_door			= false
+
+@Group ("Cella",10)
+@Description ("adds pilasters to the front of the cella")
+attr pilasters				= 	case tuscan: true
+								else: false
+
+const mainDoorHeight		= columnHeight*.5
+const Door_Height			= mainDoorHeight*.8		
+const wallThickness 		= column_diameter     
+const doorD					= 0.4
+const doorWindowH			= mainDoorHeight*0.15
+const doorFrameW			= column_diameter*.25
+const doorFrameH			= column_diameter*.5
+const entranceFrameW		= doorFrameW+0.1
+const entranceH				= Door_Height+doorWindowH+doorFrameH+entranceFrameW+0.5*step_height
+const entranceW				= 2*doorFrameW+2*entranceFrameW
+const mainEntranceH			= mainDoorHeight+doorWindowH+doorFrameH+entranceFrameW+0.5*step_height
+const mainEntranceW			= 2*doorFrameW+2*entranceFrameW
+const corniceProjection 	= column_diameter *0.1
+const cellaSetback			= (col.baseW - column_diameter)/2
+
+#-------Roof
+
+@Group("Roof",11)@Order(1)
+@Description ("allows roof to be removed to show plan view")
+attr generate_roof 			= true
+
+@Group("Roof",11)@Order(2)
+attr roof_angle				= 	case tuscan: 19
+								case ionic: 13.6
+								else: 15
+								
+@Group("Roof",11)#REVISIT! NEED TO MAKE CONST							
+attr Troof_angle			= 	case tuscan: 12
+								else: 15
+
+@Group("Roof",11)#REVISIT!BETTER PLACEMENT/MODELS		
+attr antefix 				= false
+
+@Group("Roof",11)#REVISIT! MAKE TRUE/FALSE? WINDOW DIMS?			
+attr pediment_windows		= 0
+														
+const roofBrickW 			= column_diameter
+const roofBrickH 			= column_diameter*1.25
+const roofW					= 1.2
+
+#------Texture Size
+
+const tile 					= columnHeight							
+
+#------Index
+
+firstColumn(side) 			= split.index == 0 			   && comp.index == 0 			 && comp.sel == side
+lastColumn(side)			= split.index == split.total-1 && comp.index == comp.total-1 && comp.sel == side
+boundaryColumnR				= lastColumn("left") ||  lastColumn("right")
+boundaryColumnL				= firstColumn("left") || firstColumn("right")
+
+////////////
+///////START
+
+Lot --> 
+	t(0,elevation,0)
+	//Lot. 							#use to make shape for terrain alignment.
+		print("width:" + scope.sx)	#use to check stylobate dimensions in console
+		print("length:" + scope.sz)
+	Stylobate(scope.sx,scope.sz)
+
+Stylobate(x,z) -->
+	case resize_stylobate == true && !tholos:
+		innerRect
+		s(stylobate_width,0,stylobate_length) 
+		center(xz) 
+		Stylobate1
+	case tholos:
+	 	Tholos
+	else:
+		innerRect
+		s(x,0,z)
+		center(xz)
+		Stylobate1
+
+Stylobate1 -->
+	Temple
+	t(0,steps*step_height,0)
+	Cella(scope.sx)
+	
+///////THOLOS
+
+Tholos -->
+case resize_stylobate == false:
+	s('1,baseH+peristyleH,scope.sx)
+	TholosResized
+else: 
+	s(tholos_diameter,baseH+peristyleH,tholos_diameter)
+	TholosResized
+	
+TholosResized -->
+i(tex.cylinderAsset)
+split(y){baseH:/*color(base)*/comp(f){all:TholosBase(comp.index,comp.total)}
+		|columnHeight:/*color(column)*/comp(f){all:TholosColonnade(comp.index,comp.total)}
+		|entablatureH: comp(f){side:setPivot(xyz,5)col.Entablature(scope.sx,column_diameter)}
+		}
+
+TholosBase(n,y) -->
+	case n == 0:setPivot(xyz,5) FrontStairs(scope.sx)
+	case n == y-1: [ tex.Block("wall",tile)]offset(-col.column_spacing/2, inside)extrude(peristyleH) comp(f){all:TholosCella(comp.index,comp.total)}
+	else: tex.Block("wall", tile)
+		
+TholosColonnade(n,y) -->
+	case n == 0: setPivot(xyz,5)split(x){~1:rotate(abs,pivot,0,-18,0)t(0,0,-column_diameter/4)col.ColumnTile(1,column_diameter,split.total)
+							|~1:NIL}
+	case n == y-1: t(0,0,entablatureH)[reverseNormals tex.Block("wall",tile)]/*color(roof)*/roofHip(roof_angle)comp(f){top: rf.TempleRoof(col.column_spacing,roofBrickW,roofBrickH)}
+	
+	case n < 10 && tholos_colonnade == "20": setPivot(xyz,5)split(x){~1:rotate(abs,pivot,0,-18,0)t(0,0,-column_diameter/4)col.ColumnTile(1,column_diameter,split.total)
+							|~1:col.ColumnTile(1,column_diameter,split.total)}
+	case n < 10 && tholos_colonnade == "10": setPivot(xyz,5)rotate(abs,pivot,0,-18,0)t(0,0,-column_diameter/4)col.ColumnTile(1,column_diameter,split.total)
+	case n < 10 && tholos_colonnade == "5" && n%2 == 0: setPivot(xyz,5)rotate(abs,pivot,0,-18,0)t(0,0,-column_diameter/4)col.ColumnTile(1,column_diameter,split.total)
+	else: NIL
+
+TholosCella(n,y) -->
+	case n <2: NIL
+	case n == 2:split(x){~1:Wall
+						|mainEntranceW+n*0.5: split(y){mainEntranceH:Entrance| entranceFrameW : Cornice|~1:Wall}
+						|~1: Wall}
+	else: Wall
+
+///////PODIUM
+
+Temple -->
+	case arms :
+		s(scope.sx+column_diameter*2,'1,'1)
+		center(x)
+		Temple1
+		
+	case noPeristyle || Tshape:
+		s(scope.sx+column_diameter,'1,scope.sz+column_diameter)
+		center(xz)
+		Temple1
+		
+	case peripteral || dipteral:
+		offset(cellaSetback, inside)
+		Temple1
+	
+	else:
+		
+		Temple1		
+		
+Temple1 -->
+	StairsAround(steps-1)
+	extrude(steps*step_height+extra_steps_down*step_height)
+	t(0,-extra_steps_down*step_height,0)
+	Stairs
+	
+Stairs -->	
+	case allSides:
+	NIL
+	else:
+	split(z) {~1: Podium | .001: FrontStairs(scope.sx)}
+	
+Podium -->
+	tex.Block("base", tile, tile)
+
+StairsAround(n) -->
+	case n >= 0 && allSides :
+		[ t(0,step_height,0) StairsAround(n-1) ]
+		offset(n*tread_depth, inside) extrude(step_height) tex.Block("base",tile)
+	else : 
+		NIL
+
+FrontStairs(n) -->
+
+	case front:
+		Steps(steps+extra_steps_down)
+		
+	case frontNarrow:
+		s (column_diameter*4,'1,'1)
+		center(x)
+		Steps(steps+extra_steps_down)
+		
+	case arms:
+		split(x)	{arm_width:	s('1,'1,steps*tread_depth)
+							i("builtin:cube")
+							Arm
+					| ~1: 	Steps(steps+extra_steps_down) 
+					|arm_width: 	s('1,'1,steps*tread_depth)
+							i("builtin:cube")
+							Arm}
+	case side:
+		i("builtin:cube")
+		s(scope.sx-steps*tread_depth*2,'1,podium_depth)
+		center(x)
+		setPivot(xyz,2)
+		comp(f) 	{left: Steps(steps+extra_steps_down)
+					| right: Steps(steps+extra_steps_down)
+					| back: tex.Block("wall", tile)
+					| top: tex.Block("wall", tile)}
+	
+	case both:
+		split(x)	{arm_width /*~1*/ :	s('1,'1,front_steps*tread_depth)
+							i("builtin:cube")
+							comp(f)	{all: tex.Block("base", tile)}
+					|~1 /*n-steps+front_steps*tread_depth*2*/ :	s('1,'1,podium_depth+front_steps*tread_depth)
+															i("builtin:cube")
+															center(x)
+															setPivot(xyz,2)
+															comp(f) {left: split(x)	{scope.sx-front_steps*tread_depth: split(y)	{(steps+extra_steps_down)*step_height-(front_steps*step_height):Steps(steps+extra_steps_down-front_steps)
+																																|~1: NIL}
+																					|~1:NIL}
+																	|right: split(x){~1:NIL 
+																					|scope.sx-front_steps*tread_depth: split(y)	{(steps+extra_steps_down)*step_height-(front_steps*step_height):Steps(steps+extra_steps_down-front_steps)
+																																|~1: NIL}}
+																	|back: split(y)	{~1:tex.Block("wall", tile)
+																					|front_steps*step_height:	t(0,0,-podium_depth-front_steps*tread_depth)
+																												set(trim.vertical,false) 
+																												Steps(front_steps)}
+																	|top: split(y)	{~1:t(0,0,-front_steps*step_height) 
+																						tex.Block("wall", tile)
+																					|front_steps*tread_depth:NIL}
+																	}
+					|arm_width /*~1*/:s('1,'1,front_steps*tread_depth)
+						i("builtin:cube")
+						tex.Block("wall", tile)
+					}
+
+	else: tex.Block("base", tile)
+
+Arm -->
+	case scope.sy>arm_height+step_height:
+	split(y){~arm_height:tex.Block("wall",tile)
+			|~arm_height:s('1,'1,(scope.sy/step_height)*tread_depth)
+					tex.Block("wall",tile)
+			}
+	else: tex.Block("base",tile)
+	
+Steps(n) -->
+	 split(y)	{step_height: Step(n) 
+	 			| ~1: Steps(n-1)}
+	 			
+Step(idx) -->
+	s('1,'1,scope.sz+idx*tread_depth)
+	i("builtin:cube")
+	tex.Block("base", tile)
+		
+///////CELLA
+
+Cella(X) --> # gets column spacing taking into account the portico style and any irregularities in the intercolumniation.
+	case tetrastyle || distyle:
+		CellaOffset((X-((X/3)*center_opening_front))/2,scope.sx,scope.sz)
+		Peristyle((X-((X/3)*center_opening_front))/2)
+	
+	case hexastyle:
+		CellaOffset((X-((X/5)*center_opening_front))/4,scope.sx,scope.sz)
+		Peristyle((X-((X/5)*center_opening_front))/4)
+	
+	case octastyle :
+		CellaOffset((X-((X/7)*center_opening_front))/6,scope.sx,scope.sz)
+		Peristyle((X-((X/7)*center_opening_front))/6)
+				
+	case decastyle:
+		CellaOffset((X-((X/9)*center_opening_front))/8,scope.sx,scope.sz)
+		Peristyle((X-((X/7)*center_opening_front))/8)
+		
+	else:
+		NIL
+		
+Peristyle(n) --> # tuscan style has a different column spacing on the sides
+	case tuscan && noPeristyle: Peristyle(n,(scope.sz/2)/pronaos_prostyle+pronaos_antis)
+	else: Peristyle(n,n)
+	
+CellaOffset(n,xDim,zDim) --> #finds the footprint of the cella walls and roof
+	
+	case peripteral || closedAlae:	
+		[t(0,peristyleH,0)Roof(n,scope.sz)]
+		s(scope.sx-n*2+column_diameter,'1,'1)
+		center(xz)
+		Cella1(n,xDim,zDim)		
+
+	case dipteral:
+		[t(0,peristyleH,0)Roof(n,scope.sz)]
+		s(scope.sx-n*4+column_diameter,'1,'1) 
+		center(xz)
+		Cella1(n,xDim,zDim)
+		
+	else:
+		Cella1(n,xDim,zDim)
+		t(0,peristyleH,0)
+		Roof(n,scope.sz)
+		
+Cella1(n,xDim,zDim) -->	
+												
+	case closedAlae :
+		extrude(peristyleH)
+		split(y){~1:Cella2(n,n,xDim,zDim)|entablatureH: 
+											comp(f){left: Entablature(n)
+													|right: Entablature(n)
+ 													|bottom:offset(-architraveD/2,inside) InnerCeiling}}
+											
+	case peripteral: extrude(peristyleH)
+					split(y){~1:Cella2(n,n,xDim,zDim)|entablatureH: s('1,'1,scope.sz-n*2)
+														center(z)
+													 	comp(f){front:EntablatureFront(n)
+															|left: Entablature(n)
+															|right: Entablature(n)
+															|back: Entablature(n)
+ 															|bottom:offset(-architraveD/2,inside)InnerCeiling
+															t(0,0,-entablatureH)reverseNormals InnerCeiling}}
+	
+ 	case noPeristyle && !tuscan || Tshape: 
+
+ 		extrude(peristyleH)
+		split(y){~1:Cella2(n,n,xDim,zDim)|entablatureH: comp(f){side:NIL
+ 											|bottom:offset(-architraveD/2,inside)InnerCeiling
+ 													t(0,0,-entablatureH)reverseNormals InnerCeiling}}
+ 	
+ 
+												
+ 	 case noPeristyle && tuscan : 
+
+ 		extrude(peristyleH)
+		split(y){~1:Cella2(n,(scope.sz/2)/pronaos_prostyle+pronaos_antis,xDim,zDim)|entablatureH: comp(f){side:NIL
+ 											|bottom:offset(-architraveD/2,inside)InnerCeiling
+ 													t(0,0,-entablatureH)reverseNormals InnerCeiling}}
+ 													
+ 	
+												
+ 	case dipteral && pseudo == true:
+ 		extrude(peristyleH)
+
+		split(y){~1:Cella2(n,n,xDim,zDim)|entablatureH:  s('1,'1,scope.sz-n*4)
+ 													center(z)
+													comp(f){front: s(xDim,'1,'1)center(x)EntablatureFront(n)
+															|back: s(xDim,'1,'1)center(x)EntablatureFront(n)
+															|left: Entablature(n)
+															|right: Entablature(n)
+ 															|bottom:offset(-architraveD/2,inside)InnerCeiling
+													t(0,0,-entablatureH)reverseNormals InnerCeiling}}	
+ 	
+ 	else:
+ 	
+		extrude(peristyleH)
+		split(y){~1:Cella2(n,n,xDim,zDim)|entablatureH: NIL}
+
+Cella2(n,o,xDim,zDim) -->
+case dipteral && pseudo == true && pronaos_antis >=1 && posticum_antis == 0:
+	split(z){~o:Cella3(n,o,split.index,split.total, pronaos_prostyle+pronaos_antis*2+1, posticum_prostyle,xDim,zDim)
+		|{~o:Cella3(n,o,split.index,split.total, pronaos_prostyle+pronaos_antis*2+1, posticum_prostyle,xDim,zDim)}*
+		|.01:Cella3(n,o,split.index,split.total, pronaos_prostyle+pronaos_antis*2+1, posticum_prostyle,xDim,zDim)}
+		
+case dipteral && pseudo == true && posticum_antis >=1 && pronaos_antis == 0:
+	split(z){~o:Cella3(n,o,split.index,split.total, pronaos_prostyle, posticum_prostyle+posticum_antis*2+1,xDim,zDim)
+		|{~o:Cella3(n,o,split.index,split.total, pronaos_prostyle, posticum_prostyle+posticum_antis*2+1,xDim,zDim)}*
+		|.01:Cella3(n,o,split.index,split.total, pronaos_prostyle, posticum_prostyle+posticum_antis*2+1,xDim,zDim)}
+		
+case dipteral && pseudo == true && posticum_antis >=1 && pronaos_antis >= 1:
+	split(z){~o:Cella3(n,o,split.index,split.total, pronaos_prostyle+pronaos_antis*2+1, posticum_prostyle+posticum_antis*2+1,xDim,zDim)
+		|{~o:Cella3(n,o,split.index,split.total, pronaos_prostyle+pronaos_antis*2+1, posticum_prostyle+posticum_antis*2+1,xDim,zDim)}*
+		|.01:Cella3(n,o,split.index,split.total, pronaos_prostyle+pronaos_antis*2+1, posticum_prostyle+posticum_antis*2+1,xDim,zDim)}
+		
+case noPeristyle && resize_cella == true:
+	split(z){~side_spacing:Cella3(n,o,split.index,split.total, pronaos_prostyle+pronaos_antis, posticum_prostyle+posticum_antis,xDim,zDim)
+		|{~side_spacing:Cella3(n,o,split.index,split.total, pronaos_prostyle+pronaos_antis, posticum_prostyle+posticum_antis,xDim,zDim)}*
+		|.01:Cella3(n,o,split.index,split.total, pronaos_prostyle+pronaos_antis, posticum_prostyle+posticum_antis,xDim,zDim)}
+		
+else:
+	split(z){~o:Cella3(n,o,split.index,split.total, pronaos_prostyle+pronaos_antis, posticum_prostyle+posticum_antis,xDim,zDim)
+		|{~o:Cella3(n,o,split.index,split.total, pronaos_prostyle+pronaos_antis, posticum_prostyle+posticum_antis,xDim,zDim)}*
+		|.01:Cella3(n,o,split.index,split.total, pronaos_prostyle+pronaos_antis, posticum_prostyle+posticum_antis,xDim,zDim)}
+
+
+Cella3(n,o,b,k,p,r,xDim,zDim)-->  
+
+#parameters:
+#n = column spacing (front)
+#o = column spacing (side)
+#b = split.index
+#k = split.total
+#p = number of rows in front
+#r = number of rows in back
+#xDim = stylobate width
+
+	case peripteral && b == 0 				
+		|| dipteral && b == 0 	 											
+		:NIL
+	case peripteral && b == k-1 			
+		|| dipteral && b == k-1 												
+		:NIL
+	case peripteral && b-r == 1 			
+		|| dipteral && b-r == 1 												
+		:Cella_WidthAllS(n,o,k,p,r,zDim)
+	case peripteral && b>= k-p-1 && b<k-1 	
+		|| dipteral && b>= k-p-1 && b<k-1	
+		|| closedAlae && b>= k-p-1 && b<k-1	
+		:PorchRows(n,b,k,p,r,1,xDim)
+	case peripteral && b-r<1				
+		|| dipteral && b-r<1													
+		:PorchRows(n,b,k,p,r,2,xDim) 
+	case closedAlae && b == 0				
+		:Cella_WidthAllS(n,o,k,p,r,zDim)
+	case noPeristyle && b-r ==0 || Tshape && b-r ==0
+		:Cella_WidthAllS(n,o,k,p,r,zDim)
+	case noPeristyle && b>=k-p && b<k-1 || Tshape && b>=k-p && b<k-1
+		:t(0,0,column_diameter/2)
+		PorchRows(n,b,k,p,r,1,xDim)
+	case noPeristyle && b == k-1 && !distyle || Tshape && b == k-1 && !distyle
+		:col.FirstLastFlushFront(n,center_opening_front)//PorchRows(n,b,k,p,r,1,xDim)
+	case noPeristyle && b == k-1 && distyle || Tshape && b == k-1 && distyle
+		:col.FirstLastFlushFrontDistyle//(n,center_opening_front)
+	case noPeristyle && b-r < 0 || Tshape && b-r < 0
+		:PorchRows(n,b,k,p,r,2,xDim)
+	
+	else: NIL
+	
+
+	
+Cella_WidthAllS(n,o,k,p,r,zDim) --> 
+
+	case closedAlae:
+		s('1,'1,scope.sz*(k-2-p))
+		comp(f)	{front:	CellaFront(n,o)
+			|left: 	CellaSide(n)
+			|right: CellaSide(n)
+			|back: 	CellaBack(n,o)}
+		
+	case peripteral || dipteral :
+		s('1,'1,scope.sz*(k-3-p-r))
+
+		comp(f)	{front:	CellaFront(n,o)
+			|left: 	CellaSide(n)
+			|right: CellaSide(n)
+			|back: 	CellaBack(n,o)}
+			
+	case Tshape: 
+		s('cella_width,scope.sy+(steps*step_height)+entablatureH,scope.sz*(k-1-p-r))
+		center(x)
+		t(0,-baseH,0)
+		split(y){baseH: /*color(base)*/ tex.Block("wall",tile)
+				|~1: comp(f){front:	CellaFront(n,o)
+							|left: 	CellaSide(n)
+							|right: CellaSide(n)
+							|back: 	CellaBack(n,o)}
+				|entablatureH: comp(f){side:Entablature(n)
+									  |top: TRoof(n)}
+				}
+					
+	else: 
+		case resize_cella ==false:
+		s('1,'1,scope.sz*(k-1-p-r))
+		comp(f)	{front:	CellaFront(n,o)
+			|left: 	CellaSide(n)
+			|right: CellaSide(n)
+			|back: 	CellaBack(n,o)}
+		
+		else:
+		s('1,'1,cella_length)
+		comp(f)	{front:	CellaFront(n,(zDim-cella_length)/p+r)
+			|left: 	CellaSide(n)
+			|right: CellaSide(n)
+			|back: 	CellaBack(n,(zDim-cella_length)/p+r)}
+
+CellaFront(n,o) -->
+		case pronaos_antis >=1 && dipteral && pseudo == true:
+			split(x){wallThickness: s('1,'1,pronaos_antis*o*2-column_diameter/2)
+									i("builtin:cube")
+									tex.Block("wall", tile)
+					|~1: EntranceWall(n)
+					|wallThickness: s('1,'1,pronaos_antis*o*2-column_diameter/2)
+									i("builtin:cube")
+									tex.Block("wall", tile)}
+		case pronaos_antis >=1 && dipteral && pseudo == false
+		||  pronaos_antis >=1 && !dipteral:
+			split(x){wallThickness: s('1,'1,pronaos_antis*o)
+									i("builtin:cube")
+									tex.Block("wall", tile)
+					|~1: EntranceWall(n)
+					|wallThickness: s('1,'1,pronaos_antis*o)
+									i("builtin:cube")
+									tex.Block("wall", tile)}
+		else:
+			EntranceWall(n) Pilasters(n)
+			
+EntranceWall(n) --> 
+
+	case scope.sx > (mainEntranceW+n*.5) && oneCella || scope.sx < mainEntranceW+n*.5+(entranceW+n*.4)*2 && threeCellae && scope.sx >= (mainEntranceW+n*.5)  :
+		split(x){ ~1			: Wall 
+				| mainEntranceW+n*.5 : split(y){ mainEntranceH : Entrance | entranceFrameW : Cornice| ~1 :Wall } 
+				| ~1         	: Wall }
+	case scope.sx > mainEntranceW+n*.5+(entranceW+n*.4)*2 && threeCellae && hexastyle || tetrastyle || distyle:
+		s('1,'1,'1) center(x)
+		split(x){ ~1							: Wall
+				| ~n		: split (x) {~1: Wall | entranceW+n*.4: split(y){ entranceH : Entrance| entranceFrameW : Cornice | ~1 : Wall } | ~1: Wall} 
+				|~n*center_opening_front: split(x){~1: Wall| mainEntranceW+n*.5: split(y){ mainEntranceH : Entrance | entranceFrameW : Cornice| ~1 : Wall} | ~1: Wall}
+				| ~n		: split (x) {~1: Wall | entranceW+n*.4: split(y){ entranceH : Entrance| entranceFrameW : Cornice | ~1 : Wall } | ~1: Wall}  
+				| ~1         					: Wall }
+				
+	case scope.sx > mainEntranceW+n*.5+(entranceW+n*.4)*2 && threeCellae && octastyle || decastyle:
+		s('1,'1,'1) center(x)
+		split(x){ ~1							: Wall
+				| ~n		: split (x) {~1: Wall | entranceW+n*.4: split(y){ entranceH : Entrance | entranceFrameW : Cornice| ~1 : Wall } | ~1: Wall} 
+				|~n: Wall
+				|~n*center_opening_front: split(x){~1: Wall| mainEntranceW+n*.5: split(y){ mainEntranceH : Entrance | entranceFrameW : Cornice | ~1 : Wall} | ~1: Wall}
+				|~n: Wall
+				| ~n		: split (x) {~1: Wall | entranceW+n*.4: split(y){ entranceH : Entrance | entranceFrameW : Cornice | ~1 : Wall } | ~1: Wall}  
+				| ~1         					: Wall  }
+				
+	
+	else:
+		Wall
+
+Entrance --> 
+	split(y){ step_height *0.5    : t(0,0,tread_depth*0.5) Wall( wallThickness+tread_depth) 
+			| mainEntranceH			  			: split(x){ entranceFrameW : Wall | ~1 : DoorMain | entranceFrameW : Wall } 
+			} 
+
+DoorMain -->  
+	t(0,0,-wallThickness*0.15) 
+	split(y){ ~1          : split(x){ doorFrameW : DoorFrame(wallThickness*0.8) | ~1 : Door | doorFrameW : DoorFrame(wallThickness*0.8) } 
+			| doorFrameH  : Wall(wallThickness*0.8) DoorCornice 
+			| doorWindowH : DoorWindows }
+
+Door --> 
+	s('1,'1,doorD) 
+	t(0,0,'-1) 
+	i(tex.doorAsset)
+	tex.Block("wood")
+
+DoorCornice -->	
+	s('1,'1,corniceProjection) 
+	i(tex.doorCorniceAsset)
+	tex.Block("wood")
+	
+Cornice -->
+	s('1,'1,corniceProjection) 
+	i(tex.doorCorniceAsset)
+	tex.Block("block")
+	
+DoorWindows -->	
+	s('1,'1,doorD*0.3) 
+	t(0,0,'-1) 
+	split(x){ ~scope.sy : 	i(tex.topdoorAsset) 
+							tex.Block("wood")}*
+
+CellaSide(n) -->	
+		Wall
+
+CellaBack(n,o) -->
+	case posticum_antis >=1 && posticum_door == true && !closedAlae && !dipteral
+	|| posticum_antis >=1 && posticum_door == true && !closedAlae && dipteral && pseudo == false:
+		split(x){wallThickness: extrude(posticum_antis*o)
+								tex.Block("wall", tile)
+				|~1: EntranceWall(n)
+				|wallThickness: extrude(posticum_antis*o)
+								tex.Block("wall", tile)}
+	case posticum_antis >=1 && posticum_door == true && !closedAlae &&  dipteral && pseudo == true :
+		split(x){wallThickness: extrude(posticum_antis*o*2-column_diameter/2)
+								tex.Block("wall", tile)
+				|~1: EntranceWall(n)
+				|wallThickness: extrude(posticum_antis*o*2-column_diameter/2)
+								tex.Block("wall", tile)}								
+	case posticum_antis >=1 && posticum_door == false && !closedAlae && !dipteral
+	|| posticum_antis >=1 && posticum_door == false && !closedAlae && dipteral && pseudo == false:
+		split(x){wallThickness: extrude(posticum_antis*o)
+								tex.Block("wall", tile)
+				|~1: Wall
+				|wallThickness: extrude(posticum_antis*o)
+								tex.Block("wall", tile)}
+		case posticum_antis >=1 && posticum_door == false && !closedAlae &&  dipteral && pseudo == true:
+		split(x){wallThickness: extrude(posticum_antis*o*2)
+								tex.Block("wall", tile)
+				|~1: Wall
+				|wallThickness: extrude(posticum_antis*o*2)
+								tex.Block("wall", tile)}
+	case posticum_antis == 0 && posticum_door == true:
+		EntranceWall(n)	
+	case closedAlae:
+		s(scope.sx+n*2-column_diameter,'1,'1) center(x)
+		set(trim.vertical, false)
+		Wall
+	else: 
+		Wall
+	
+DoorFrame(thickness)-->
+	s('1,'1,thickness) 
+	t(0,0,'-1) 
+	i("builtin:cube")
+	tex.Block("wood")
+
+Wall --> 
+	Wall(wallThickness) 
+	
+
+Wall(thickness) --> 	
+	s('1,'1,thickness) t(0,0,'-1) i("builtin:cube")
+	tex.Block("wall", tile)		
+	
+///////PERISTYLE
+
+Peristyle(n,o) -->	
+	case dipteral && pseudo == false:
+		extrude(columnHeight+entablatureH)
+		split(y){~1: Peristyle2(n) | entablatureH: InnerEntablature(n) comp(f){front: EntablatureFront(n)
+																				|left: Entablature(o)
+																				|right:Entablature(o)
+																				|back:EntablatureFront(n)
+																				|bottom:offset(-architraveD/2-n,inside)InnerCeiling
+																				t(0,0,-entablatureH)reverseNormals InnerCeiling}	}
+
+	else:
+		extrude(columnHeight+entablatureH)
+		split(y){~1: Peristyle2(n) | entablatureH: comp(f){front: EntablatureFront(n)
+															|left: Entablature(o)
+															|right:Entablature(o)
+															|back:EntablatureFront(n)
+															|bottom:  Ceiling}}		
+Peristyle2(n) -->
+	case closedAlae :
+		comp(f)	{front:	col.FrontColonnade(n,center_opening_front)
+				|left:  col.NoFirstLastFlush(n)
+				|right: col.FirstFlushNoLast(n)
+				}
+
+	case peripteral || dipteral && pseudo == true:
+		comp(f)	{front:	col.FrontColonnade(n,center_opening_front)
+				|left: 	col.FirstLastFlush(n)
+				|right: col.FirstLastFlush(n)
+				|back: 	col.FrontColonnade(n,center_opening_back)
+				}	
+					
+	case dipteral && pseudo == false:
+		comp(f)	{front:	col.FrontColonnade(n,center_opening_front)	t(0,0,-n+column_diameter-columnOffset*2) col.InnerFrontColonnade(n,center_opening_front)		
+				|left:  col.FirstLastFlush(n) InnerColonnade(n)
+				|right: col.FirstLastFlush(n) InnerColonnade(n)
+				|back: 	col.FrontColonnade(n,center_opening_back)    t(0,0,-n+column_diameter-columnOffset*2) col.InnerFrontColonnade(n,center_opening_back)	
+				}
+	
+		
+	else: NIL
+
+InnerColonnade(n) -->	
+	t(0,0,-n+column_diameter-columnOffset*2)
+	col.NoFirstNoLast(n)
+	
+			
+	
+		
+InnerEntablature(n) -->
+	s(scope.sx-n*2+column_diameter,'1,scope.sz-n*2+column_diameter)
+	center(xz)
+	comp(f){front: EntablatureFront(n)
+			|left: Entablature(n)
+			|right:Entablature(n)
+			|back: Entablature(n)}		
+
+#parameters:
+#n = column spacing (front)
+#o = column spacing (side)
+#b = split.index
+#k = split.total
+#p = number of rows in front
+#r = number of rows in back
+#xDim = stylobate width
+
+PorchRows(n,b,k,p,r,a,xDim) -->
+	case dipteral && pseudo == true && a == 1 && pronaos_antis>=1 && b<k-p-1+pronaos_antis*2 && b%2 == 0: AntisRow(n,a,xDim)
+	case dipteral && pseudo == true && a == 1 && pronaos_antis>=1 && b<k-p-1+pronaos_antis*2 && b%2 == 1: NIL
+	case dipteral && pseudo == true && a == 1 && pronaos_antis>=1 && b== k-p-1+pronaos_antis*2 : NIL
+	case dipteral && pseudo == true && a == 2 && posticum_antis>=1 && b-r+posticum_antis*2>=1 && b%2 == 0: AntisRow(n,a,xDim)
+	case dipteral && pseudo == true && a == 2 && posticum_antis>=1 && b-r+posticum_antis*2>=1 && b%2 == 1: NIL
+	case dipteral && pseudo == true && a == 2 && posticum_antis>=1 && b-r+posticum_antis*2<1 : NIL
+	case dipteral && pseudo == false && a == 1 && pronaos_antis>=1 && b<k-p+pronaos_antis
+		 || !dipteral && a == 1 && pronaos_antis>=1 && b<k-p+pronaos_antis
+		 || Tshape  && a == 1 && pronaos_antis>=1 && b<k-p+pronaos_antis: AntisRow(n,a,xDim)
+	case dipteral && pseudo == false && a == 2 && posticum_antis>=1 && b-r+posticum_antis>=0
+		|| !dipteral && a == 2 && posticum_antis>=1 && b-r+posticum_antis>=0
+		|| Tshape && a == 2 && posticum_antis>=1 && b-r+posticum_antis>=0: AntisRow(n,a,xDim)
+	else:
+		ProstyleRow(n,a,b)
+	
+AntisRow(n,a,xDim) -->
+	case  a == 1 && scope.sx>=n*2 && antis_columns_front == true
+		||a == 2 && scope.sx>=n*2 && antis_columns_back == true:
+		s(xDim,'1,'1)
+		center(x)
+		col.AntisColonnade(n,center_opening_front,a)
+	else: NIL
+		
+
+ProstyleRow(n,a,b) -->
+	case !Tshape && !noPeristyle:
+		t(0,0,column_diameter/2+col.columnOffset)
+		s(scope.sx+n*2-column_diameter,'1,'1)
+		center(x)
+		PorchColonnade(n,a)
+		
+	case a == 1 && noPeristyle || a == 1 && Tshape:
+		t(0,0,columnOffset)
+		s(scope.sx+n*2-column_diameter,'1,'1)
+		center(x)
+		PorchColonnade(n,a)
+		
+	case a == 2 && noPeristyle && b == 1 || a == 2 && Tshape && b == 1:
+		t(0,0,column_diameter/2+columnOffset)
+		s(scope.sx+n*2-column_diameter,'1,'1)
+		center(x)
+		print(b)
+		PorchColonnade(n,a)
+		
+	case a == 2 && noPeristyle && b == 0 || a == 2 && Tshape && b == 0:
+		t(0,0,column_diameter+columnOffset)
+		s(scope.sx+n*2-column_diameter,'1,'1)
+		center(x)
+		print(b)
+		PorchColonnade(n,a)
+			
+	else:
+		col.FirstLastFlushFront(n,center_opening_front)
+
+Pilasters(n) -->
+	case pilasters == true:
+		s(scope.sx+n*2-column_diameter,'1,'1)
+		t(0,0,column_diameter/2)
+		center(x)
+		split(x){n:	NIL
+			|~n: col.ColumnTile(split.index,column_diameter,split.total)
+			|~1: NIL
+			|n:	col.ColumnTile(split.index,column_diameter,split.total)
+			|.01: 	NIL}
+			
+	else: NIL
+	
+PorchColonnade(n,a) -->
+	case a == 1 && pronaos_prostyle_gap == 0:
+		col.FrontColonnade(n,center_opening_front)
+	
+	case a == 2 && posticum_prostyle_gap == 0:
+		col.FrontColonnade(n,center_opening_front)
+		
+	case a == 1 && pronaos_prostyle_gap > 0:
+		split(x){n:	NIL
+			|{~n:	col.ColumnTile(split.index,column_diameter,split.total)}*
+			|~n*center_opening_front*pronaos_prostyle_gap*2: NIL
+			|{~n: 	col.ColumnTile(split.index,column_diameter,split.total)}*
+			|n: 	col.ColumnTile(split.index,column_diameter,split.total)
+			|.01: 	NIL}
+			
+	case a == 2 && posticum_prostyle_gap > 0:
+		split(x){n:	NIL
+			|{~n:	col.ColumnTile(split.index,column_diameter,split.total)}*
+			|~n*center_opening_front*posticum_prostyle_gap*2: NIL
+			|{~n: 	col.ColumnTile(split.index,column_diameter,split.total)}*
+			|.01: 	NIL}
+			
+	else: NIL
+
+///////ENTABLATURE, PEDIMENT & ROOF
+
+Entablature(n) -->
+case resize_cella == false:
+	col.Entablature(n,column_diameter)		
+else:
+	col.Entablature(side_spacing,column_diameter)
+	
+EntablatureFront(n) -->		
+	col.EntablatureFront(n,center_opening_front,column_diameter)
+
+Roof(n,zDim) -->
+
+	case tuscan  && generate_roof == true: 
+		s('roofW,'1,'1)
+		center(x)
+		Roof1(n)
+		
+	case !tuscan &&  generate_roof == true && !Tshape:
+		s(scope.sx+architraveD,'1,scope.sz+architraveD)
+		center(xz)
+		Roof1(n)
+		
+	case !tuscan &&  generate_roof == true && Tshape:
+		s(scope.sx+architraveD,'1,scope.sz+architraveD)
+		center(xz)
+		Roof1(n)
+
+	else: NIL
+	
+TRoof(n) --> 
+	roofGable( Troof_angle ,0,-col.geisonProjection/2, true,1)
+	comp(f) 	{top: rf.Roof(roofBrickW,roofBrickH)
+				|vertical: rf.Pediment(n) 
+				|bottom: Overhang}
+	comp(e){ ridge: rf.Ridge(0,roofBrickW,roofBrickH)| hip: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH) | valley: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH) }
+
+Roof1(n) -->
+	roofGable( roof_angle ,0,-col.geisonProjection/2, true,0)
+	comp(f) 	{top: rf.TempleRoof(n,roofBrickW,roofBrickH)
+				|vertical: rf.Pediment(n)
+				|bottom: Overhang}
+	comp(e){ ridge: rf.Ridge(0,roofBrickW,roofBrickH)rf.TopAcroteria(scope.sx) Beam| hip: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH) | valley: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH)|eave: rf.SideAcroteria(scope.sx) }
+
+Beam -->
+	case tuscan: rf.Beam
+	else: NIL
+
+Overhang -->
+	case tuscan && generate_roof == true:
+		split(y){rf.pedimentWidth-col.geisonProjection: NIL
+				|~1: 	s('1,'1.02,.1)
+						center(y)
+						tex.Block("wall",tile)
+				|rf.pedimentWidth-col.geisonProjection: NIL}
+		
+	else: NIL
+		
+///////CEILING
+
+Ceiling -->
+	case tuscan && generate_roof ==true:	t(0,0,-entablatureH)tus.Ceiling.
+	case doric && generate_roof ==true:	 	t(0,0,-entablatureH) tex.Block("wall", tile)
+	case ionic && generate_roof ==true: 	t(0,0,-entablatureH) tex.Block("wall", tile) reverseNormals tex.Block("wall", tile)
+	case corinthian && generate_roof ==true:t(0,0,-entablatureH) tex.Block("wall", tile) reverseNormals tex.Block("wall", tile)
+	else: NIL
+	
+InnerCeiling -->
+	case generate_roof == true:
+	tex.Block("wall",tile)
+	else: NIL	
+
+
+
+
+
+
+

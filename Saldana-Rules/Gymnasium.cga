@@ -1,0 +1,78 @@
+/**
+ * File:    Gymnasium.cga
+ * Created: 31 Aug 2012 22:29:28 GMT
+ * Author:  msaldana
+ */
+
+version "2011.2"
+
+@Hidden 
+import col : "_Colonnade.cga"
+
+@Hidden 
+import rf:   "_Roof.cga"
+	
+@Hidden 
+import tex : "_TexturesAssets.cga"
+
+#-------Scene Settings
+
+@Group("SceneSettings",0)
+attr elevation 	= 0
+
+@Group("SceneSettings",0)@Range("HIGH","MED","LOW")
+attr LOD					= "LOW"
+	const highLOD 				= LOD == "HIGH"
+	const medLOD				= LOD == "MED"
+	const lowLOD				= LOD == "LOW"
+
+#--------General
+@Group("General",2)
+attr height = 10.5
+
+#--------Walls
+@Group("Walls")
+attr wallThickness = .5
+
+#--------Roof
+
+const roofBrickW 			= col.column_spacing *0.25
+const roofBrickH 			= col.column_spacing *0.35
+
+
+
+
+Lot -->
+t(0,elevation,0)
+extrude(height*1.5)
+comp (f) {side: Wall |top: Roof}
+
+	
+Baths -->
+t(0,elevation,0)
+split(x) {~1:Bay1 |15.5: Bay2|8.4:Bay3}
+
+
+Bay1 -->
+extrude(height)
+comp(f) {side: Wall| top:   split(y) {~1: Roof|~1:  Roof|~1.1:  Roof|~1:  Roof |~1:  Roof}}
+
+
+Bay2 -->
+split(z) {~2: Bay2A| ~1: NIL |~2:Bay2A}
+
+Bay2A -->
+extrude(height)
+comp(f) {side: Wall|top: Roof}
+
+Bay3 -->
+extrude(height)
+comp(f) {front: extrude(-wallThickness)Wall |back: extrude(-wallThickness)Wall}
+
+Wall -->
+tex.Block("wall",5)
+
+Roof -->
+roofGable (23,.5)
+comp(f){ top : rf.Roof(roofBrickW,roofBrickH)|vertical: tex.Block("wall", 5)}
+comp(e){ ridge: rf.Ridge(0,roofBrickW,roofBrickH) | hip: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH) | valley: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH)}

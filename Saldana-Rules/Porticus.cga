@@ -1,0 +1,570 @@
+/**
+ * File:    RomanPorticus.cga
+ * Created: 15 Feb 2014 10:04:24 GMT
+ * Author:  Marie Saldana
+ */
+
+version "2013.1"
+
+@Hidden 
+import col : "_Colonnade.cga"
+
+@Hidden 
+import dom : "Domus.cga" (houseType = "ROMAN SHOPS", redWall_on = false, baseHeight = 0)
+
+@Hidden 		
+import rf:   "_Roof.cga"
+
+@Hidden	
+import tex : "_TexturesAssets.cga"	
+
+
+#-------Scene Settings			
+
+
+@Group("SceneSettings",0)@Range("HIGH","MED","LOW")
+attr LOD					= "LOW"
+	const highLOD 				= LOD == "HIGH"
+	const medLOD				= LOD == "MED"
+	const lowLOD				= LOD == "LOW"
+
+@Group ("Materials",1) @Range("Green", "Gravel", "No Ground")
+attr groundType				= "Gravel"
+
+#-------General
+
+@Group("General",2)
+attr elevation 	= 0
+
+@Group("General",2)@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+attr order_						= "DORIC"
+	const tuscan					= order_ == "TUSCAN"
+	const doric						= order_ == "DORIC"
+	const ionic						= order_ == "IONIC"
+	const corinthian				= order_ == "CORINTHIAN"
+	
+@Group("General",2)@Range("STOA","PORTICUS","STOA+SHOPS","PORTICUS+SHOPS","SHOPS","PALAESTRA","PROPYLON","COLONNADE STREET", "COLONNADE STREET + SHOPS")
+attr building_type 				= "PORTICUS"
+	const shops					= building_type == "SHOPS" || building_type == "PORTICUS+SHOPS" || building_type == "STOA+SHOPS" || building_type == "COLONNADE STREET + SHOPS"
+	const propylon				= building_type == "PROPYLON"
+	
+@Group("General",2)@Range("COLONNADE","ARCADE")
+attr colonnadeType				= 	"COLONNADE"							
+	const columns					= colonnadeType == "COLONNADE"
+	const arches					= colonnadeType == "ARCADE"
+	
+@Group("General",2)@Range("LINEAR", "OFFSET", "SEGMENTED")
+attr shapeType					= 	"SEGMENTED"
+	const linear 					= shapeType == "LINEAR"
+	const offset					= shapeType == "OFFSET"
+	const single					= shapeType == "SEGMENTED"
+
+@Group("General",2)
+attr stoaDepth 				= 10
+	
+@Group("General","end type",2)@Range("wall","colonnade","open")	
+attr left					= "open"
+
+@Group("General","end type",2)@Range("wall","colonnade","open")	
+attr right					= "open"
+
+@Group("General","back type",2)@Range("wall","colonnade","open")	
+attr back					= "open"
+	
+const stoaHeight 			= 	columnHeight+entablatureH
+const height				= 	baseHeight+columnHeight+entablatureH
+	
+							
+#-------Base
+@Group("Base",3)@Range("continuous", "spaced", "none")
+attr stepType 				= "continuous"
+	const continuous		= stepType == "continuous"
+	const spaced			= stepType == "spaced"
+	const noStep			= stepType == "none"
+	
+@Group("Base",3)
+attr steps 					= 5
+
+@Group("Base",3)
+attr extra_steps_down		= 0
+
+@Group("Base",3)@Range(true,false)
+attr backSteps				= false
+
+@Group("Base",3)@Range(true,false)
+attr rightSteps				= false
+
+@Group("Base",3)@Range(true,false)
+attr leftSteps				= false
+
+@Group("Base",3)	
+attr step_depth 			= .35
+
+@Group("Base",3)	
+attr step_height 			= .2
+
+@Group("Base",3)
+attr ground_height			= .5
+
+@Group("Base",3)
+attr extra_height			= 0
+
+@Group("Base",3)
+attr stairW					= case columns: columnSpacing-column_diameter-col.columnOffset*2
+							  else: archWidth
+
+const baseHeight 			= steps*step_height+extra_steps_down*step_height
+
+#------Colonnade
+
+@Group("Colonnade",4)
+attr column_diameter 			= 	case arches: archColumnDiameter else: 0.6
+
+@Group("Colonnade",4)
+attr columnSpacing				= 	case tuscan && columns: 	column_diameter*4
+									case doric && columns: 		column_diameter*2.5
+									case ionic && columns: 		column_diameter*5.5	
+									case corinthian && columns: column_diameter*9
+									case tuscan && arches: 		archColumnDiameter*4
+									case doric && arches: 		archColumnDiameter*2.5
+									case ionic && arches: 		archColumnDiameter*5.5	
+									else: 						archColumnDiameter*9
+@Group("Colonnade",4)	
+attr plinthH 					= 	case arches: archWidth/2 else: 0
+
+@Group("Colonnade","Propylon",4)	
+attr centerOpening_propylon		= 	1 #factor of columnSpacing
+
+@Group("Colonnade","Propylon",4)@Range("TETRASTYLE","HEXASTYLE")	
+attr propylon_style			= 	"TETRASTYLE"
+	const tetrastyle			= 	propylon_style == "TETRASTYLE"
+	const hexastyle				= 	propylon_style == "HEXASTYLE"
+								
+const columnHeight				= 	case tuscan && columns: column_diameter*7+plinthH
+									case doric && columns: 	column_diameter*5.5+plinthH
+									case ionic && columns: 	column_diameter*9+plinthH
+									case corinthian && columns: column_diameter*10+plinthH
+									else: archH
+const entablatureH				= 	case columns: column_diameter*col.entablatureH
+									else: archColumnDiameter*col.entablatureH
+
+#-------Arcade
+
+@Group("Arcade",5) @Range("Front Side", "Both Sides", "Off")
+attr showOrders 					= "Front Side"
+	const singleSide				= showOrders == "Front Side"
+	const bothSides					= showOrders == "Both Sides"
+	const ordersOff					= showOrders == "Off"
+@Group("Arcade",5) 
+attr archWidth					= 	3
+
+const archColumnDiameter 		= 	archWidth/10
+const archH						= 	(1.5*archWidth)+plinthH-archWidth/2
+const orderW					= 	col.orderW
+
+#-------Segmented Shape Type
+
+@Group("Segment Type",6)@Range("start","middle","last","standalone")
+attr segment				= "standalone"
+	const start					= segment == "start"
+	const middle				= segment == "middle"
+	const last					= segment == "last"
+	const standalone			= segment == "standalone"
+
+#-------Linear Shape Type
+
+@Group("Linear Type",7)
+attr sides				=  4
+
+
+#-------Shops
+
+@Group("Shops",8)@Range(true,false)
+attr noPorticus				= false
+
+@Group("Shops",8)
+attr shopDepth				= case !shops: 0 else: 4
+	
+#--------Walls
+
+const wallThickness 		= 1
+
+#--------Roof
+
+@Group("Roof",9)@Range("shed","gable","flat")
+attr roofType				= "gable"
+
+@Group("Roof",9)
+attr roof_angle 			= case roofType == "gable": 13.8 else: 10
+
+@Group("Roof",9)@Range(1,2)
+attr roof_direction			= 1
+
+const roofBrickW 			= columnSpacing *0.25
+const roofBrickH 			= columnSpacing *0.35
+const railingH				= 1
+
+#-------Texture Size
+
+const tile					= columnHeight
+const streetTexTile 		= 5
+
+
+///////////
+//////START
+
+Shops -->
+case noPorticus == true:
+	t(0,elevation,0)
+	extrude(height)
+	split(y){baseHeight:t(0,-extra_steps_down*step_height,0)
+					comp(f){top:tex.Block("floor",.5)
+							|front: Steps
+							|left:Wall
+							|right:Wall
+							|back: Wall}
+			|~1:split(z){shopDepth:comp(f){front:dom.LowerFacade(rint(rand(-.5,1.5)),"front")
+											|left:Wall
+											|right:Wall
+											|back:Wall}
+									|~1: NIL}
+			|entablatureH: comp(f){side:Entablature
+									|top:Ceiling [tex.Block("floor",.5)]Roof1}
+									
+			}
+else:	Lot
+
+Lot -->
+case offset:
+	t(0,elevation,0)
+	innerRect
+	[offset(-stoaDepth)t(0,ground_height,0) OffsetStoa]
+	extrude(ground_height) GroundTexture
+case single:
+	//t(0,elevation,0) Lot.
+	alignScopeToAxes(y)
+	SegmentStoa(scope.sy)
+case linear: 	
+	t(0,elevation,0)
+	//Lot.
+	LinearStoa
+else: NIL
+
+//////////////////
+///////OFFSET STOA
+
+GroundTexture -->
+case groundType == "Gravel":
+	comp(f){side:tex.Block("wall",tile)
+	|top:tex.Block("ground",5)}
+case groundType == "Green": 
+	tex.Block("grass",1)
+else: NIL
+
+
+OffsetStoa  --> comp(f) { inside: NIL | border: OffsetStoa2 }
+
+OffsetStoa2 -->
+extrude(baseHeight)
+t(0,-extra_steps_down*step_height,0)
+comp(f) {4: Steps 
+		|1: extrude(stoaHeight)
+			comp(f) {1: Roof 
+					|4: split(y){col.columnHeight: OffsetColonnade
+								|~1:Entablature}
+					|2: OffsetWall
+					|0: [t(0,0,-columnHeight)offset(-column_diameter,inside)tex.Block("roof",4,24)] reverseNormals tex.Block("floor",.5) }
+		|2: Wall}
+
+OffsetColonnade -->
+case columns: col.NoFirstLastOnCorner(columnSpacing)
+else: col.OffsetArcade
+		
+OffsetWall -->
+case shops: ShopWalls
+else: Wall
+
+//////////////////
+///////LINEAR STOA
+
+# n = comp.index
+# y = comp.total
+# sides = number of walls +1
+# n == 0 floor
+# n == 1 roof
+# n == 2 last end colonnade (sides = number of exterior faces +1) 
+# n < sides = walls
+# n == sides = start end colonnade
+# n == sides+1	= first column side
+# n == y-1 		= last side
+		
+LinearStoa -->
+extrude(baseHeight)
+t(0,-extra_steps_down*step_height,0)
+comp(f){all: LinearBaseSide(comp.index, comp.total)}
+
+LinearBaseSide(n,y) -->
+case n == 1: 				extrude(stoaHeight) comp(f) {all: LinearSide(comp.index, comp.total)}
+case n <= sides && n>1: 	tex.Block("base",tile)
+case n > sides && n<y-1 : 	Steps
+case n == y-1:				StepsEnd
+else: 						NIL
+
+LinearSide(n,y) -->
+case n == 0: reverseNormals tex.Block("floor",.5) #Floor
+			reverseNormals t(0,0,-columnHeight)offset(-column_diameter,inside)tex.Block("roof",4,24) #Ceiling
+case n == 1: Roof #Roof
+case !shops && n>2 && n < sides: Walls #Back Walls
+case shops  && n>2 && n < sides: split(y){~1:ShopWalls|entablatureH: Entablature}#Back Walls - Shops
+case n == sides && left == "colonnade" && columns:  split(y){~1: s(scope.sx-shopDepth,'1,'1)t(shopDepth,0,0)col.FirstLastFlush(columnSpacing)|entablatureH: Entablature} #start end colonnade (left)
+case n == sides && left == "colonnade" && arches:  split(y){~1: s(scope.sx-shopDepth,'1,'1)t(shopDepth,0,0)col.LinearArcade|entablatureH: Entablature} #start end arcade (left)
+case n == sides && left == "open": split(y){~1: NIL|entablatureH: Entablature} #start end open(left)
+case n == sides && left == "wall": split(y){~1: s(scope.sx-shopDepth,'1,'1)t(shopDepth,0,0) Wall|entablatureH: Entablature} #start end wall (left)
+case n == sides+1 && n < y-1 && columns && left != "colonnade": split(y){~1: col.FirstFlushLastOnBreak(columnSpacing)|entablatureH: Entablature} #ColonnadeMiddle (first inner side)
+case n == sides+1 && n < y-1 && columns && left == "colonnade": split(y){~1: col.NoFirstLastOnBreak(columnSpacing)|entablatureH: Entablature} #ColonnadeMiddle (first inner side)
+case n > sides+1 && n < y-1 && columns: split(y){~1: col.NoFirstLastOnBreak(columnSpacing)|entablatureH: Entablature} #ColonnadeMiddle 
+case n == y-1 && columns && right == "colonnade": split(y){~1: col.NoFirstNoLast(columnSpacing)|entablatureH: Entablature} #ColonnadeMiddle (last inner side)
+case n == y-1 && columns && right != "colonnade": split(y){~1: col.NoFirstLastFlush(columnSpacing)|entablatureH: Entablature} #ColonnadeMiddle (last inner side)
+case n > sides && n <= y-1 && arches: split(y){~1: col.LinearArcade|entablatureH: Entablature} #ArcadeMiddle 
+case n == 2 && right == "colonnade" && columns: split(y){~1: s(scope.sx-shopDepth,'1,'1)col.FirstLastFlush(columnSpacing)|entablatureH: Entablature} #last end colonnade (right)(columns)
+case n == 2 && right == "colonnade" && arches: split(y){~1: s(scope.sx-shopDepth,'1,'1)col.LinearArcadeEnd|entablatureH: Entablature} #last end arcade (right)(columns)
+case n == 2 && right == "open": split(y){~1: NIL|entablatureH: Entablature} #last end open (right)
+case n == 2 && right == "wall": split(y){~1: s(scope.sx-shopDepth,'1,'1) Wall|entablatureH: Entablature} #last end wall (right)
+else: NIL
+
+
+////////////////////
+//////SINGLE SEGMENT
+
+SegmentStoa(yDim) -->
+case yDim > 0:
+	extrude(world.y,50)
+	split(y){yDim+extra_height:SegmentBase(yDim)|~1: NIL}
+else:t(0,elevation,0)
+	extrude(stoaHeight+baseHeight)
+	t(0,-extra_steps_down*step_height,0)
+	split(y){baseHeight: comp(f){front:StepsType(scope.sy/step_height)
+								|back: BackStepsType(scope.sy/step_height)
+								|left: LeftStepsType(scope.sy/step_height) 
+								|right:RightStepsType(scope.sy/step_height) }
+			|~1: SegmentSides}
+
+SegmentBase(yDim) -->
+comp(f){top:extrude(stoaHeight) SegmentSides
+		|front: StepsType(scope.sy/step_height)| side:Wall}
+
+			
+SegmentSides -->
+split(y){columnHeight:split(z){shopDepth:comp(f){front:s('1,scope.sy+entablatureH-.1,'1)dom.LowerFacade(rint(rand(-.5,1.5)),"front")
+															|back:Wall
+															|left: Wall
+															|right:Wall
+															|bottom: reverseNormals tex.WholeBlock("floor",.5)}
+								|~1:comp(f)	{front: FrontSide
+											|left: 	LeftSide
+											|right: RightSide
+											|back: 	BackSide #Need to fix!
+											|bottom:reverseNormals tex.WholeBlock("floor",.5)}	 			
+								}
+		|~1:  comp(f){front:FrontEntablature(scope.sx)
+					|left: Entablature
+					|right: Entablature
+					|back:FrontEntablature(scope.sx)
+					|top: 	Ceiling 
+					Roof}
+		}
+			
+
+
+FrontSide --> 
+	case start && left == "wall" && columns && !propylon: col.NoFirstLastOnBreak(columnSpacing)
+	case start && left != "wall" && columns && !propylon: col.FirstFlushLastOnBreak(columnSpacing)
+	case last && right != "wall" && columns && !propylon: col.NoFirstLastFlush(columnSpacing)
+	case last && right == "wall" && columns && !propylon: col.NoFirstNoLast(columnSpacing)
+	case standalone && right != "wall" 	&& left != "wall" && columns && !propylon: 	 col.FirstLastFlush(columnSpacing)	 
+	case standalone && right == "wall" 	&& left != "wall" && columns && !propylon: 	 col.FirstFlushNoLast(columnSpacing)
+	case standalone && right != "wall"	&& left == "wall" && columns && !propylon: 	 col.NoFirstLastFlush(columnSpacing)	 
+	case standalone && right == "wall" 	&& left == "wall" && columns && !propylon: 	 col.NoFirstNoLast(columnSpacing)
+	case middle  && columns && !propylon: 	 col.NoFirstLastOnBreak(columnSpacing)
+	case arches && start : s(scope.sx-col.archColumnBaseW/2,'1,'1) t(col.archColumnBaseW/2,0,0)col.ArcadeStart
+	case arches && standalone: s(scope.sx-col.archColumnBaseW,'1,'1) center(x) col.ArcadeStart
+	case arches && !start || arches && !standalone:s(scope.sx-col.archColumnBaseW/2,'1,'1) col.Arcade
+	case propylon && columns: PropylonColonnade(scope.sx)
+	else: NIL
+
+
+LeftSide -->
+	case start && left == "wall"||
+		 standalone && left == "wall": extrude(-wallThickness)Wall
+	case start && left == "colonnade" && back != "wall"  && columns ||
+		 standalone && left == "colonnade" && back != "wall"  && columns: col.FirstFlushNoLast(columnSpacing)
+	case start && left == "colonnade" && back == "wall"  && columns||
+		 standalone && left == "colonnade" && back == "wall"  && columns: col.NoFirstNoLast(columnSpacing)
+	case arches && left == "colonnade" && back == "colonnade" :  s(scope.sx-col.archColumnBaseW,'1,'1) center(x) col.ArcadeStart
+	case arches && left == "colonnade" && back == "wall" :  s(scope.sx-wallThickness,'1,'1) t(wallThickness-col.archColumnBaseW/2,0,0)col.ArcadeStart
+	case arches && left == "colonnade" && back == "open" :  s(scope.sx-col.archColumnBaseW/2,'1,'1) col.ArcadeStart
+	else: NIL
+
+RightSide -->
+	case last && right == "wall"||
+		 standalone && right == "wall": extrude(-wallThickness)Wall
+	case last && right == "colonnade" && back != "wall" && columns ||
+		 standalone && right == "colonnade" && back != "wall"  && columns: col.NoFirstLastFlush(columnSpacing)
+	case last && right == "colonnade" && back == "wall"  && columns||
+		 standalone && right == "colonnade" && back == "wall" && columns : col.NoFirstNoLast(columnSpacing)
+	case arches && right == "colonnade"  && back == "colonnade":  s(scope.sx-col.archColumnBaseW,'1,'1) center(x)col.ArcadeStart
+	case arches && right == "colonnade"  && back == "wall":  s(scope.sx-wallThickness,'1,'1)t(col.archColumnBaseW/2,0,0)col.ArcadeStart
+	case arches && right == "colonnade"  && back == "open":  s(scope.sx-col.archColumnBaseW/2,'1,'1)t(col.archColumnBaseW/2,0,0)col.ArcadeStart
+	else: NIL
+	
+BackSide -->
+	case back == "colonnade" && start && left != "open" && columns && !propylon: col.FirstOnBreakNoLast(columnSpacing)
+	case back == "colonnade" && start && left == "open" && columns && !propylon: col.FirstOnBreakLastFlush(columnSpacing)
+	case back == "colonnade" && last && right != "open" && columns && !propylon: col.NoFirstNoLast(columnSpacing)
+	case back == "colonnade" && last && right == "open" && columns && !propylon: col.FirstFlushNoLast(columnSpacing)
+	case back == "colonnade" && standalone && right != "open" 	&& left != "open" && columns && !propylon: 	 col.NoFirstNoLast(columnSpacing)	 
+	case back == "colonnade" && standalone && right == "open" 	&& left != "open" && columns && !propylon: 	 col.FirstFlushNoLast(columnSpacing)
+	case back == "colonnade" && standalone && right != "open"	&& left == "open" && columns && !propylon: 	 col.NoFirstLastFlush(columnSpacing)	 
+	case back == "colonnade" && standalone && right == "open" 	&& left == "open" && columns && !propylon: 	 col.FirstLastFlush(columnSpacing)
+	case back == "colonnade" && middle && columns && !propylon : 	 col.FirstOnBreakNoLast(columnSpacing)
+	case back == "wall" &&  !shops : extrude(-wallThickness)Wall
+	case back == "colonnade" && arches && !last  && !standalone :  s(scope.sx-col.archColumnBaseW/2,'1,'1) col.Arcade
+	case back == "colonnade" && arches && last || back == "colonnade" && arches && standalone: s(scope.sx-col.archColumnBaseW/2,'1,'1) t(col.archColumnBaseW/2,0,0) col.ArcadeStart
+	case back == "colonnade" && propylon && columns: PropylonColonnade(scope.sx)
+	else: NIL
+	
+PropylonColonnade(X) -->
+case tetrastyle:
+	GetSpacing((X-((X/3)*centerOpening_propylon))/2)
+case hexastyle:
+	GetSpacing((X-((X/5)*centerOpening_propylon))/4)
+else: GetSpacing(columnSpacing)
+
+GetSpacing(n) -->
+col.FirstLastFlushFront(n,centerOpening_propylon)
+	
+////////////
+///////STEPS
+
+BackStepsType(n) -->
+case backSteps == true:StepsType(n)
+else: Wall
+
+LeftStepsType(n) -->
+case leftSteps == true:StepsType(n)
+else: Wall
+
+RightStepsType(n) -->
+case rightSteps == true:StepsType(n)
+else: Wall
+
+StepsType(n) -->
+case continuous: Steps(n)
+case spaced && columns: Wall split(x){ column_diameter+col.columnOffset: NIL|stairW:Steps(n)|~1: NIL}
+case spaced && arches && start || spaced && arches && standalone: Wall split(x){ orderW: NIL|stairW:Steps(n)|~1: NIL}
+case spaced && arches && !start && !standalone : Wall split(x){ stairW:Steps(n)|~1: NIL}
+else: Wall
+
+Steps -->
+split(y){step_height :  extrude((split.total - split.index) * step_depth) s(scope.sx+(split.total - split.index) * step_depth,'1,'1) tex.Block("wall", tile)}*
+
+StepsEnd -->
+setPivot(xyz,2)
+split(y){~step_height :  extrude((split.total - split.index) * step_depth) tex.Block("wall", tile)}*
+
+Steps(n) -->
+alignScopeToAxes()
+split(y)	{step_height: Step(n) 
+	 	| ~1: Steps(n-1)}
+
+Step(idx) -->
+extrude(idx*step_depth)tex.Block("wall", tile)
+
+
+////////////
+///////WALLS
+
+Walls -->
+split(y){~1: s('1,'1, wallThickness)
+			t(0,0,-wallThickness)
+			set(trim.vertical, false)
+			i("builtin:cube")
+			tex.Block("wall", tile) 
+		|entablatureH:Entablature}
+
+ShopWalls -->
+s('1,'1,shopDepth)
+t(0,0,-shopDepth)
+set(trim.vertical,false)
+i("builtin:cube")
+comp(f){back:ShopFacade |front: Wall | left: Wall| right:  Wall}
+
+ShopFacade -->
+case offset:
+s(scope.sx-shopDepth*2,scope.sy+entablatureH,'1)
+center(x)
+dom.LowerFacade(rint(rand(-.5,1.5)),"front") 
+else:
+s('1,scope.sy+entablatureH,'1)dom.LowerFacade(rint(rand(-.5,1.5)),"front") 
+
+	
+Wall --> tex.Block("wall",tile) reverseNormals tex.Block("wall",tile)
+
+//////////////////
+///////ENTABLATURE
+
+Entablature -->
+case columns: col.Entablature(columnSpacing,column_diameter)
+else: col.Entablature(columnSpacing,archColumnDiameter)
+
+FrontEntablature(X) -->
+case propylon && columns && tetrastyle:
+	col.EntablatureFront(((X-((X/3)*centerOpening_propylon))/2),centerOpening_propylon,column_diameter)
+case propylon && columns && hexastyle:
+	col.EntablatureFront(((X-((X/5)*centerOpening_propylon))/4),centerOpening_propylon,column_diameter)	
+case !propylon && columns: col.Entablature(columnSpacing,column_diameter)
+else:
+	col.Entablature(columnSpacing,archColumnDiameter)
+	
+////////////
+////////ROOF
+
+Ceiling -->
+case roofType == "flat":
+	tex.Block("floor",.5)#Flat Roof					
+	t(0,0,-column_diameter*col.friezeH) reverseNormals offset(-column_diameter/2,inside) tex.Block("roof",4,24)
+else:
+	t(0,0,-column_diameter*col.friezeH) reverseNormals offset(-column_diameter/2,inside) tex.Block("roof",4,24)
+	
+Roof --> 
+case tuscan && propylon:
+		s('1.1,'1,'1)
+		center(x)
+		Roof1
+else: Roof1
+
+Roof1 -->
+	case roofType == "gable" && !propylon:
+		roofGable(roof_angle,0,0,true,roof_direction)
+		comp(f){ top : rf.Roof(roofBrickW,roofBrickH)|vertical: tex.Block("wall", tile)}
+		comp(e){ ridge: rf.Ridge(0,roofBrickW,roofBrickH) | hip: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH) | valley: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH)}
+	case roofType == "gable" && propylon:
+		roofGable( roof_angle ,0,-col.geisonProjection-col.triglyphW/2, true,0)
+		comp(f){ top : rf.TempleRoof(columnSpacing,roofBrickW,roofBrickH)|vertical: rf.Pediment(columnSpacing)|bottom: Overhang}
+		comp(e){ ridge: rf.Ridge(0,roofBrickW,roofBrickH) | hip: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH) | valley: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH)}
+	case roofType == "flat":extrude(railingH) comp(f){side:s('1,'1,wallThickness)t(0,0,-wallThickness)i("builtin:cube")tex.Block("wall",tile)}
+	else:
+		roofShed(roof_angle)
+		comp(f){ top : rf.Roof(roofBrickW,roofBrickH)|vertical: tex.Block("wall", tile)}
+		comp(e){ ridge: rf.Ridge(0,roofBrickW,roofBrickH) | hip: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH) | valley: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH)}
+
+Overhang -->
+	case tuscan:
+		split(y){rf.pedimentWidth-col.geisonProjection: NIL
+				|~1: 	s('1,'1.02,.1)
+						center(y)
+						tex.Block("wall",tile)
+				|rf.pedimentWidth-col.geisonProjection: NIL}
+		
+	else: NIL		
+

@@ -1,0 +1,1144 @@
+/**
+ * File:    Theatron.cga
+ * Created: 10 Sep 2012 23:00:48 GMT
+ * Author:  msaldana
+ */
+
+version "2011.2"
+
+@Hidden 
+import tex : "_TexturesAssets.cga"
+
+@Hidden 
+import col : "_Colonnade.cga"
+
+@Hidden 
+import rf: "_Roof.cga"
+
+#-------Scene Settings
+
+@Group("SceneSettings",0)
+attr elevation 	= 0
+
+@Group("SceneSettings",0)@Range("HIGH","MED","LOW")
+attr LOD					= "LOW"
+	const highLOD 				= LOD == "HIGH"
+	const medLOD				= LOD == "MED"
+	const lowLOD				= LOD == "LOW"
+
+#--------General
+	
+@Group ("General",2)@Range("THEATER","STADIUM")
+attr building_type					= "STADIUM"
+const stadium				= building_type == "STADIUM"
+const theater				= building_type == "THEATER"
+
+#--------Stadium
+
+@Group ("Stadium",3)@Range("Arcaded","Flat","Colonnaded")
+attr sphendoneType			= "Flat"
+@Group ("Stadium",3)
+attr sphendoneWidth			= 1
+@Group ("Stadium",3)
+attr kerkisWidth			= 15
+
+const sphendoneH			= 1.75
+const sphendoneH_D1			= .55
+const sphendone2H			= 4.66
+const sphendone2D			= 1	
+
+#--------Theater
+@Group ("Theater",4)@Range("5","7")
+attr kerkides				= "5"
+const five_kerkides			= kerkides == "5"
+const seven_kerkides		= kerkides == "7"
+
+#--------Rows
+@Group ("Rows",5)
+attr orchestraPodiumH		= seatHeight*3
+@Group ("Rows",5)
+attr diazomaWidth			= seatDepth*2.5
+@Group ("Rows",5)
+attr tier1_rows				= 14
+@Group ("Rows",5)
+attr tier2_rows				= 8
+@Group ("Rows",5)
+attr seatDepth				= .75
+@Group ("Rows",5)
+attr seatHeight				= .4
+@Group ("Rows",5)
+attr stairWidth				= .7
+@Group ("Rows",5)
+attr stepDepth				= seatDepth/2
+
+const totalSteps			= tier1_rows+tier2_rows
+const totalH				= d1H+d2H
+const totalD				= (totalSteps*seatDepth)+(diazomaWidth*2.5)
+const d1D					= tier1_rows*seatDepth+diazomaWidth
+const d1H					= tier1_rows*seatHeight+orchestraPodiumH
+const d2H					= tier2_rows*seatHeight
+const d2D					= tier2_rows*seatDepth+diazomaWidth
+
+#-------Colonnade
+@Group ("Colonnade",5)
+attr column_diameter 		= 1
+
+#--------Walls
+@Group ("Walls",6)
+attr angle					= 30
+@Group ("Walls",6)
+attr angle2					= 26.5
+
+const wallThickness			= .6
+const tile 					= 5
+
+#---------Roof
+const roofBrickW = col.column_spacing *0.25
+const roofBrickH = col.column_spacing *0.35
+
+
+###########__START__#############
+
+#Lot should outline only the orchestra (the ground in the middle, not including the seats)
+
+#Lot should have an odd number of faces around the curved side
+
+#Numbering of faces starts counterclockwise (on the right) with the curved edge, at 0.
+
+
+
+Lot -->
+	t(0,elevation,0)
+	//Lot.
+	///*
+	extrude(seatHeight*(tier1_rows+tier2_rows)+orchestraPodiumH+sphendoneH+sphendone2H)
+	comp(f) { bottom:reverseNormals tex.Block("ground",5) | front: NIL | top: NIL |all = AllSides}
+	//*/
+
+
+AllSides -->
+	comp(f) {all: Sides(comp.index, comp.total) print(comp.total)}
+
+	
+Sides(i, z) -->
+
+## Theater - 5 kerkides 
+
+	case theater && five_kerkides && i == 0: 							EndStairsD2
+	
+	case theater && five_kerkides && i < rint(z/5*1): 					Rows
+	
+	case theater && five_kerkides && i == rint(z/5*1): 					Stairs
+	
+	case theater && five_kerkides && i > rint(z/5*1) && i< rint(z/5*2): Rows
+	
+	case theater && five_kerkides && i ==  rint(z/5*2):					Stairs
+	
+	case theater && five_kerkides && i > rint(z/5*2) && i< rint(z/5*3): Rows
+	
+	case theater && five_kerkides && i == rint(z/5*3): 					Stairs
+	
+	case theater && five_kerkides && i > rint(z/5*3) && i< rint(z/5*4):	Rows
+	
+	case theater && five_kerkides && i == rint(z/5*4):					Stairs
+	
+	case theater && five_kerkides && i == z-1: 							EndStairsLeftD2
+	
+
+## Theater - 7 kerkides
+	case theater && seven_kerkides && i == 0 : 								EndStairs
+	
+	case theater && seven_kerkides  && i < rint(z/7*1): 					EndRows
+	
+	case theater && seven_kerkides  && i == rint(z/7*1): 					EndStairsUpper
+	
+	case theater && seven_kerkides  && i > rint(z/7*1) && i < rint(z/7*2):	Rows
+	
+	case theater && seven_kerkides  && i == rint(z/7*2): 					Stairs
+	
+	case theater && seven_kerkides  && i > rint(z/7*2) && i < rint(z/7*3):	Rows
+	
+	case theater && seven_kerkides  && i == rint(z/7*3): 					Stairs
+	
+	case theater && seven_kerkides  && i > rint(z/7*3) && i <(z/7*4): 		Rows
+	
+	case theater && seven_kerkides  && i == rint(z/7*4): 					Stairs
+	
+	case theater && seven_kerkides  && i > rint(z/7*4) && i < rint(z/7*5):	Rows
+	
+	case theater && seven_kerkides  && i == rint(z/7*5): 					Stairs
+	
+	case theater && seven_kerkides  && i > rint(z/7*5) && i < rint(z/7*6):	Rows
+	
+	case theater && seven_kerkides  && i == rint(z/7*6): 					EndStairsUpperLeft
+	
+	case theater && seven_kerkides  && i > rint(z/7*6) && i < z-1: 			EndRows
+	
+	case theater && seven_kerkides  && i == z-1:  							EndStairsLeft
+
+## Stadium 
+
+	case stadium && i == 0: 							StadiumArm 
+	
+	case stadium && i%4 == 0 && i != z-1: 				StadiumStairs
+	
+	case stadium && i%4 != 0 && i%2 == 0: 				UpperStairs
+	
+	case stadium && i == z-1: 							StadiumArmLeft
+	
+	else: 												Rows
+
+
+StadiumArm -->
+	split(x){stairWidth: EndStairsD2Straight |~1: AllStraightRows|1: EndStairsD2NoWall}
+	
+StadiumArmLeft -->
+	split(x){1: EndStairsLeftD2NoWall |~1: AllStraightRows|stairWidth: EndStairsLeftStraightD2 }
+	
+AllStraightRows -->
+split(x){kerkisWidth:StraightRows |stairWidth: StraightStairs|~1:split(x){~kerkisWidth: StraightRows |~stairWidth: StraightStairs}*|kerkisWidth: StraightRows}
+
+
+
+###########__ROWS__#############
+
+Rows -->
+case sphendoneType == "Flat" || sphendoneType == "Colonnaded":
+	s('1,scope.sy+sphendone2H,'1)
+
+	split(y){orchestraPodiumH: reverseNormals Row(split.index,split.total)|{~seatHeight: Row(split.index,split.total)}*|sphendoneH: SphendoneD2|sphendone2H: NIL|sphendone2H: NIL}
+else:
+	s('1,scope.sy+sphendone2H,'1)
+	split(y){orchestraPodiumH: reverseNormals Row(split.index,split.total)|{~seatHeight: Row(split.index,split.total)}*|sphendoneH: SphendoneD2|sphendone2H:SphendoneD3|sphendone2H: SphendoneD4}
+
+Row(n,z) -->
+
+	case n == 0:
+	s('4,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n)
+	Seat
+
+	case n == tier1_rows-1:
+	s('4,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	Seat
+
+	case n>= tier1_rows && n<z-4:
+	s('4,'1,seatDepth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	Seat
+	
+	case n == z-4:
+	s('5,'1,seatDepth+diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	Seat
+	
+	else:
+	s('5,'1,seatDepth)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	Seat
+	
+###########__ROWS_STRAIGHT__#############
+
+StraightRows -->
+	split(y){orchestraPodiumH: reverseNormals StraightRow(split.index,split.total)|{~seatHeight: StraightRow(split.index,split.total)}*|sphendoneH: SphendoneD2Straight|sphendone2H: NIL}
+
+StraightRow(n,z) -->
+
+	case n == 0:
+	s('1,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n)
+	Seat
+
+	case n == tier1_rows-1:
+	s('1,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	Seat
+
+	case n>= tier1_rows && n<z-3:
+	s('1,'1,seatDepth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	Seat
+	
+	case n == z-3:
+	s('1,'1,seatDepth+diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	Seat
+	
+	else:
+	s('1,'1,seatDepth)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	Seat
+	
+###########__END_ROWS__#############
+
+EndRows -->
+	split(y){orchestraPodiumH: reverseNormals EndRow(split.index)|{~seatHeight: EndRow(split.index)}* |sphendoneH: SphendoneD1|sphendone2H: NIL}
+
+
+EndRow(n) -->
+
+	case n == 0:
+	s('1.2,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n)
+	Seat
+	
+	case n == tier1_rows-1:
+	s('2,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	Seat
+	
+	case n>= tier1_rows:
+	NIL
+	
+	else:
+	s('2,'1,seatDepth)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	Seat
+	
+###########__SEAT__#############	
+
+Seat -->
+	i("builtin:cube")
+	comp(f) {top: Block |back: Block |left: Block |right: Block}
+		
+
+SeatEnd -->
+	i("builtin:cube")
+	comp(f) {bottom: reverseNormals Block |front:reverseNormals Block |left: reverseNormals Block |right: reverseNormals Block}
+	
+		
+###########__STAIRS__#############	
+
+Stairs -->
+	split(y){orchestraPodiumH: reverseNormals Steps(split.index,split.total)|{~seatHeight: Steps(split.index,split.total)}*|sphendoneH: SphendoneD2 |sphendone2H: NIL}
+
+	
+Steps(n,y) -->
+	case n == 0:
+	s('2,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n)
+	Seat
+
+	case n == tier1_rows-1:
+	s('8,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	Seat
+
+	case n>= tier1_rows && n<y-3:
+	s('8,'1,seatDepth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){~1:s('1,'1, seatDepth)Seat |stairWidth: Step|~1: s('1,'1, seatDepth)Seat}
+	
+	case n == y-3:
+	s('9,'1,seatDepth+diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){~1:s('1,'1, seatDepth+diazomaWidth)Seat 
+			|stairWidth: Step t(0,0,seatDepth)s('1,'1,diazomaWidth)i("builtin:cube")comp(f){top: Block}
+			|~1: s('1,'1, seatDepth+diazomaWidth) Seat}
+
+	else:
+	s('8,'1,'1)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	split(x){~1:s('1,'1, seatDepth)Seat |stairWidth: Step|~1: s('1,'1, seatDepth)Seat}
+
+###########__STADIUM_STAIRS__#############	
+
+StadiumStairs -->
+case sphendoneType == "Flat" || sphendoneType == "Colonnaded":
+	s('1,scope.sy+sphendone2H,'1)
+	split(y){orchestraPodiumH: reverseNormals StadiumSteps(split.index,split.total)|{~seatHeight: StadiumSteps(split.index,split.total)}*|sphendoneH: SphendoneD2|sphendone2H: NIL|sphendone2H: NIL }
+
+else:
+	s('1,scope.sy+sphendone2H,'1)
+	split(y){orchestraPodiumH: reverseNormals StadiumSteps(split.index,split.total)|{~seatHeight: StadiumSteps(split.index,split.total)}*|sphendoneH: SphendoneD2|sphendone2H: SphendoneD3|sphendone2H:SphendoneD4 }
+	
+StadiumSteps(n,y) -->
+	case n == 0:
+	s('2,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n)
+	split(x){~1: Seat |stairWidth: split(y){~seatHeight:Step|~seatHeight: t(0,0,seatDepth)Step}|~1: Seat}
+
+	case n == tier1_rows-1:
+	s('8,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	Seat
+
+	case n>= tier1_rows && n<y-4:
+	s('8,'1,seatDepth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){~1:s('1,'1, seatDepth)Seat |stairWidth: Step|~1: s('1,'1, seatDepth)Seat}
+	
+	case n == y-4:
+	s('9,'1,seatDepth+diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){~1:s('1,'1, seatDepth+diazomaWidth)Seat 
+			|stairWidth: Step t(0,0,seatDepth)s('1,'1,diazomaWidth)i("builtin:cube")comp(f){top: Block}
+			|~1: s('1,'1, seatDepth+diazomaWidth) Seat}
+
+	else:
+	s('8,'1,'1)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	split(x){~1:s('1,'1, seatDepth)Seat |stairWidth: Step|~1: s('1,'1, seatDepth)Seat}
+
+	
+###########__UPPER_STAIRS__#############	
+
+UpperStairs -->
+case sphendoneType == "Flat" || sphendoneType == "Colonnaded":
+	s('1,scope.sy+sphendone2H,'1)
+	split(y){orchestraPodiumH: reverseNormals UpperSteps(split.index,split.total)|{~seatHeight: UpperSteps(split.index,split.total)}*|sphendoneH: SphendoneD2|sphendone2H: NIL |sphendone2H: NIL }
+else:
+	s('1,scope.sy+sphendone2H,'1)
+	split(y){orchestraPodiumH: reverseNormals UpperSteps(split.index,split.total)|{~seatHeight: UpperSteps(split.index,split.total)}*|sphendoneH: SphendoneD2|sphendone2H: SphendoneD3|sphendone2H: SphendoneD4 }
+	
+UpperSteps(n,y) -->
+	case n == 0:
+	s('2,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n)
+	Seat
+
+	case n == tier1_rows-1:
+	s('8,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	Seat
+
+	case n>= tier1_rows && n<y-4:
+	s('8,'1,seatDepth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){~1:s('1,'1, seatDepth)Seat |stairWidth: Step|~1: s('1,'1, seatDepth)Seat}
+	
+	case n == y-4:
+	s('9,'1,seatDepth+diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){~1:s('1,'1, seatDepth+diazomaWidth)Seat 
+			|stairWidth: Step t(0,0,seatDepth)s('1,'1,diazomaWidth)i("builtin:cube")comp(f){top: Block}
+			|~1: s('1,'1, seatDepth+diazomaWidth) Seat}
+
+	else:
+		s('5,'1,seatDepth)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	Seat
+	
+###########__STAIRS_STRAIGHT__#############	
+
+StraightStairs -->
+	split(y){orchestraPodiumH: reverseNormals StraightSteps(split.index,split.total)|{~seatHeight: StraightSteps(split.index,split.total)}*|sphendoneH: SphendoneD2Straight|sphendone2H: NIL }
+
+	
+StraightSteps(n,y) -->
+
+	case n == 0:
+	s('1,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n)
+	split(y){~seatHeight:Step|~seatHeight: t(0,0,seatDepth)Step}
+
+	case n == tier1_rows-1:
+	s('1,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	Seat
+
+	case n>= tier1_rows && n<y-3:
+	s('1,'1,seatDepth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	Step
+	
+	case n == y-3:
+	s('1,'1,seatDepth+diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth) 
+	Step t(0,0,seatDepth)s('1,'1,diazomaWidth)i("builtin:cube")comp(f){top: Block}
+	
+
+	else:
+	s('1,'1,'1)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	Step
+	
+###########__END_STAIRS__#############	
+
+EndStairs -->
+	split(y){orchestraPodiumH: reverseNormals EndSteps(split.index)|{~seatHeight: EndSteps(split.index)}*|sphendoneH: SphendoneD1End |sphendone2H: NIL}
+
+	
+EndSteps(n) -->
+	case n == 0:
+	s('4,'1,tier1_rows*seatDepth)	
+	t(0,0,seatDepth*n)
+	i("builtin:cube")
+	comp(f){left: split(x){diazomaWidth-stepDepth: extrude(wallThickness)Block 
+							|~1:s('1,scope.sy+seatHeight,'1)extrude(wallThickness)
+							comp(f) {back: 	s(scope.sx+diazomaWidth,'1,'1)t(-diazomaWidth,0,0)AngledWall
+									| top:s(scope.sx+diazomaWidth,'1,'1) Block | left:Block 
+									| bottom: Block}}
+			|top: split(y) {~1: NIL| diazomaWidth: Block } 
+			|back:Block}
+
+	case n == tier1_rows-1:
+	s('4,'1,diazomaWidth)
+	t(0,0,seatDepth*n+seatDepth)
+	Seat
+
+	case n>= tier1_rows:
+	NIL
+
+	else:
+	s('4,'1,seatDepth)
+	t(0,0,seatDepth*n+seatDepth)
+	split(x){stairWidth: Step|~1: s('1,'1, seatDepth)Seat}
+
+###########__END_STAIRS_D2_#############	
+
+EndStairsD2 -->
+	split(y){orchestraPodiumH: reverseNormals EndStepsD2(split.index, split.total)|{~seatHeight: EndStepsD2(split.index, split.total)}*|sphendoneH: EndSphendoneD2|sphendone2H: NIL}
+
+	
+EndStepsD2(n,y) -->
+	case n == 0:
+	s('4,'1,d1D)	
+	t(0,0,seatDepth*n)
+	i("builtin:cube")
+	comp(f){left: split(x){diazomaWidth: extrude(wallThickness)Block 
+							|~1:s(totalD-diazomaWidth,scope.sy+seatHeight,'1)extrude(wallThickness)
+							comp(f) {back: AngledWall
+									| top: Block | left:Block 
+									| bottom: Block}}
+			|top: split(y) {~1: NIL| diazomaWidth: Block } 
+			|back:Block}
+
+	case n == tier1_rows-1:
+	s('4,'1,tier2_rows*seatDepth+diazomaWidth)
+	t(0,0,seatDepth*n+seatDepth)
+	i("builtin:cube")
+	comp(f) {top: split(y){~1: NIL
+							|diazomaWidth:Block }
+			|back: Block}
+
+	case n>= tier1_rows && n<y-3:
+	s('4,'1,seatDepth)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){
+			stairWidth:Step
+			|~1: s('1,'1, seatDepth)Seat}
+			
+	case n == y-3:
+		s('9,'1,seatDepth+diazomaWidth)
+		t(0,0,seatDepth*n+diazomaWidth)
+		split(x){
+				stairWidth: Step t(0,0,seatDepth)s('1,'1,diazomaWidth)i("builtin:cube")comp(f){top: Block}
+				|~1: s('1,'1, seatDepth+diazomaWidth)Seat}
+
+	else:
+	s('4,'1,seatDepth)
+	t(0,0,seatDepth*n+seatDepth)
+	split(x){stairWidth: Step|~1: s('1,'1, seatDepth)Seat}	
+	
+###########__END_STAIRS_D2_NO_WALL#############	
+
+EndStairsD2NoWall -->
+case sphendoneType == "Flat" || sphendoneType == "Colonnaded":
+	s('1,scope.sy+sphendone2H,'1)
+	split(y){orchestraPodiumH: reverseNormals EndStepsD2NoWall(split.index, split.total)|{~seatHeight: EndStepsD2NoWall(split.index, split.total)}*|sphendoneH: EndSphendoneD2|sphendone2H: NIL|sphendone2H: NIL}
+else:
+	s('1,scope.sy+sphendone2H,'1)
+	split(y){orchestraPodiumH: reverseNormals EndStepsD2NoWall(split.index, split.total)|{~seatHeight: EndStepsD2NoWall(split.index, split.total)}*|sphendoneH: EndSphendoneD2| sphendone2H: s(kerkisWidth/2,'1,'1) SphendoneD3|sphendone2H: SphendoneD4}
+	
+EndStepsD2NoWall(n,y) -->
+	case n == 0:
+	s('5,'1,d1D)	
+	t(0,0,seatDepth*n)
+	split(y){~seatHeight:Step|~seatHeight: t(0,0,seatDepth)Step}
+
+	case n == tier1_rows-1:
+	s('5,'1,tier2_rows*seatDepth+diazomaWidth)
+	t(0,0,seatDepth*n+seatDepth)
+	i("builtin:cube")
+	comp(f) {top: split(y){~1: NIL
+							|diazomaWidth:Block }
+			|back: Block}
+
+	case n>= tier1_rows && n<y-4:
+	s('5,'1,seatDepth)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){
+			stairWidth:Step
+			|~1: s('1,'1, seatDepth)Seat}
+			
+	case n == y-4:
+		s('9,'1,seatDepth+diazomaWidth)
+		t(0,0,seatDepth*n+diazomaWidth)
+		split(x){
+				stairWidth: Step t(0,0,seatDepth)s('1,'1,diazomaWidth)i("builtin:cube")comp(f){top: Block}
+				|~1: s('1,'1, seatDepth+diazomaWidth)Seat}
+
+	else:
+	s('5,'1,seatDepth)
+	t(0,0,seatDepth*n+seatDepth)
+	split(x){stairWidth: Step|~1: s('1,'1, seatDepth)Seat}
+	
+###########__END_STAIRS_D2_STRAIGHT#############	
+
+EndStairsD2Straight -->
+	split(y){orchestraPodiumH: reverseNormals EndStepsD2Straight(split.index, split.total)|{~seatHeight: EndStepsD2Straight(split.index, split.total)}*|sphendoneH: EndSphendoneD2Straight|sphendone2H: NIL}
+
+	
+EndStepsD2Straight(n,y) -->
+	case n == 0:
+	s('1,'1,d1D)	
+	t(0,0,seatDepth*n)
+		i("builtin:cube")
+	comp(f){left: split(x){diazomaWidth-stepDepth: extrude(wallThickness)Block 
+							|~1:s(totalD-diazomaWidth+stepDepth,scope.sy+seatHeight,'1)extrude(wallThickness)
+							comp(f) {back: AngledWall
+									| top: Block | left:Block 
+									| bottom: Block}}
+			|top: split(y) {~1: NIL| diazomaWidth: Block } 
+			|back:Block}
+
+	
+
+	case n == tier1_rows-1:
+	s('1,'1,tier2_rows*seatDepth+diazomaWidth)
+	t(0,0,seatDepth*n+seatDepth)
+	i("builtin:cube")
+	comp(f) {top: split(y){~1: NIL
+							|diazomaWidth:Block }
+			|back: Block}
+
+	case n>= tier1_rows && n<y-3:
+	s('1,'1,seatDepth)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){
+			stairWidth:Step
+			|~1: s('1,'1, seatDepth)Seat}
+			
+	case n == y-3:
+		s('1,'1,seatDepth+diazomaWidth)
+		t(0,0,seatDepth*n+diazomaWidth)
+		split(x){
+				stairWidth: Step t(0,0,seatDepth)s('1,'1,diazomaWidth)i("builtin:cube")comp(f){top: Block}
+				|~1: s('1,'1, seatDepth+diazomaWidth)Seat}
+
+	else:
+	s('1,'1,seatDepth)
+	t(0,0,seatDepth*n+seatDepth)
+	split(x){stairWidth: Step|~1: s('1,'1, seatDepth)Seat}	
+	
+###########__END_STAIRS_LEFT_D2_#############	
+
+EndStairsLeftD2 -->
+	split(y){orchestraPodiumH: reverseNormals mirrorScope(true,false,false)EndStepsLeftD2(split.index, split.total)|{~seatHeight:mirrorScope(true,false,false) EndStepsLeftD2(split.index, split.total)}*|sphendoneH:mirrorScope(true,false,false) EndSphendoneD2Left|sphendone2H: NIL}
+
+	
+EndStepsLeftD2(n,y) -->
+	case n == 0:
+	s('4,'1,d1D)	
+	t(0,0,seatDepth*n)
+	i("builtin:cube")
+	comp(f){right: reverseNormals split(x){diazomaWidth: extrude(wallThickness)Block 
+							|~1:s(totalD-diazomaWidth,scope.sy+seatHeight,'1)extrude(wallThickness)
+							comp(f) {front: AngledWallLeft
+									| bottom: Block | left:Block 
+									| top: Block}}
+			|bottom: reverseNormals split(y) {~1: NIL| diazomaWidth: Block } 
+			|front:reverseNormals Block}
+
+	case n == tier1_rows-1:
+	s('8,'1,tier2_rows*seatDepth+diazomaWidth)	
+	t(0,0,seatDepth*n+seatDepth)
+	i("builtin:cube")
+	comp(f) {bottom: reverseNormals split(y){~1: NIL
+							|diazomaWidth:Block }
+			|front: reverseNormals Block}
+
+	case n>= tier1_rows && n<y-3:
+	s('8,'1,seatDepth)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){
+			stairWidth:StepEnd
+			|~1: s('1,'1, seatDepth)SeatEnd}
+			
+	case n == y-3:
+		s('9,'1,seatDepth+diazomaWidth)
+		t(0,0,seatDepth*n+diazomaWidth)
+		split(x){
+				stairWidth: StepEnd t(0,0,seatDepth)s('1,'1,diazomaWidth)i("builtin:cube")comp(f){bottom: reverseNormals Block}
+				|~1: s('1,'1, seatDepth+diazomaWidth)SeatEnd}
+
+	else:
+	s('4,'1,seatDepth)
+	t(0,0,seatDepth*n+seatDepth)
+	split(x){stairWidth: StepEnd|~1: s('1,'1, seatDepth)SeatEnd}
+	
+###########__END_STAIRS_LEFT_D2_NO_WALL#############	
+
+EndStairsLeftD2NoWall -->
+case sphendoneType == "Flat" || sphendoneType == "Colonnaded":
+	s('1,scope.sy+sphendone2H,'1)
+	split(y){orchestraPodiumH: reverseNormals mirrorScope(true,false,false)EndStepsLeftD2NoWall(split.index, split.total)|{~seatHeight:mirrorScope(true,false,false) EndStepsLeftD2NoWall(split.index, split.total)}*|sphendoneH:mirrorScope(true,false,false) EndSphendoneD2Left| sphendone2H: NIL| sphendone2H: NIL}
+else:
+	s('1,scope.sy+sphendone2H,'1)
+
+	split(y){orchestraPodiumH: reverseNormals mirrorScope(true,false,false)EndStepsLeftD2NoWall(split.index, split.total)|{~seatHeight:mirrorScope(true,false,false) EndStepsLeftD2NoWall(split.index, split.total)}*|sphendoneH:mirrorScope(true,false,false) EndSphendoneD2Left| sphendone2H: s(kerkisWidth/2,'1,'1)t(-scope.sx,0,0)SphendoneD3|sphendone2H:SphendoneD4}
+
+EndStepsLeftD2NoWall(n,y) -->
+	case n == 0:
+	s('4,'1,d1D)	
+	t(0,0,seatDepth*n)
+	split(y){~seatHeight:StepEnd|~seatHeight: t(0,0,seatDepth)StepEnd}
+
+	case n == tier1_rows-1:
+	s('8,'1,tier2_rows*seatDepth+diazomaWidth)	
+	t(0,0,seatDepth*n+seatDepth)
+	i("builtin:cube")
+	comp(f) {bottom: reverseNormals split(y){~1: NIL
+							|diazomaWidth:Block }
+			|front: reverseNormals Block}
+
+	case n>= tier1_rows && n<y-4:
+	s('8,'1,seatDepth)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){
+			stairWidth:StepEnd
+			|~1: s('1,'1, seatDepth)SeatEnd}
+			
+	case n == y-4:
+		s('9,'1,seatDepth+diazomaWidth)
+		t(0,0,seatDepth*n+diazomaWidth)
+		split(x){
+				stairWidth: StepEnd t(0,0,seatDepth)s('1,'1,diazomaWidth)i("builtin:cube")comp(f){bottom: reverseNormals Block}
+				|~1: s('1,'1, seatDepth+diazomaWidth)SeatEnd}
+
+	else:
+	s('4,'1,seatDepth)
+	t(0,0,seatDepth*n+seatDepth)
+	split(x){stairWidth: StepEnd|~1: s('1,'1, seatDepth)SeatEnd}	
+	
+###########__END_STAIRS_LEFT_D2_STRAIGHT#############	
+
+EndStairsLeftStraightD2 -->
+	split(y){orchestraPodiumH: reverseNormals mirrorScope(true,false,false)EndStepsLeftStraightD2(split.index, split.total)|{~seatHeight:mirrorScope(true,false,false) EndStepsLeftStraightD2(split.index, split.total)}*|sphendoneH:mirrorScope(true,false,false) EndSphendoneLeftD2Straight|sphendone2H: NIL}
+
+	
+EndStepsLeftStraightD2(n,y) -->
+	case n == 0 :
+	s('1,'1,d1D)	
+	t(0,0,seatDepth*n)
+	i("builtin:cube")
+	comp(f){right: reverseNormals split(x){diazomaWidth-stepDepth: extrude(wallThickness)Block 
+							|~1:s(totalD-diazomaWidth+stepDepth,scope.sy+seatHeight,'1)extrude(wallThickness)
+							comp(f) {front: AngledWallLeft
+									| bottom: Block | left:Block 
+									| top: Block}}
+			|bottom: reverseNormals split(y) {~1: NIL| diazomaWidth: Block } 
+			|front:reverseNormals Block}
+
+
+	case n == tier1_rows-1:
+	s('1,'1,tier2_rows*seatDepth+diazomaWidth)	
+	t(0,0,seatDepth*n+seatDepth)
+	i("builtin:cube")
+	comp(f) {bottom: reverseNormals split(y){~1: NIL
+							|diazomaWidth:Block }
+			|front: reverseNormals Block}
+
+	case n>= tier1_rows && n<y-3:
+	s('1,'1,seatDepth)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){
+			stairWidth:StepEnd
+			|~1: s('1,'1, seatDepth)SeatEnd}
+			
+	case n == y-3:
+		s('1,'1,seatDepth+diazomaWidth)
+		t(0,0,seatDepth*n+diazomaWidth)
+		split(x){
+				stairWidth: StepEnd t(0,0,seatDepth)s('1,'1,diazomaWidth)i("builtin:cube")comp(f){bottom: reverseNormals Block}
+				|~1: s('1,'1, seatDepth+diazomaWidth)SeatEnd}
+
+	else:
+	s('1,'1,seatDepth)
+	t(0,0,seatDepth*n+seatDepth)
+	split(x){stairWidth: StepEnd|~1: s('1,'1, seatDepth)SeatEnd}	
+
+
+
+###########__END_STAIRS_LEFT__#############	
+
+EndStairsLeft -->
+	split(y){orchestraPodiumH: reverseNormals mirrorScope(true,false,false) EndStepsLeft(split.index)|{~seatHeight:mirrorScope(true,false,false) EndStepsLeft (split.index)}* |sphendoneH:mirrorScope(true,false,false)  SphendoneD1LeftEnd|sphendone2H: NIL}
+
+	
+EndStepsLeft(n) -->
+	case n == 0:
+	s('4,'1,tier1_rows*seatDepth)	
+	t(0,0,seatDepth*n)
+	i("builtin:cube")
+	comp(f){right: reverseNormals split(x){diazomaWidth-stepDepth: extrude(wallThickness)Block 
+							|~1:s('1,scope.sy+seatHeight,'1)extrude(wallThickness)
+							comp(f) {front:  	s(scope.sx+diazomaWidth,'1,'1) AngledWallLeft| top: s(scope.sx+diazomaWidth,'1,'1)t(-diazomaWidth,0,0)Block | left:Block | bottom: Block}}
+			|bottom: reverseNormals split(y) {~1: NIL| diazomaWidth: Block } 
+			|front:reverseNormals Block}
+
+	case n == tier1_rows-1:
+	s('4,'1,diazomaWidth)
+	t(0,0,seatDepth*n+seatDepth)
+	SeatEnd
+
+	case n>= tier1_rows:
+	NIL
+	
+	else:
+	s('4,'1,seatDepth)
+	t(0,0,seatDepth*n+seatDepth)
+	split(x){ stairWidth: StepEnd| ~1: s('1,'1, seatDepth)SeatEnd}
+
+###########__END_STAIRS_UPPER__#############	
+
+EndStairsUpper -->
+	split(y){orchestraPodiumH: reverseNormals EndStepsUpper(split.index,split.total)|{~seatHeight: EndStepsUpper(split.index,split.total)}*|sphendoneH: EndSphendoneD2|sphendone2H: NIL }
+
+	
+EndStepsUpper(n,y) -->
+
+	case n == 0:
+	s('2,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n)
+	Seat
+
+	case n == tier1_rows-1:
+	s('8,'1,tier2_rows*seatDepth+diazomaWidth)
+	center(x)	
+	t(0,0,seatDepth*n+seatDepth)
+	i("builtin:cube")
+	comp(f) {top: split(y){~1: split(x){~1: split(x){~1: split(y){~1: NIL|sphendoneWidth: extrude(sphendoneH_D1)s('1,scope.sy+d1H,'1)t(0,-d1H+seatHeight,0)Block}
+																|wallThickness:  s('1,scope.sy+diazomaWidth*1.5,'1)t(0,-diazomaWidth*1.5,sphendoneH_D1+seatHeight)UpperAngledWall }
+										|stairWidth: NIL 
+										|~1: NIL}
+							|diazomaWidth:Block }
+			|back: Block}
+
+	case n>= tier1_rows && n<y-3:
+	s('8,'1,seatDepth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){~1: NIL
+			|stairWidth:Step
+			|~1: s('1,'1, seatDepth)Seat}
+	
+	case n == y-3:
+	s('9,'1,seatDepth+diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){~1:NIL
+			|stairWidth: Step t(0,0,seatDepth)s('1,'1,diazomaWidth)i("builtin:cube")comp(f){top: Block}
+			|~1: s('1,'1, seatDepth+diazomaWidth)Seat}
+
+	else:
+	s('8,'1,'1)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	split(x){~1:s('1,'1, seatDepth)Seat |stairWidth: Step|~1: s('1,'1, seatDepth)Seat}
+	
+###########__END_STAIRS_UPPER_LEFT__#############	
+
+EndStairsUpperLeft -->
+	split(y){orchestraPodiumH: reverseNormals  mirrorScope(true,false,true)  EndStepsUpperLeft(split.index,split.total)|{~seatHeight: mirrorScope(true,false,true) EndStepsUpperLeft(split.index,split.total)}*|sphendoneH: mirrorScope(true,false,true)EndSphendoneD2Left |sphendone2H: NIL}
+
+	
+EndStepsUpperLeft(n,y) -->
+	case n == 0:
+	s('2,'1,diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n)
+	SeatEnd
+
+	case n == tier1_rows-1:
+	s('8,'1,tier2_rows*seatDepth+diazomaWidth)	
+	t(0,0,seatDepth*n+seatDepth)
+	center(x)
+	i("builtin:cube")
+	comp(f){bottom:reverseNormals split(y){~1: split(x){~1: split(x){~1: split(y){~1: NIL|sphendoneWidth: extrude(sphendoneH_D1)s('1,scope.sy+d1H,'1)t(0,-d1H+seatHeight,0)Block}
+																|wallThickness:  s('1,scope.sy+diazomaWidth*1.5,'1)t(0,-diazomaWidth*1.5,-sphendoneH_D1-seatHeight)UpperAngledWallLeft }
+										|stairWidth: NIL 
+										|~1: NIL}
+	
+									|diazomaWidth:Block}
+			|front: reverseNormals Block}
+	
+	
+	case n>= tier1_rows && n<y-3:
+	s('8,'1,seatDepth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){ ~1: NIL 
+			|stairWidth: StepEnd
+			| ~1: s('1,'1, seatDepth)SeatEnd}
+	
+	case n == y-3:
+	s('9,'1,seatDepth+diazomaWidth)
+	center(x)
+	t(0,0,seatDepth*n+diazomaWidth)
+	split(x){~1:NIL 
+			|stairWidth: StepEnd t(0,0,seatDepth)s('1,'1,diazomaWidth)i("builtin:cube")comp(f){bottom:reverseNormals Block}
+			|~1: s('1,'1, seatDepth+diazomaWidth)SeatEnd}
+
+	else:
+	s('8,'1,'1)
+	center(x)
+	t(0,0,seatDepth*n+seatDepth)
+	split(x){~1:s('1,'1, seatDepth)SeatEnd |stairWidth: StepEnd|~1: s('1,'1, seatDepth)SeatEnd}
+
+###########__STEP__#############	
+
+Step -->
+	split(y){~1: SmallStep(split.index)|~1: SmallStep(split.index)}
+	
+SmallStep(n) -->
+	s('1,'1, seatDepth)
+	i("builtin:cube")
+	t(0,0,n*stepDepth)
+	comp(f) {top: s('1,'.5,'1)t(0,'1,0)Block |back: Block}
+			
+StepEnd -->
+	split(y){~1: SmallStepEnd(split.index)|~1: SmallStepEnd(split.index)}
+	
+SmallStepEnd(n) -->
+	s('1,'1, seatDepth)
+	i("builtin:cube")
+	t(0,0,n*stepDepth)
+	comp(f) {bottom:reverseNormals s('1,'.5,'1)t(0,'1,0)Block |front:reverseNormals  Block}
+	
+	
+###########__WALL__#############	
+
+AngledWall-->
+ 	roofShed(angle,1) Block
+ 
+AngledWallLeft -->
+	 roofShed(angle,3) Block
+
+
+UpperAngledWall -->
+[roofShed(angle2,2)Block]
+extrude(-d1H-seatHeight)Block
+
+		
+UpperAngledWallLeft -->
+[roofShed(angle2,2)Block]
+extrude(-d1H-seatHeight)Block
+
+Block -->
+	tex.Block("wall",tile)
+	
+###########__SPHENDONE__#############	
+
+SphendoneD2 -->
+	s('9,sphendoneH+totalH,sphendoneWidth)
+	center(x)
+	t(0,-totalH,totalD)
+	i("builtin:cube")Sphendone
+	
+SphendoneD3 -->
+	s('9,sphendoneH+totalH+sphendone2H,sphendoneWidth)
+	center(x)
+	t(0,-totalH-sphendoneH,totalD+sphendoneWidth)
+	i("builtin:cube")Sphendone
+	
+SphendoneD4 -->
+	s('16,sphendoneH+totalH+sphendone2H*2,sphendoneWidth)
+	center(x)
+	t(0,-totalH-sphendoneH-sphendone2H,totalD+sphendoneWidth*2)
+	i("builtin:cube")Sphendone
+
+SphendoneD2Straight -->
+	case sphendoneType == "Flat" || sphendoneType == "Arcaded":
+		s('1,sphendoneH+totalH,sphendoneWidth)
+		t(0,-totalH,totalD)
+		i("builtin:cube")Sphendone
+		
+	case sphendoneType == "Colonnaded" && scope.sx>stairWidth*1.1:
+		s(scope.sx+stairWidth,sphendoneH+totalH,sphendoneWidth)
+		t(0,-totalH,totalD)
+		i("builtin:cube")
+		Sphendone
+	else:
+		s(scope.sx+stairWidth,sphendoneH+totalH,sphendoneWidth)
+		t(0,-totalH,totalD)
+		i("builtin:cube")
+		Block
+		
+EndSphendoneD2 -->
+	s('9,sphendoneH+totalH,sphendoneWidth)
+	t(-wallThickness,-totalH,totalD)
+	i("builtin:cube")
+	Sphendone
+
+EndSphendoneD2Straight -->
+	case sphendoneType == "Flat" || sphendoneType == "Arcaded":
+		s(scope.sx+wallThickness,sphendoneH+totalH,sphendoneWidth)
+		t(-wallThickness,-totalH,totalD)
+		i("builtin:cube")
+		Sphendone
+	else:
+		s(scope.sx+wallThickness,sphendoneH+totalH,sphendoneWidth)
+		t(-wallThickness,-totalH,totalD)
+		i("builtin:cube")
+		comp(f){side:Block|top:ColonnadeEnd}
+	
+
+EndSphendoneLeftD2Straight -->	
+	case sphendoneType == "Flat" || sphendoneType == "Arcaded":
+		s(scope.sx-wallThickness,sphendoneH+totalH,sphendoneWidth)
+		t(wallThickness,-totalH,totalD)
+		i("builtin:cube")
+		comp(f) {side: reverseNormals Block| bottom: reverseNormals SphendoneTopLeft}
+	else:
+		s(scope.sx-wallThickness,sphendoneH+totalH,sphendoneWidth)
+		t(wallThickness,-totalH,totalD)
+		i("builtin:cube")
+		comp(f) {side: reverseNormals Block| bottom: reverseNormals ColonnadeEndLeft}
+		
+EndSphendoneD2Left -->
+	s('9,sphendoneH+totalH,sphendoneWidth)
+	t(wallThickness,-totalH,totalD)
+	i("builtin:cube")
+	comp(f) {side: reverseNormals Block| bottom: reverseNormals SphendoneTopLeft}
+
+SphendoneD1 -->
+	s('9,sphendoneH_D1+d1H,sphendoneWidth)
+	center(x)
+	t(0,-totalH,d1D)
+	i("builtin:cube")
+	Sphendone
+
+SphendoneD1End -->
+	s('9,sphendoneH_D1+d1H,sphendoneWidth)
+	t(-wallThickness,-totalH,d1D)
+	i("builtin:cube")
+	Sphendone
+
+SphendoneD1LeftEnd -->
+	s('9,sphendoneH_D1+d1H,sphendoneWidth)
+	t(wallThickness,-totalH,d1D)
+	i("builtin:cube")
+	comp(f) {side: reverseNormals Block| bottom: reverseNormals SphendoneTopLeft}
+
+Sphendone -->
+	comp(f){side: Block |top: SphendoneTop}
+
+SphendoneTop -->
+	case sphendoneType == "Flat":
+	Block
+	
+	case sphendoneType == "Colonnaded":
+	 Colonnade
+	
+	else: 
+	[Block]
+	s('1, sphendone2D, sphendone2H)
+	i("builtin:cube")
+	Block
+
+SphendoneTopLeft --> 
+	case sphendoneType == "Flat":
+	Block
+	
+	case sphendoneType == "Colonnaded":
+	ColonnadeLeft
+	
+	else:
+	[Block]
+	s('1, sphendone2D, sphendone2H)
+	t(0,0,-sphendone2H)
+	i("builtin:cube")
+	Block
+
+Colonnade -->
+	extrude(col.colonnadeHeight)
+	comp(f){top: Roof
+			|bottom: reverseNormals Block
+			|front: Wall
+			|back:split(y){col.columnHeight:  col.NoFirstLastOnBreak(col.column_spacing)
+							|~1:col.Entablature(col.column_spacing, column_diameter)}
+			}
+			
+ColonnadeLeft -->
+	extrude(col.colonnadeHeight)
+	comp(f){top: Roof
+			|bottom: reverseNormals Block
+			|back: Wall
+			|front:split(y){col.columnHeight:  col.LastOnBreakOnly(col.column_spacing)
+							|~1:col.Entablature(col.column_spacing, column_diameter)}
+			}
+			
+ColonnadeEnd -->	
+	extrude(col.colonnadeHeight)
+	comp(f){top: Roof
+			|bottom: reverseNormals Block
+			|front: Wall
+			|back:split(y){col.columnHeight:  col.NoFirstLastFlush(col.column_spacing) 
+							|~1:col.Entablature(col.column_spacing, column_diameter)
+							}
+			|left:split(y){col.columnHeight: NIL
+							|~1:col.Entablature(col.column_spacing, column_diameter)
+							}
+			}						
+			
+ColonnadeEndLeft -->
+	s(scope.sx-stairWidth,'1,'1)	
+	extrude(col.colonnadeHeight)
+	comp(f){top: Roof
+			|bottom: reverseNormals Block
+			|front: split(y){col.columnHeight: col.NoFirstLastOnBreak(col.column_spacing)
+							|~1:col.Entablature(col.column_spacing, column_diameter)
+							}
+			|back:Wall
+			|left:split(y){col.columnHeight: NIL
+							|~1:col.Entablature(col.column_spacing, column_diameter)
+							}
+			}						
+			
+Roof -->
+	roofGable(10,0,0,false,1)
+	comp(f){side:Block
+			|top:rf.Roof(roofBrickW,roofBrickH)
+			|bottom:Block}
+			
+Wall -->
+	extrude (-col.column_diameter)
+	tex.Block("wall",col.columnHeight)
+	

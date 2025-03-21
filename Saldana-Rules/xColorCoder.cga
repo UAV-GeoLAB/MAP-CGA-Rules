@@ -1,0 +1,102 @@
+/**
+ * File:    ColorCoder.cga
+ * Created: 26 May 2017 19:16:03 GMT
+ * Author:  marie
+ */
+
+version "2017.0"
+
+#-------Scene Settings
+
+@Group("SceneSettings",0) @Range("OFF","ON")
+attr Materials_View		= "OFF"
+	const materials			= Materials_View == "ON"
+	const noMaterials		= Materials_View == "OFF"
+	
+@Group("SceneSettings",0)
+attr elevation 	= 0
+
+@Group("SceneSettings",0) @Range(-800,300)
+attr YEAR		= 0
+	
+#--------Materials
+
+@Group ("Materials",1) @Range("Under Construction","Brick","Travertine", "Marble", "None", "Varied")
+attr Material				= 	case noMaterials && YEAR >= start_date && YEAR <= end_date: "Varied"
+								case materials && YEAR >= construction_start && YEAR <=construction_end: "Under Construction"
+								case materials && YEAR >= brick_start && YEAR <=brick_end: "Brick"
+								case materials && YEAR >= travertine_start && YEAR <=travertine_end: "Travertine"
+								case materials && YEAR >= marble_start && YEAR <=marble_end: "Marble"
+								else: "None"
+								
+	const constr				= Material == "Under Construction" 
+	const brick					= Material == "Brick"
+	const trav					= Material == "Travertine"
+	const marble				= Material == "Marble"
+	const noModel				= Material == "None"
+		
+
+const MaterialColor			= 	case constr: construction_color
+								case brick: brick_color
+								case trav: travertine_color
+								case marble: marble_color							
+								else: wall
+#-------Time Periods
+
+@Group ("Time Period",8) @Order(0) @Range(-800,300)
+attr start_date	= 0
+@Group ("Time Period",8) @Order(0) @Range(-800,300)
+attr end_date	= 0
+@Group ("Time Period",8) @Order(1) @Range(-800,300)
+attr construction_start	= 0
+@Group ("Time Period",8) @Order(2) @Range(-800,300)
+attr construction_end	= 0
+@Group ("Time Period",8) @Order(3) @Range(-800,300)
+attr brick_start		= 0
+@Group ("Time Period",8) @Order(4) @Range(-800,300)
+attr brick_end			= 0
+@Group ("Time Period",8) @Order(5) @Range(-800,300)
+attr travertine_start	= 0
+@Group ("Time Period",8) @Order(6) @Range(-800,300)
+attr travertine_end		= 0
+@Group ("Time Period",8) @Order(7) @Range(-800,300)
+attr marble_start       = 0
+@Group ("Time Period",8) @Order(8) @Range(-800,300)
+attr marble_end			= 0
+
+
+#-------Colors
+
+@Group("Colors",9)
+attr base					= case noMaterials || materials && noModel: "#CDC6AD" else: MaterialColor
+@Group("Colors",9)@Range( "#EEEEEE", "#F5F5F5","#FFFFFF","#E0E0D1","#AAAAA0")
+attr wall					= case noMaterials  || materials && noModel: 20% : "#EEEEEE" 20% : "#F5F5F5" 20% : "#FFFFFF" 20% : "#E0E0D1" else : "#AAAAA0" else: MaterialColor
+@Group("Colors",9)
+attr wood					= case noMaterials  || materials && noModel: "#40331B" else: MaterialColor
+@Group("Colors",9)@Range( "#EEEEEE", "#F5F5F5","#FFFFFF","#E0E0D1","#AAAAA0")
+attr column					= case noMaterials  || materials && noModel: 20% : "#EEEEEE" 20% : "#F5F5F5" 20% : "#FFFFFF" 20% : "#E0E0D1" else : "#AAAAA0" else: MaterialColor
+@Group("Colors",9)
+attr architrave				= case noMaterials  || materials && noModel: "#E8DCC5" else: MaterialColor
+@Group("Colors",9)
+attr frieze					= case noMaterials  || materials && noModel: "#EBD8B5" else: MaterialColor
+@Group("Colors",9)
+attr metopes				= case noMaterials  || materials && noModel: "#DB8C6C" else: MaterialColor
+@Group("Colors",9)
+attr triglyph				= case noMaterials  || materials && noModel: "#576484" else: MaterialColor
+@Group("Colors",9)
+attr cornice				= case noMaterials  || materials && noModel: "#C9C0AD" else: MaterialColor
+@Group("Colors",9)@Range("#A8763D", "#ff6600",  "#9E4F0E", "#B56A00", "#A3650D", "#AB6118")
+attr roof					= case noMaterials  || materials && noModel: 15% : "#A8763D" 15% : "#9E4F0E" 15% : "#B56A00" 15% : "#A3650D" else : "#AB6118" else: MaterialColor
+
+const construction_color	= "#F7EB9E" 
+const brick_color			= "#705C46" 
+const travertine_color		= "#E2E8D1" 
+const marble_color			= "#F79E9E"
+
+#-------Start
+
+Lot -->
+case !noModel:
+	t(0,elevation,0)
+	Lot.
+else: NIL

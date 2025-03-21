@@ -1,0 +1,445 @@
+/**
+ * File:    Domus.cga
+ * Created: 27 Oct 2011 23:12:30 GMT
+ * Author:  Marie
+ */
+
+version "2010.3"
+
+import tex : "_TexturesAssets.cga"	
+import rf:   "_Roof.cga" 			(antefix = false)
+import col:  "_Colonnade.cga"		
+
+///////REFERENCED ATTRIBUTES
+@Range("HIGH","MED","LOW","MIN")
+attr LOD				= "LOW"
+const highLOD 			= LOD == "HIGH"
+const medLOD			= LOD == "MED"
+const lowLOD			= LOD == "LOW"
+const minLOD			= LOD == "MIN"
+
+attr column_diameter	=.5
+
+@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+attr order_				= "TUSCAN"
+const tuscan			= order_ == "TUSCAN"
+const doric				= order_ == "DORIC"
+const ionic				= order_ == "IONIC"
+const corinthian		= order_ == "CORINTHIAN"
+
+@Range("ROMAN DOMUS","ROMAN SHOPS","HELLENISTIC HOUSES")
+attr houseType				= "ROMAN DOMUS"
+const domus				= houseType == "ROMAN DOMUS"
+const shops				= houseType == "ROMAN SHOPS"
+const greek				= houseType == "HELLENISTIC HOUSES"
+
+@Range ("MIXED","NONE", "FRONT PORCH")
+attr porch				= case minLOD: "NONE" else: "MIXED"
+const frontPorch		= porch == "FRONT PORCH"
+const noPorch			= porch == "NONE"
+const mixed				= porch == "MIXED"
+
+//attr elevation = 0
+
+attr district_density = 10
+attr minHeight	= 2.8
+attr minWidth	= 7
+attr lotOffset  = 3
+attr lot_split	= case minLOD: false else: true
+attr backyard 	= false
+attr num_of_floors = 2
+attr porchDepth = rand(2,3)
+attr plinthH  = 0
+attr domusSteps = 50%: 1 25%: 2 else: 3
+@Range(true,false)
+attr redWall_on	= true
+attr extendBelow = 0
+
+
+///////CONSTANTS
+const gray			= "#949494"
+const darkGray		= "#646464"
+
+const maxWidthFactor  = 3
+const column_diameterFactor =  	case tuscan: .143
+								case doric: .182
+								case ionic:	.111
+								case corinthian: .1
+								else: 0 
+const columnSpacingFactor = 	case doric:  2.5
+								else: 4
+const upperWallProjection = rand(.5,1)
+const doorMinWidth	= .8
+const shopDoorWidth	= 1.5
+const shopCounterHeight	= 1
+const shopCounterDepth	= 1
+const doorMinHeight	= 2
+const roofMinArea = 15
+const stepHeight = 0.23
+const stepDepth = .32
+
+attr baseHeight = domusSteps*stepHeight
+
+const floorThickness = .3
+const columnSpacing = 1.5
+const roofBrickW = columnSpacing *0.25
+const roofBrickH = columnSpacing *0.35
+const wallpaintHeight = rand(1.2,1.8)
+const tile = 10
+const roofThickness = 0.3
+const roof_angle = 8
+const overhang = .2
+const plankWidth = 0.12
+const plankHeight = 0.18
+const floorScale = num_of_floors*1.1
+///////COLORS(Referenced only -- controlled through StreetsBlocks.cga)
+attr redwall				= "#881111"
+attr base					= "#CDC6AD"
+attr wall					= "#EEEEEE"
+attr floor					= "#A68F74"
+attr column					= "#EEEEEE" 
+attr metopes				= "#DB8C6C"
+attr triglyph				= "#576484"
+attr architrave				= "#E8DCC5"
+attr cornice				= "#C9C0AD"
+attr frieze					= "#EBD8B5"
+attr roof					= "#A8763D" 
+attr wood					= "#40331B"
+attr ground					= "#ADB38F"
+
+////////////MASS//////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+
+
+@StartRule
+Lot -->
+ Lot2(rand(0,10))
+ 
+ LotInner -->
+	Lot
+			
+
+Lot2(n) -->
+	case n > district_density:  NIL
+	else:  Lot2
+
+Lot2-->
+	case minLOD: offset(-lotOffset, inside) 
+		alignScopeToAxes(y)
+		LotAligned(scope.sy)
+	else:
+		alignScopeToAxes(y)
+		LotAligned(scope.sy)
+
+LotAligned(yDim) -->
+	case yDim > minHeight && yDim < minHeight*2:
+		split(z){~1:LotAligned2(scope.sy)|~1:LotAligned2(scope.sy)}
+	case yDim > minHeight*2 && yDim <minHeight*3:
+		split(z){~1:LotAligned2(scope.sy)|~1:LotAligned2(scope.sy)|~1:LotAligned2(scope.sy)}
+	case yDim > minHeight*3:
+		split(z){~1:LotAligned2(scope.sy)|~1:LotAligned2(scope.sy)|~1:LotAligned2(scope.sy)|~1:LotAligned2(scope.sy)}
+	else: LotAligned2(scope.sy)
+					
+		
+LotAligned2(yDim) -->
+	case yDim >0 && !minLOD && geometry.area > 30 && geometry.nVertices >3:
+		alignScopeToAxes(y)
+		extrude(world.y, 100)
+		split(y) {yDim : BaseVolume(yDim) | ~1 : NIL}
+	case minLOD && geometry.area > 30 && geometry.nVertices >3:
+	alignScopeToAxes(y)
+	extrude(world.y, 100)
+	color(gray)
+	split(y) {yDim : tex.Block("wall",tile) | minHeight*rand(1.1,floorScale) : comp(f){side:tex.Block("wall",tile)|top: MinRoof }}
+	//extrude(minHeight*rand(1.1,floorScale))
+	
+	//comp(f){side:tex.Block("wall",tile)|top: roofHip(roof_angle)tex.Block("roof",4,24)}
+	case yDim == 0 && geometry.area > 30: [extrude(world.y,-extendBelow)
+											comp(f){bottom:color(ground) tex.Block("ground",.5)
+													|side: color(base) tex.Block("wall", tile)}
+											]
+											Row
+	else: NIL
+
+MinRoof -->
+	50%: roofHip(roof_angle)tex.Block("roof",4,24)
+	else: roofGable(roof_angle)tex.Block("roof",4,24)
+
+
+BaseVolume(y) -->
+	color(wall)
+	comp(f) {side: tex.WholeBlock("wall",tile)
+			| top : setPivot (yzx,4) Ground  Row(y) 
+			|bottom: extrude(world.y,-extendBelow) tex.Block("wall",tile) }
+	
+
+	
+Ground -->
+
+	color(ground)
+	tex.GroundBlock("ground",2)
+
+
+Row(y) -->
+	case y > minHeight :
+	split(z){~1:Row|1: NIL}	
+	else: Row
+
+Row -->
+	case scope.sx <2: NIL
+	case lot_split == true && scope.sx < minWidth*1.5 && scope.sx>=2 || lot_split == false : Footprint
+	case lot_split == true && scope.sx > minWidth*1.5:  split(x) {minWidth*rand(.3,maxWidthFactor): Row |~1:Row}
+	else: Footprint
+
+
+Footprint -->
+	case backyard == false:
+  	split(z){~1*rand(.8,.9): Mass |'rand(.01,.05): NIL}
+  	
+  	else:
+  	split(z){~.25: NIL |~1*rand(.8,.9): Mass  |'rand(.01,.05): NIL}
+  	
+Mass -->
+	case noPorch : Mass(0)
+	case frontPorch: Mass(1)
+	else: Mass(rint(rand(-.5,1.5))) 
+
+
+Mass(p) -->	
+	extrude(minHeight*rand(1.1,floorScale))
+	split(y){minHeight*rand(.9,1.1): LowerFloor(p)|{~minHeight*rand(.8,1.1): UpperFloor(p,split.total,split.index)}*}
+
+	
+///////LOWER FLOOR
+	
+LowerFloor(p) -->
+	case p == 1 :split(z){~1:Lower(p)|porchDepth:Porch(p)} 
+	else:Lower(p)
+
+Lower(p) -->
+	case shops:
+	comp(f){front: LowerFacade(p,"front") | back: tex.WholeBlock("wall",tile) | right:  tex.WholeBlock("wall",tile)| left:  tex.WholeBlock("wall",tile) |bottom:reverseNormals t(0,0,-baseHeight)color(floor) tex.WholeBlock("floor",.5)}
+	else:
+	comp(f){front: LowerFacade(p,"front") | back:  tex.WholeBlock("wall",tile)| right:  tex.WholeBlock("wall",tile)| left: tex.WholeBlock("wall",tile)}
+
+LowerFacade(p,q) -->
+	case scope.sx<minWidth/2: PaintedWall("textured")
+	else:
+	setupProjection(0,scope.xy,tile,tile)
+	projectUV(0)
+	texture(tex.wallTex)
+	LowerFacadeOpenings(p,q)
+	
+LowerFacadeOpenings(p,q) -->
+	case shops:
+	split(x) {~2:PaintedWall
+			 |shopDoorWidth*rand(1,1.8): split(y){baseHeight:/* t(0,0,-domusSteps*stepDepth)*/Steps(domusSteps,p,q)
+											|doorMinHeight*rand(.9,1.1): Door(p,q)
+											|~1: Wall}
+			 |~2:PaintedWall}*
+	else:
+	split(x) {~2:PaintedWall 
+			 |doorMinWidth*rand(1,1.8): split(y){baseHeight: t(0,0,-domusSteps*stepDepth)Steps(domusSteps,p,q)
+											|doorMinHeight*rand(.9,1.1): DoorFrame(p,q) Door(p,q)
+											|~1: Wall.}
+			 |~2:PaintedWall}
+			 
+Wall --> Wall.
+		s('1,'1,domusSteps*stepDepth)
+		t(0,0,-domusSteps*stepDepth)
+		i("builtin:cube")
+		tex.Block("wall",tile) 
+		//reverseNormals 
+		tex.Block("wall",tile)
+
+PaintedWall -->
+case redWall_on ==true:
+	split(y){ wallpaintHeight : color(redwall)Wall|~1:Wall}
+else: Wall
+	
+PaintedWall(n) -->
+	setupProjection(0,scope.xy,tile,tile)
+	projectUV(0)
+	texture(tex.wallTex)
+	split(y){ wallpaintHeight : color(redwall)Wall.|~1:Wall.}
+		
+
+Steps(n,p,q) -->
+	case n>0 && p == 1 && q != "front" || n>0 && p == 0: 
+	split(y)	{stepHeight: Step(n) 
+	 			| ~1: Steps(n-1,p,q)}
+	else: NIL
+	
+Step(idx) -->
+	set(trim.vertical,false)
+	color(base)
+	s('1,'1,scope.sz+idx*stepDepth)
+	i("builtin:cube")
+	tex.Block("wall", tile)
+	
+Door(p,q) -->
+	case shops:// && q == "front":
+	s('.8,shopCounterHeight,shopCounterDepth)
+	i("builtin:cube")
+	t(0,0,-domusSteps*stepDepth-shopCounterDepth)
+	color(wood)
+	tex.WholeBlock("wood")
+	else:
+	t(0,0,-domusSteps*stepDepth)
+	color(wood)
+	tex.WholeBlock("wood")
+	
+DoorFrame(p,q) -->
+	case p == 1 && q == "front" && !shops:
+	s('1,scope.sy+domusSteps*stepHeight,domusSteps*stepDepth)
+	i("builtin:cube")
+	t(0,-domusSteps*stepHeight,-domusSteps*stepDepth)
+	comp(f){left:reverseNormals PaintedWall("texture")| right:reverseNormals PaintedWall("texture") |bottom:reverseNormals t(0,0,-baseHeight)color(floor) tex.WholeBlock("floor",.5)}
+	else:
+	s('1,scope.sy+domusSteps*stepHeight,domusSteps*stepDepth)
+	i("builtin:cube")
+	t(0,-domusSteps*stepHeight,-domusSteps*stepDepth)
+	comp(f){left:reverseNormals PaintedWall("texture")| right:reverseNormals PaintedWall("texture") |top:reverseNormals tex.WholeBlock("wall",tile)}
+	
+	
+///////PORCH
+Porch(p) -->
+split(y){baseHeight:Base|~1:comp(f){front:ColumnWall(scope.sy)|top:reverseNormals tex.WholeBlock("wall",tile)}}
+
+Base -->
+color(base)
+comp(f){side:tex.Block("wall",tile)
+		|top:color(floor)tex.WholeBlock("floor",.5)}
+
+///////UPPER FLOOR
+
+
+UpperFloor(p,z,q)-->
+	case p == 1 && scope.sy >= minHeight*.6:
+		split(y){floorThickness*rand(.8,1):color(wood)comp(f){side:tex.WholeBlock("wood")}
+			|~1:comp(f){side:UpperWalls(p)|top: Roof(z,q)}}
+	case p != 1 && scope.sy >= minHeight*.6:
+		s('1,'1,scope.sz+upperWallProjection*rand(.9,1.2))
+		split(y){floorThickness*rand(.8,1):color(wood)comp(f){side:tex.WholeBlock("wood")}
+			|~1:comp(f){side:UpperWalls(p)|top: Roof(z,q)}}
+	case  p == 2 && scope.sy >= minHeight*.6:
+		s('1,'1,scope.sz+upperWallProjection*rand(.9,1.2))
+		comp(f){side:UpperWalls(p)|top: Roof(z,q)}
+	else: 
+	comp(f){side:UpperWalls(p)|top: Roof(z,q)}
+	
+UpperWalls(p) -->
+	case scope.sx>=2 && scope.sy >= minHeight*.6:
+		setupProjection(0,scope.xy,tile,tile)
+		projectUV(0)
+		texture(tex.wallTex)
+		split (x){ ~1.5 : Wall. 
+					|~1: split(y){~1:Wall.|~1:WindowFrame|~1:Wall.}
+					| ~1.5 : Wall. }*
+		else:
+		setupProjection(0,scope.xy,tile,tile)
+		projectUV(0)
+		texture(tex.wallTex)
+		 Wall.
+
+WindowFrame -->
+	color(wood)
+	tex.WholeBlock("wood")
+	
+
+///////ROOF
+Roof(z,q) -->
+case q == z-1:
+color(roof) RoofSplit(scope.sx,scope.sy)
+else: NIL
+
+RoofSplit(x,y) -->
+case x>y:
+split(x){~.3*rand(.9,1.1):MiddleRoof |~1: MiddleRoofSplit|~.3*rand(.9,1.1): FrontRoof}
+else:
+split(y){~.3*rand(.9,1.1):FrontRoof |~1: MiddleRoofSplit|~.3*rand(.9,1.1): MiddleRoof}
+
+FrontRoof -->
+	case geometry.area > roofMinArea:
+	color(roof)
+	s('1,'1,scope.sz+upperWallProjection+overhang)
+	roofShed (roof_angle*rand(.9,1.1))
+	comp (f) {top:s(scope.sx+overhang*2,'1,'1)center(x) rf.Roof(roofBrickW,roofBrickH)| side: color(wall) tex.WholeBlock("wall",tile)}
+	else: FlatRoof
+
+MiddleRoofSplit --> 
+	case scope.sy > minWidth*1.8: split(y){~1:MiddleRoof|~1:MiddleRoof2}
+	else:MiddleRoof
+	
+MiddleRoof -->
+	case scope.sx>=minWidth && scope.sy>=minWidth && geometry.area > roofMinArea: 
+	Atrium
+	case scope.sx <minWidth && geometry.area > roofMinArea || scope.sy < minWidth && geometry.area > roofMinArea:
+	color(roof)
+	roofShed (roof_angle*rand(.9,1.1),2)
+	comp (f) {top: s(scope.sx+overhang*2,scope.sy+overhang*2, '1)center(xy)rf.Roof(roofBrickW,roofBrickH)  | side:color(wall)tex.WholeBlock("wall",tile)}
+	else: FlatRoof
+	
+MiddleRoof2 -->
+	case scope.sx>=minWidth && scope.sy>=minWidth && geometry.area > roofMinArea: 
+	Atrium2
+	case scope.sx <minWidth && geometry.area > roofMinArea || scope.sy < minWidth && geometry.area > roofMinArea:
+	color(roof)
+	roofShed (roof_angle*rand(.9,1.1),2)
+	comp (f) {top: s(scope.sx+overhang*2,scope.sy+overhang*2, '1)center(xy)rf.Roof(roofBrickW,roofBrickH)  | side:color(wall)tex.WholeBlock("wall",tile)}
+	else: FlatRoof
+	
+	
+BackRoof -->
+	case geometry.area > roofMinArea:
+	color(roof)
+	roofGable (roof_angle*rand(.9,1.1), .8)
+	set(trim.horizontal,true)
+	comp (f) {top: rf.Roof(roofBrickW,roofBrickH) | side: Wall.}
+	comp(e){ ridge:Beam}
+	else: FlatRoof
+	
+FlatRoof -->
+	color(roof)
+	rf.Roof(roofBrickW,roofBrickH)
+	
+Atrium -->
+	color(roof)
+	offset ((-((scope.sx+scope.sy)/2)/4))  
+	comp(f){border:OuterRoof |inside: AtriumRoof}
+	
+Atrium2 -->
+	color(roof)
+	//offset ((-((scope.sx+scope.sy)/2)/4)) 
+	offset ((-((scope.sx+scope.sy)/2)/4),border)
+				reverseNormals
+				roofShed (25)
+				comp(f) {top: rf.Roof(roofBrickW,roofBrickH) }
+//	comp(f){border:OuterRoof |inside: NIL}
+	
+OuterRoof -->
+	roofShed (20)
+	comp(f) {top: rf.Roof(roofBrickW,roofBrickH)}	
+	
+AtriumRoof -->
+	extrude(2)
+	comp(f){top:offset ((-((scope.sx+scope.sy)/2)/4),border)
+				reverseNormals
+				roofShed (25)
+				comp(f) {top: rf.Roof(roofBrickW,roofBrickH)}
+			|side: color(wall)tex.WholeBlock("wall")}
+	
+Beam -->
+	i ("builtin:cube")
+	s('1.05,plankWidth*1.5,plankHeight*1.5)
+	center (xy)
+	t(0,0,-roofThickness-plankHeight)
+	color (wood)
+	tex.Block("wood",2)
+
+
+////////////COLUMNS//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+ColumnWall(y) -->
+	col.FirstLastFlush(y,y*column_diameterFactor)

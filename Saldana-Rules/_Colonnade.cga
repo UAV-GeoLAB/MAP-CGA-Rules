@@ -1,0 +1,672 @@
+/**
+ * File:    Colonnade.cga
+ * Created: 19 Sep 2014 16:56:36 GMT
+ * Author:  Marie Saldana
+ */
+
+version "2017.0"
+
+@Hidden 
+import tex : "_TexturesAssets.cga" 
+
+#-------General
+
+@Group("General",0)@Range("HIGH","MED","LOW")
+attr LOD						= "LOW"
+	const highLOD 					= LOD == "HIGH"
+	const medLOD					= LOD == "MED"
+	const lowLOD					= LOD == "LOW"
+	
+@Group("General",0)@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+attr order_						= "DORIC"
+	const tuscan					= order_ == "TUSCAN"
+	const doric						= order_ == "DORIC"
+	const ionic						= order_ == "IONIC"
+	const corinthian				= order_ == "CORINTHIAN"
+	
+@Group("General",0)@Range("COLONNADE","ARCADE")
+attr colonnade_type				= 	"COLONNADE"							
+	const columns					= colonnade_type == "COLONNADE"
+	const arches					= colonnade_type == "ARCADE"
+	
+@Group("General",0)
+attr plinth_height 					= 	case arches: arch_width/2 else: 0
+
+@Group("General",0)@Range("NONE","PERIPTERAL","DIPTERAL","CLOSED_ALAE","T-SHAPE","THOLOS")
+attr peristyle_type			=	case tuscan: "NONE"
+								else: "PERIPTERAL"
+	const noPeristyle			= peristyle_type == "NONE"                                                                                                                                                                                                                                                                                                                     
+	const peripteral 			= peristyle_type == "PERIPTERAL"
+	const dipteral				= peristyle_type == "DIPTERAL"
+	const closedAlae			= peristyle_type == "CLOSED_ALAE"
+	const Tshape				= peristyle_type == "T-SHAPE"
+	const tholos				= peristyle_type == "THOLOS"
+	
+const tile						= 	columnHeight
+const colonnadeHeight			= 	case columns: 	columnHeight+entablatureH
+									else:			archH+entablatureH
+
+#-------Arcade
+
+@Group("Arcade",1) @Range("Front Side", "Both Sides", "Off")
+attr show_orders 					= "Front Side"
+	const singleSide				= show_orders == "Front Side"
+	const bothSides					= show_orders == "Both Sides"
+	const ordersOff					= show_orders == "Off"
+	
+@Group("Arcade",1) 
+attr arch_width					= 	3
+
+@Group("Arcade",1) 
+attr wallThickness				= 	.33
+
+const archColumnDiameter 		= 	arch_width/10
+const archColumnBaseW 			= 	case arches && !ordersOff: archColumnDiameter*1.25 else: 0
+const orderW 					= 	10*p
+const baseDiff 					= 	plinth_height-arch_width/2
+const m 						= 	(1.5*arch_width)/4
+const p 						= 	(7*m)/75
+const passageW					= 	m*2.06
+const archH						= 	1.5*arch_width
+
+#------COLUMNS
+
+@Group("Colonnade",2)
+attr column_diameter 			= 	0.6
+
+@Group("Colonnade",2)
+attr column_spacing				= 	case tuscan: 	column_diameter*4
+									case doric: 	column_diameter*2.5
+									case ionic: 	column_diameter*5.5	
+									else: 			column_diameter*9
+
+const columnHeight				= 	case tuscan: 	column_diameter*7+plinth_height
+									case doric: 	column_diameter*5.5+plinth_height
+									case ionic: 	column_diameter*9+plinth_height
+									else: 			column_diameter*10+plinth_height
+
+const columnOffset 				= 	case columns: 	(baseW*column_diameter-column_diameter)/2
+									else: 			0
+#(as factor of column diameter)
+const baseH						= 	case !doric: 	0.5
+									else:			0
+const baseW						= 	case tuscan:	1.41
+									case ionic:		1.375
+									case corinthian:1.3
+									else:			1
+const capitalH					= 	case tuscan:	0.5
+									case doric:		0.45
+									case ionic:		0.585
+									else:			1.1
+const capitalW					= 	case tuscan:	1.3
+									case doric:		1.1
+									case ionic:		1.4
+									else:			1.3
+const cornerCapitalW	 		= 	1.47 
+const cornerCapitalL			= 	1.46
+const echinusPartsHeight 		= 	1	        			
+const abacusPartsHeight 		= 	1.15
+const abacusOver				= 	capitalH*.34 
+									
+
+#------ENTABLATURE (all attributes in this section are factors of column diameter)
+
+const entablatureH				= 	case tuscan:	2
+									case doric: 	1.7402
+									else:			architraveH+friezeH+friezeCymaH+dentilH+dentilCymaH+corniceH
+
+#Architrave
+
+const architraveH 				= 	case tuscan: 	0.9902
+									case doric:		0.7309
+									else:			0.75 
+const architraveStepDepth		= 	0.0375 
+const lowerFasciaH				= 	0.1607 
+const middleFasciaH				= 	0.2143 
+const upperFasciaH				= 	0.2678 
+const architraveCymaH			= 	0.1071 
+
+#Frieze
+const friezeH					= 	case tuscan: 	1
+									case doric:		0.9348
+									else:			0.5625
+const friezeCymaH				= 	0.0803
+
+#Triglyph
+
+const triglyphW					= 	0.44
+const triglyphD					= 	triglyphW/9
+
+#Dentil
+
+const dentilH					= 	0.2143
+const dentilD					= 	dentilH/2
+const dentilW					= 	0.1071
+const dentilSpacing				= 	0.0714
+const dentilCymaH				= 	0.0357
+					
+#Cornice
+
+const corniceH					= 	case tuscan: 1
+									case doric: 0.3238
+									case corinthian: .75
+									else:0.2143 
+											
+#Taenia
+
+const taeniaH					= 	architraveH *0.1   
+const taeniaD					= 	.033
+
+#Geison	
+								
+const geisonProjection 			= 	case corinthian:0
+									else: 0.5 
+
+
+///////SETUP  (should be done in importing rule)
+
+Lot -->
+case columns:
+	extrude(colonnadeHeight)
+	split(y){columnHeight:comp(f){front:FirstFlushNoLast(column_spacing)|back:FirstFlushNoLast(column_spacing)|side:FirstFlushNoLast(column_spacing)}
+			|entablatureH:comp(f){side:Entablature(column_spacing,column_diameter)}
+			}
+else:
+	extrude(colonnadeHeight)
+	split(y){~1: comp(f){front: Arcade |back: Arcade |left: Arcade|right: Arcade}
+			|entablatureH: comp(f){side:Entablature(column_spacing,column_diameter)}
+			}
+			
+///////START 
+
+///////COLONNADE
+
+FirstFlushNoLast(n) --> #first column flush, no last column)
+	split(x){~n:t(column_diameter/2+columnOffset,0,0)ColumnTile(split.index,column_diameter,split.total)
+			|{~n:ColumnTile(split.index,column_diameter,split.total)}*}
+			
+FirstFlushNoLast(d,n) --> #first column flush, no last column)-- with column diameter specified
+	split(x){~n:t(d/2+ +columnOffset,0,0)ColumnTile(split.index,d,split.total)
+			|{~n:ColumnTile(split.index,d,split.total)}*}
+	
+NoFirstLastFlush(n) --> #no first column, last column flush 
+	split(x){~n: NIL
+		|{~n:ColumnTile(split.index,column_diameter,split.total)}*
+		|.01:t(-column_diameter/2-columnOffset,0,0)ColumnTile(split.index,column_diameter,split.total)}
+	
+FirstLastFlush(n) --> #first and last columns flush 
+	split(x){~n:t(column_diameter/2+columnOffset,0,0)ColumnTile(split.index,column_diameter,split.total)
+			|{~n:ColumnTile(split.index,column_diameter,split.total)}*
+			|.01:t(-column_diameter/2-columnOffset,0,0)ColumnTile(split.index,column_diameter,split.total)}
+			
+FirstLastFlush(n,c) --> #first and last columns flush 
+	split(x){~n:t(column_diameter/2+columnOffset,0,0)ColumnTile(split.index,c,split.total)
+			|{~n:ColumnTile(split.index,c,split.total)}*
+			|.01:t(-column_diameter/2-columnOffset,0,0)ColumnTile(split.index,c,split.total)}
+			
+FirstLastFlushFront(n,i) --> #first and last columns flush, with factor for center opening
+	split(x){n:t(column_diameter/2,0,0)ColumnTile(split.index,column_diameter,split.total)
+			|{~n:ColumnTile(split.index,column_diameter,split.total)}*
+			|~n*i: ColumnTile(split.index,column_diameter,split.total)
+			|{~n: 	ColumnTile(split.index,column_diameter,split.total)}*
+			|n:	ColumnTile(split.index,column_diameter,split.total)
+			|.01:t(-column_diameter/2,0,0)ColumnTile(split.index,column_diameter,split.total)}
+			
+FirstLastFlushFrontDistyle --> #first and last columns flush, with factor for center opening
+	split(x){~1:t(column_diameter/2,0,0)ColumnTile(split.index,column_diameter,split.total)
+			//|~1: NIL
+			|.01:t(-column_diameter/2,0,0)ColumnTile(split.index,column_diameter,split.total)}
+	
+NoFirstLastOnBreak(n) --> #no first column, last column on break 
+	split(x){~n: NIL
+			|{~n:ColumnTile(split.index,column_diameter,split.total)}*
+			|.01:ColumnTile(split.index,column_diameter,split.total)}
+			
+NoFirstLastOnCorner(n) --> #no first column, last column on break 
+	split(x){~n: NIL
+			|{~n:ColumnTile(split.index,column_diameter,split.total)}*
+			|.01:t(column_diameter/2,0,0)ColumnTile(split.index,column_diameter,split.total)}
+			
+FirstOnBreakNoLast(n) --> #first column on break, no last colum
+	split(x){~n: t(column_diameter/2+columnOffset,0,0)ColumnTile(split.index,column_diameter,split.total)
+			|{~n:ColumnTile(split.index,column_diameter,split.total)}*
+			}
+
+FirstFlushLastOnBreak(n) --> #first column flush, last column on break 
+	split(x){~n: t(column_diameter/2+columnOffset,0,0)ColumnTile(split.index,column_diameter,split.total)
+			|{~n:ColumnTile(split.index,column_diameter,split.total)}*
+			|.01:ColumnTile(split.index,column_diameter,split.total)}
+			
+FirstOnBreakLastFlush(n) --> #first column flush, last column on break 
+	split(x){~n: ColumnTile(split.index,column_diameter,split.total)
+			|{~n:ColumnTile(split.index,column_diameter,split.total)}*
+			|.01:t(-column_diameter/2-columnOffset,0,0)ColumnTile(split.index,column_diameter,split.total)}
+			
+FirstLastOnBreak(n) -->
+	split(x){~n:	ColumnTile(split.index,column_diameter,split.total)
+			|{~n:	ColumnTile(split.index,column_diameter,split.total)}*
+			|.01:	ColumnTile(split.index,column_diameter,split.total)}
+			
+NoFirstNoLast(n) --> #no first or last column  
+	split(x){~n: NIL
+		|{~n:ColumnTile(split.index,column_diameter,split.total)}*}
+
+LastOnBreakOnly(n) --> 
+		split(x){~1: NIL
+			|.01:ColumnTile(split.index,column_diameter,split.total)}
+		
+FrontColonnade(n,i) -->
+	split(x){n:	NIL
+			|{~n:	ColumnTile(split.index,column_diameter,split.total)}*
+			|~n*i: ColumnTile(split.index,column_diameter,split.total)
+			|{~n: 	ColumnTile(split.index,column_diameter,split.total)}*
+			|n:	ColumnTile(split.index,column_diameter,split.total)
+			|.01: 	NIL}
+			
+InnerFrontColonnade(n,i) --> #no first or last column  
+	split(x){~n*2: NIL
+			|{~n*.99:	ColumnTile(split.index,column_diameter,split.total)}*
+			|~n*i: ColumnTile(split.index,column_diameter,split.total)
+			|{~n: 	ColumnTile(split.index,column_diameter,split.total)}*
+			|n:	NIL
+			|.01: 	NIL}
+			
+AntisColonnade(n,i,a) -->
+case a == 1: #front side
+	split(x){n:	NIL
+			|{~n:	NIL}*
+			|~n*i: ColumnTile(split.index,column_diameter,split.total)
+			|~n: ColumnTile(split.index,column_diameter,split.total)
+			|{~n: 	NIL}*
+			|.01: 	NIL}
+else: #back side
+	t (0,0,column_diameter+columnOffset)
+		split(x){n:	NIL
+			|{~n:	NIL}*
+			|~n*i: ColumnTile(split.index,column_diameter,split.total)
+			|~n: ColumnTile(split.index,column_diameter,split.total)
+			|{~n: 	NIL}*
+			|.01: 	NIL}
+
+Propylon(n,i) -->
+	FrontColonnade(n,i)
+	split(x){~n:t(column_diameter/2+columnOffset,0,0)ColumnTile(split.index,column_diameter,split.total)
+			|~1:NIL
+			|.01:t(-column_diameter/2-columnOffset,0,0)ColumnTile(split.index,column_diameter,split.total)}
+
+///////COLUMNS
+ 
+ColumnTile(k,d,i) -->
+		t(-d/2,0,-d-columnOffset)
+		set(trim.vertical,false)
+		s(d,'1,d)
+		i("builtin:cube")
+		Column(scope.sx,k,i)
+		
+
+Column(d,k,i) -->	
+	case tuscan && columns :
+		split(y){plinth_height:Plinth(d)
+				|d*baseH: Base(d)
+					|~1: i(tex.smoothShaftAsset) tex.WholeBlock("tallBlock")
+				|d*capitalH: Capital(d,k,i)}		
+	case tuscan && arches :
+		split(y){plinth_height:Plinth(d)
+				|archColumnDiameter*baseH: Base(d)
+					|~1: i(tex.smoothShaftAsset) tex.WholeBlock("tallBlock")
+				|d*capitalH: Capital(d,k,i)}		
+	case doric  :
+		split(y){plinth_height: Plinth(d)
+				|~1: i(tex.flutedShaftAsset)tex.WholeBlock("tallBlock")
+				|d*capitalH: Capital(d,k,i)}
+	case ionic: 
+		split(y){plinth_height:Plinth(d)
+				|d*baseH: Base(d)
+				|~1: s('1,scope.sy+d*capitalH*.34,'1) i(tex.flutedShaftAsset) tex.WholeBlock("tallBlock")
+				|d*capitalH: Capital(d,k,i)}		
+	else  :
+		split(y){plinth_height:Plinth(d)
+				|d*baseH: Base(d)
+				|~1: i(tex.flutedShaftAsset)tex.WholeBlock("tallBlock")
+				|d*capitalH: Capital(d,k,i)}
+				
+Plinth(d)-->
+	case doric:
+		center(xz)	
+		tex.Block("tallBlock")
+	else:
+		s(d*baseW,'1,d*baseW) 
+		center(xz)	
+		tex.Block("tallBlock")
+
+Base(d) -->
+	case tuscan || corinthian:
+		s(d*baseW,'1,d*baseW)
+		center(xz)
+		i(tex.baseAsset)
+		tex.WholeBlock("block")	
+	else:
+		s(d*baseW,'1,d*baseW) 
+		center(xz)	
+		split(y) {	d*baseH - d/3: i("builtin:cube") tex.WholeBlock("block")
+				| ~1: i(tex.baseAsset)tex.WholeBlock("block")}
+				
+Capital(d,k,i) -->
+	case tuscan:
+		i(tex.capitalAsset)
+		tex.WholeBlock("block")
+	case doric:
+		s(d*capitalW,'1,d*capitalW) center(xz) 
+		split(y){ ~echinusPartsHeight: i(tex.echinusAsset) tex.WholeBlock("block")
+				| ~abacusPartsHeight : i(tex.abacusAsset) tex.Block("block") }
+	case ionic && k == 0 && !tholos:
+		s(d*cornerCapitalW,d*capitalH,d*cornerCapitalL) center(xz)
+		i(tex.ionicCapitalCorner)
+		mirror(true,false,false)
+		tex.WholeBlock("block") 
+	case ionic && k == i-1 && !tholos:
+		s(d*cornerCapitalW,d*capitalH,d*cornerCapitalL) center(xz)
+		i(tex.ionicCapitalCorner)
+		//mirror(true,false,false)
+		tex.WholeBlock("block") 
+	else:
+		s(d*capitalW,d*capitalH,d) 
+		center(xz)
+		i(tex.capitalAsset)
+		tex.WholeBlock("block")
+							
+
+////////ARCADE
+
+ArcadeStart -->
+case scope.sx>arch_width: 
+	extrude(-wallThickness)
+	t(0,-archColumnBaseW/2,0)
+	split(x){orderW: alignScopeToGeometry(yUp,4,world.lowest)Order
+			|~1:split(x){~passageW:alignScopeToGeometry(yUp,4,world.lowest)Passage
+						|~orderW: alignScopeToGeometry(yUp,4,world.lowest)Order}*}
+else: 
+	extrude(-wallThickness)
+	Wall
+
+Arcade -->
+case scope.sx>arch_width: 
+	extrude(-wallThickness)
+	t(0,-archColumnBaseW/2,0)
+	split(x){~1:split(x){~passageW:alignScopeToGeometry(yUp,4,world.lowest)Passage
+						|~orderW:  alignScopeToGeometry(yUp,4,world.lowest)Order}*}
+else: 
+	extrude(-wallThickness)
+	Wall	
+	
+LinearArcade -->
+case scope.sx>arch_width: 
+	extrude(-wallThickness)
+	s('1.1,'1,'1)
+	center(x)
+	t(0,-archColumnBaseW/2,0)
+	trim()
+	split(x){orderW: alignScopeToGeometry(yUp,3,world.lowest)Order
+				|~1:split(x){~passageW:alignScopeToGeometry(yUp,3,world.lowest)Passage
+							|~orderW:  alignScopeToGeometry(yUp,3,world.lowest)Order}*}
+else:
+	extrude(-wallThickness)
+	s('1.1,'1,'1)
+	center(x)
+	trim()
+	Wall
+	
+LinearArcadeEnd -->
+case scope.sx>arch_width: 
+	extrude(-wallThickness)
+	s('1.1,'1,'1)
+	center(x)
+	t(0,-archColumnBaseW/2,0)
+	trim()
+	split(x){orderW: alignScopeToGeometry(yUp,4,world.lowest)Order
+				|~1:split(x){~passageW:alignScopeToGeometry(yUp,4,world.lowest)Passage
+							|~orderW:  alignScopeToGeometry(yUp,4,world.lowest)Order}*}
+else:
+	extrude(-wallThickness)
+	s('1.1,'1,'1)
+	center(x)
+	trim()
+	Wall
+
+OffsetArcade -->	
+case scope.sx>arch_width: 
+	set(trim.vertical,false)
+	s(scope.sx+archColumnBaseW,'1,wallThickness)
+	center(x)
+	t(0,0,-wallThickness-archColumnBaseW/2)
+	i("builin:cube")
+	split(x){orderW: alignScopeToGeometry(yUp,1,world.lowest)Order
+				|~1:split(x){~passageW:alignScopeToGeometry(yUp,1,world.lowest)Passage
+							|~orderW:  alignScopeToGeometry(yUp,1,world.lowest)Order}*}
+else:
+	set(trim.vertical,false)
+	s('1,'1,wallThickness)
+	t(0,0,-wallThickness)
+	i("builin:cube")						
+				
+
+Order -->
+	case bothSides&& scope.sx>=archColumnBaseW : //&& geometry.isRectangular(40):
+		set(trim.vertical,false)
+		i("builtin:cube")
+		comp(f){front:OrderFront| back: OrderBack |side: Wall}
+	case singleSide && scope.sx>=archColumnBaseW :// && geometry.isRectangular(40):
+		set(trim.vertical,false)
+		i("builtin:cube")
+		comp(f){front:OrderFront| back: Wall |side: Wall}
+	else: 	set(trim.vertical,false)i("builtin:cube")Wall
+
+OrderFront -->
+	alignScopeToAxes (y)
+	split(x) {~1:Wall|archColumnBaseW:Wall ColumnMass|~1:Wall}
+	print(archColumnBaseW)
+	
+OrderBack -->
+	split(x) {~1:Wall|archColumnBaseW:Wall ColumnMass|~1:Wall}	
+	
+ColumnMass -->
+	extrude(archColumnBaseW)
+	setPivot (yzx,3)
+	s(archColumnDiameter,'1,archColumnDiameter)
+	center(xz)
+	i("builtin:cube")
+	Column(scope.sx,1,1)
+						
+Passage -->
+	split(y) {~arch_width: NIL |scope.sx/2: Arch|arch_width/4: Wall}
+
+Arch -->
+	set(trim.vertical,false)
+	i (tex.arch)
+	tex.WholeBlock("wall")	
+	
+Wall -->
+
+	tex.Block("wall",tile)
+	
+////////ENTABLATURE
+
+Entablature(n,d) -->
+case tuscan:
+	t(0,0,-d*0.5)
+	split(y){d*architraveH: Architraves(n,d)
+			|~1: Frieze(n,d)
+			}
+			
+case doric:
+	//print(d*corniceH)
+	t(0,0,-d*0.5)
+	split(y){d*architraveH: Architraves(n,d)
+			|~1: Frieze(n,d)
+			|d*corniceH:Cornice(n,d)}		
+else:
+	t(0,0,-d*0.5)
+	split(y){d*architraveH: Architraves(n,d)
+			|~1: Frieze(n,d)
+			|d*dentilH: Dentils(d)
+			|d*dentilCymaH:Cyma(d)
+			|d*corniceH:Cornice(n,d)}
+			
+EntablatureFront(n,i,d) -->
+case tuscan:
+	t(0,0,-d*0.5)
+	split(y){d*architraveH: ArchitravesFront(n,i,d)
+			|~1: Frieze(n,d)
+			}
+case doric:
+	t(0,0,-d*0.5)
+	split(y){d*architraveH: ArchitravesFront(n,i,d)
+			|~1: Frieze(n,d)
+			|d*corniceH:Cornice(n,d)}	
+else:
+	t(0,0,-d*0.5)
+	split(y){d*architraveH: ArchitravesFront(n,i,d)
+			|d*friezeH+d*friezeCymaH: Frieze(n,d)
+			|d*dentilH: Dentils(d)
+			|d*dentilCymaH:Cyma(d)
+			|d*corniceH:Cornice(n,d)}
+				
+Architraves(n,d) -->
+	split(x){  ~n : t('-1,0,0) s('2,'1,'1) Architrave(d) 
+			| { ~ n : Architrave(d) }* 
+			| ~ n   : s('2,'1,'1) Architrave(d) }	
+
+		
+ArchitravesFront(n,i,d)-->	
+	split(x){n:	t('-1,0,0) s('2,'1,'1) Architrave(d)
+			|{~n:	Architrave(d)}*
+			|~n*i: Architrave(d)
+			|{~n: 	Architrave(d)}*
+			|n:s('2,'1,'1)	Architrave(d)}
+			
+Architrave(d) -->
+	case tuscan || doric:
+		t(0,0,-d*0.5)
+		split(y){ ~1		: s('1,'1,d) i(tex.architraveAsset) tex.Block("block") 
+				| d*taeniaH	: s('1,'1,d+d*taeniaD*1.5) i(tex.architraveAsset) tex.Block("block") }		
+	else:
+		t(0,0,-d*0.5)
+		split(y){d*lowerFasciaH: Fascia(split.index,d)
+				|d*middleFasciaH: Fascia(split.index,d)
+				|d*upperFasciaH: Fascia(split.index,d)
+				|d*architraveCymaH: Fascia(split.index,d)}
+				
+Fascia(n,d) -->
+	s('1,'1,n*d*architraveStepDepth+d)	 
+	i(tex.architraveAsset)
+	tex.Block("block")
+	
+Frieze(n,d) -->
+	case tuscan:
+		s(scope.sx+d,'1,d)  
+		center(xz)  
+		i(tex.friezeAsset)
+		tex.Block("wall", tile)
+	case doric:
+		[s(scope.sx+d,'1,'1) center(x) Metopes(d)]
+		t(0,0,d/2) Triglyphs(n,d)
+	else:
+		s(scope.sx+d+d*architraveStepDepth*3,'1,'1) 
+		center(x) 
+		s('1,'1,d+d*architraveStepDepth*3) 
+		center(z) 
+		i(tex.friezeAsset)
+		tex.Block("wall", tile)
+
+Metopes(d) -->
+	s('1,'1,d+ d*triglyphW /15) center(z)  
+	i(tex.friezeAsset) tex.Block("wall", tile)
+
+Triglyphs(n,d) --> 
+	t(0,0,-0.007) 
+	split(x){ d*triglyphW : s('1,'1,d*triglyphD) i("builtin:cube") TriglyphWithGuttae(d) 
+			| { ~ n : split(x){~1:NIL 
+								  	      | d*triglyphW : s('1,'1,d*triglyphD) i("builtin:cube") TriglyphWithGuttae(d)  
+								          | ~1:NIL 
+								          | d*triglyphW : s('1,'1,d*triglyphD) i("builtin:cube") TriglyphWithGuttae(d)  } }* }	
+
+
+TriglyphWithGuttae(d)  -->             									
+	case scope.sx < d*triglyphW*0.6:   										
+		case split.index == 0: s(d*triglyphW,'1,'1) t('-0.5,0,0) Triglyph Guttae(d)
+		else                 : t('1,0,0) s(d*triglyphW,'1,'1) t('-0.5,0,0) Triglyph Guttae(d) 
+	case scope.sx < d*triglyphW*0.99:  										
+		case split.index == 0: s(d*triglyphW,'1,'1) Triglyph Guttae(d)
+		else                 : t('1,0,0) s(d*triglyphW,'1,'1) t('-1,0,0) Triglyph Guttae(d)
+	else:
+		Triglyph Guttae(d)
+			
+Triglyph --> 
+	i(tex.triglyphAsset) tex.WholeBlock("block")
+
+Guttae(d) -->
+	case lowLOD: NIL
+	else: 
+	t(0,-2*d*taeniaH,-0.007) s('1,d*taeniaH,d*taeniaD) i(tex.guttaeAsset) tex.WholeBlock("block")
+		
+
+Dentils(d) --> 
+	s(scope.sx+d,'1,d) 
+	center(xz) 
+	i("builtin:cube")
+	comp(f){front: split(x)	{{d*dentilSpacing: tex.Block("block")
+							|~d*dentilW: Dentil(d)}*
+							|d*dentilSpacing: tex.Block("block")}
+			|back:tex.WholeBlock("wall",tile)}
+	
+Dentil(d) -->
+	case lowLOD:
+		tex.WholeBlock("block")
+	else:
+		s('1,'1,d*dentilD)
+		i("builtin:cube")
+		tex.WholeBlock("block")
+		
+Cornice(n,d) -->  
+	s(scope.sx+d+ n *0.25- d*triglyphW ,'1,'1) center(x)
+	Geisons(n,d)
+
+Geisons(n,d) --> 	
+	set(trim.vertical,false) 
+	split(x){   ~ n /4 : Mutule(n,d) t('-4,0,0) s('5,'1,'1) Geison(d)    					
+			| { ~ n   : split(x){ '0.25: Mutule(n,d) Geison(d)  }* }* 
+			|   ~ n   : split(x){ {'0.25: Mutule(n,d) Geison(d)  }* | '0.25: Mutule(n,d) s('5,'1,'1) Geison(d) } } 
+
+Geison(d)  -->
+case corinthian:
+	set(trim.vertical,true) 
+	t(0,0,d/2)
+	s('1,'1, d/2) 
+	i(tex.corniceAsset) 
+	tex.Block("block")
+else:	
+	set(trim.vertical,true) 
+	t(0,0,-d*geisonProjection) 
+	s('1,'1, d+d*geisonProjection ) 
+	i(tex.corniceAsset) 
+	tex.Block("block")
+
+
+Mutule(n,d) --> 
+	case lowLOD || !doric :
+		NIL
+	else:
+		set(trim.vertical,true) 
+		t(0,0,d/2+d*geisonProjection*0.2) 
+		s('d*triglyphW/( n /4),d*geisonProjection*0.25,d*geisonProjection*0.65) center(x)
+		r(scopeCenter,8,0,0)
+		i(tex.mutuleAsset) 
+		tex.WholeBlock("block")
+		
+Cyma(d) -->
+	s('1.1,'1,d+d*taeniaD*2)
+	center(x)
+	t(0,0,-d/2-d*taeniaD)
+	i("builtin:cube")
+	tex.Block("block")
+

@@ -1,0 +1,411 @@
+/**
+ * File:    Curia.cga
+ * Created: 12 May 2014 08:44:18 GMT
+ * Author:  Marie Saldana
+ */
+
+version "2013.1"
+import rf:   "_Roof.cga" 			
+import col:  "_Colonnade.cga"		
+import tex : "_TexturesAssets.cga"
+
+#-------Scene Settings	
+
+@Group("SceneSettings",0)
+attr elevation 	= 0
+
+@Group("SceneSettings",0) @Range(-800,300)
+attr YEAR		= 0
+
+@Group("SceneSettings",0) @Range("OFF","ON")
+attr Materials_View		= "OFF"
+	const materials			= Materials_View == "ON"
+	const noMaterials		= Materials_View == "OFF"
+
+@Group("SceneSettings",0)@Range("HIGH","MED","LOW")
+attr LOD					= "LOW"
+	const highLOD 				= LOD == "HIGH"
+	const medLOD				= LOD == "MED"
+	const lowLOD				= LOD == "LOW"
+
+#--------Materials
+	
+@Group ("Materials",1) @Range("Under Construction","Brick","Travertine", "Marble", "None", "Varied")
+attr Material				= 	case noMaterials && YEAR >= start_date && YEAR <= end_date: "Varied"
+								case materials && YEAR >= construction_start && YEAR <=construction_end: "Under Construction"
+								case materials && YEAR >= brick_start && YEAR <=brick_end: "Brick"
+								case materials && YEAR >= travertine_start && YEAR <=travertine_end: "Travertine"
+								case materials && YEAR >= marble_start && YEAR <=marble_end: "Marble"
+								else: "None"
+								
+	const constr				= Material == "Under Construction" 
+	const brick					= Material == "Brick"
+	const trav					= Material == "Travertine"
+	const marble				= Material == "Marble"
+	const noModel				= Material == "None"
+		
+
+const MaterialColor			= 	case constr: construction_color
+								case brick: brick_color
+								case trav: travertine_color
+								case marble: marble_color							
+								else: wall
+								
+#--------General
+
+@Group("General",2)@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+attr order_					= "TUSCAN"
+	const tuscan				= order_ == "TUSCAN"
+	const doric					= order_ == "DORIC"
+	const ionic					= order_ == "IONIC"
+	const corinthian			= order_ == "CORINTHIAN"
+	
+//@Group("General",2)
+//attr heightFactor			= .8
+
+#--------Base
+
+@Group("Base",3)
+attr steps					= 5
+
+@Group("Base",3)
+attr extra_steps_down		= 0
+
+@Group("Base",3)@Range("true","false")
+attr showSteps					= "true"
+
+@Group("Base",3)@Range("FRONT","FRONT_NARROW","SIDE+FRONT")
+attr stair_type				= 	"FRONT"
+	const front					= stair_type == "FRONT"
+	const frontNarrow			= stair_type == "FRONT_NARROW"
+	const both					= stair_type == "SIDE+FRONT"
+
+const riserHeight			= 0.28
+const treadDepth			= 0.4
+const frontSteps			= rint(steps*.33)
+
+#-------Colonnade
+	
+@Group("Colonnade",4)
+attr column_diameter		= 1
+
+@Group("Colonnade",4)@Range("PORTICO", "NONE")
+attr curia_porch = "PORTICO"
+	const with_portico = curia_porch == "PORTICO"
+	const no_portico  = curia_porch == "NONE"
+
+@Group("Colonnade",4)
+attr porchDepth = columnSpacing
+
+@Group("Colonnade",4)
+attr columnSpacing				= 	case tuscan:column_diameter*4
+									case doric: column_diameter*2.5
+									case ionic: column_diameter*5.5	
+									else: 		column_diameter*9
+									
+const columnHeight				= 	case tuscan: 	column_diameter*7
+									case doric: 	column_diameter*5.5
+									case ionic: 	column_diameter*9
+									else: column_diameter*10
+									
+const entablatureH				= 	column_diameter*col.entablatureH
+
+#-------Walls
+
+const wallThickness 			= column_diameter     
+const doorD						= 0.4
+const doorFrameW				= 0.4
+const doorFrameH				= 0.6
+const entranceFrameW			= doorFrameW+0.1
+const base_height				= riserHeight*steps
+const windowH					= 2
+const windowW					= windowH*1.5
+const doorScale					= .5
+
+#-------Roof
+
+const roofBrickW 				= columnSpacing *0.25
+const roofBrickH 				= columnSpacing *0.35
+const roof_angle 				= 19
+
+#-------Texture Size
+
+const tile					= columnHeight
+
+#-------Time Periods
+
+@Group ("Time Period",10) @Order(0) @Range(-800,300)
+attr start_date	= 0
+@Group ("Time Period",10) @Order(0) @Range(-800,300)
+attr end_date	= 0
+@Group ("Time Period",10) @Order(1) @Range(-800,300)
+attr construction_start	= 0
+@Group ("Time Period",10) @Order(2) @Range(-800,300)
+attr construction_end	= 0
+@Group ("Time Period",10) @Order(3) @Range(-800,300)
+attr brick_start		= 0
+@Group ("Time Period",10) @Order(4) @Range(-800,300)
+attr brick_end			= 0
+@Group ("Time Period",10) @Order(5) @Range(-800,300)
+attr travertine_start	= 0
+@Group ("Time Period",10) @Order(6) @Range(-800,300)
+attr travertine_end		= 0
+@Group ("Time Period",10) @Order(7) @Range(-800,300)
+attr marble_start       = 0
+@Group ("Time Period",10) @Order(8) @Range(-800,300)
+attr marble_end			= 0
+
+#-------Colors
+
+@Group("Colors",11)
+attr base					= case noMaterials || materials && noModel: "#CDC6AD" else: MaterialColor
+@Group("Colors",11)@Range( "#EEEEEE", "#F5F5F5","#FFFFFF","#E0E0D1","#AAAAA0")
+attr wall					= case noMaterials  || materials && noModel: 20% : "#EEEEEE" 20% : "#F5F5F5" 20% : "#FFFFFF" 20% : "#E0E0D1" else : "#AAAAA0" else: MaterialColor
+@Group("Colors",11)
+attr wood					= case noMaterials  || materials && noModel: "#40331B" else: MaterialColor
+@Group("Colors",11)@Range( "#EEEEEE", "#F5F5F5","#FFFFFF","#E0E0D1","#AAAAA0")
+attr column					= case noMaterials  || materials && noModel: 20% : "#EEEEEE" 20% : "#F5F5F5" 20% : "#FFFFFF" 20% : "#E0E0D1" else : "#AAAAA0" else: MaterialColor
+@Group("Colors",11)
+attr architrave				= case noMaterials  || materials && noModel: "#E8DCC5" else: MaterialColor
+@Group("Colors",11)
+attr frieze					= case noMaterials  || materials && noModel: "#EBD8B5" else: MaterialColor
+@Group("Colors",11)
+attr metopes				= case noMaterials  || materials && noModel: "#DB8C6C" else: MaterialColor
+@Group("Colors",11)
+attr triglyph				= case noMaterials  || materials && noModel: "#576484" else: MaterialColor
+@Group("Colors",11)
+attr cornice				= case noMaterials  || materials && noModel: "#C9C0AD" else: MaterialColor
+@Group("Colors",11)@Range("#A8763D", "#ff6600",  "#9E4F0E", "#B56A00", "#A3650D", "#AB6118")
+attr roof					= case noMaterials  || materials && noModel: 15% : "#A8763D" 15% : "#9E4F0E" 15% : "#B56A00" 15% : "#A3650D" else : "#AB6118" else: MaterialColor
+@Group ("Colors",11)
+attr floor					= case noMaterials  || materials && noModel: "#A68F74" else: MaterialColor
+
+const construction_color	= "#F7EB9E" 
+const brick_color			= "#705C46" 
+const travertine_color		= "#E2E8D1" 
+const marble_color			= "#F79E9E"
+
+////////////
+///////START
+
+Lot --> 	
+case !noModel:
+	t(0,elevation,0)
+	print(scope.sx)
+	print(scope.sz)
+	Curia(scope.sx,scope.sz)
+
+else: NIL
+
+Curia(x,z) -->
+case x == z: 
+	extrude(x*1.5+base_height)
+	//extrude(x*heightFactor+base_height)
+	Curia2(x)
+else: 
+	extrude((x+z)/2)
+	Curia2(x)
+	
+	
+Curia2(x) -->
+	color(wall)
+	comp(f){left: SideWall 
+			|right: SideWall
+			|front: FrontFacade(x)
+			|back: SideWall
+			|top: Roof}
+
+/////////////			
+////////FACADE
+
+FrontFacade(x) --> split(y){base_height: FrontStairs1(x) 
+							|~.3: Porch Entry(x,scope.sy)
+							|entablatureH:	PorticoRoof 
+							|~.6: UpperWall(x,scope.sy)
+							|entablatureH: col.Entablature(columnSpacing,column_diameter)
+							}
+
+SideWall -->  split(y){base_height: BaseWall |~1: Wall |entablatureH: col.Entablature(columnSpacing,column_diameter)}
+
+Entry(x,y)--> split(x) {~1: Wall | columnSpacing*1.5: Entrance(x) | ~1: Wall}
+ 
+UpperWall(x,y) -->split(y){//~1: Wall|
+						y*.5:split(x){~1:Wall
+										|windowW: Window
+										|~.2:Wall
+										|windowW: Window
+										|~.2:Wall
+										|windowW: Window
+										|~1:Wall}
+						|~1: Wall}
+
+
+Porch -->
+	case with_portico: 	s('1,'1,porchDepth)
+						i("builtin:cube")
+						Colonnade
+
+	else: NIL
+
+Colonnade -->
+		comp(f){front:col.FirstLastFlush(columnSpacing)
+				|left:col.FirstFlushNoLast(columnSpacing)
+				|right:col.NoFirstLastFlush(columnSpacing)}
+		
+
+////////////
+///////STEPS
+FrontStairs1(z)--> 
+	case with_portico && showSteps == "true":s('1,'1,scope.sz+porchDepth) i("builtin:cube") comp(f){front:FrontStairs2(z)|top:color(base)tex.WholeBlock("wall",tile)|left:BaseWall|right:BaseWall}
+	case !with_portico && showSteps == "true": FrontStairs2(z)
+	else: color(base)tex.Block("wall", tile)
+	
+
+FrontStairs2(z)  -->
+
+	case front:
+		Steps(steps+extra_steps_down)
+		
+	case frontNarrow:
+		BaseWall
+		s (z*.27,'1,'1)
+		center(x)
+		Steps(steps+extra_steps_down)
+		
+	case both:
+		split(x)	{~1:	s('1,'1,frontSteps*treadDepth)
+							i("builtin:cube")
+							color(base)
+							comp(f)	{all: tex.Block("wall", tile)}
+					|z-steps+frontSteps*treadDepth*2:	s('1,'1,z*.2+frontSteps*treadDepth)
+															i("builtin:cube")
+															color(base)
+															center(x)
+															setPivot(xyz,2)
+															comp(f) {left: split(x)	{scope.sx-frontSteps*treadDepth: split(y)	{(steps+extra_steps_down)*riserHeight-(frontSteps*riserHeight):Steps(steps+extra_steps_down-frontSteps)
+																																|~1: NIL}
+																					|~1:NIL}
+																	|right: split(x){~1:NIL 
+																					|scope.sx-frontSteps*treadDepth: split(y)	{(steps+extra_steps_down)*riserHeight-(frontSteps*riserHeight):Steps(steps+extra_steps_down-frontSteps)
+																																|~1: NIL}}
+																	|back: split(y)	{~1:tex.Block("wall", tile)
+																					|frontSteps*riserHeight:	t(0,0,-z*.2-frontSteps*treadDepth)
+																												set(trim.vertical,false) 
+																												Steps(frontSteps)}
+																	|top: split(y)	{~1:t(0,0,-frontSteps*riserHeight) 
+																						tex.Block("wall", tile)
+																					|frontSteps*treadDepth:NIL}
+																	}
+					|~1:s('1,'1,frontSteps*treadDepth)
+						i("builtin:cube")
+						color(base)
+						tex.Block("wall", tile)
+					}
+	
+	else: Steps(steps+extra_steps_down)
+	
+Steps(n) -->
+	color(base)
+	 split(y)	{riserHeight: Step(n) 
+	 			| ~1: Steps(n-1)}
+	 			
+Step(idx) -->
+	s('1,'1,scope.sz+idx*treadDepth)
+	i("builtin:cube")
+	tex.Block("wall", tile)
+	
+/////////////
+////////WALLS
+
+
+Entrance(x) --> 
+	t(0,0,- treadDepth *0.2) 
+	split(y){ riserHeight *0.5    : t(0,0,treadDepth*0.5) Wall( wallThickness+treadDepth) 
+			| ~1			  			: split(x){ entranceFrameW : Wall | ~1 : DoorMain(x) | entranceFrameW : Wall } 
+			| entranceFrameW 			: Wall  
+			}
+
+DoorMain(x) -->  
+	color(wood)
+	t(0,0,-wallThickness*0.15) 
+	split(y){ ~1          : split(x){ doorFrameW : DoorFrame(wallThickness*0.8) | ~1 : Door | doorFrameW : DoorFrame(wallThickness*0.8) } 
+			| doorFrameH  : Wall(wallThickness*0.8) DoorCornice }
+
+Door --> 
+	s('1,'1,doorD) 
+	t(0,0,'-1) 
+	i(tex.doorAsset)
+	tex.Block("wood")
+	
+DoorFrame(thickness)-->
+	s('1,'1,thickness) 
+	t(0,0,'-1) 
+	i("builtin:cube")
+	tex.Block("wood")
+
+DoorCornice -->	
+	s('1,'1,.2) 
+	i(tex.doorCorniceAsset)
+	tex.Block("wood")
+
+//DoorWindows -->	
+//	s('1,'1,doorD*0.3) 
+//	t(0,0,'-1) 
+//	split(x){ ~scope.sy : 	i(tex.topdoorAsset) 
+	//						tex.Block("wood")}*
+
+Wall --> 
+	Wall(wallThickness) 
+
+Wall(thickness) --> 	
+	s('1,'1,thickness) t(0,0,'-1) i("builtin:cube")
+	tex.Block("wall", tile)
+	
+Window -->
+	t(0,0,-wallThickness)
+	color(wood)
+	tex.Block("wood")
+
+
+BaseWall --> color(base) tex.WholeBlock("wall",tile)
+
+///////////
+///////ROOF
+
+PorticoRoof -->
+case with_portico:
+	s('1,'1,porchDepth)
+	i("builtin:cube")
+	comp(f){side: col.Entablature(columnSpacing,column_diameter)
+			|top: 	roofShed(10)comp(f){top:rf.Roof(roofBrickW,roofBrickH)
+						|side:tex.WholeBlock("wall",tile)
+						|bottom:color(roof)tex.WholeBlock("roof",4,24)}
+			}
+
+else: col.Entablature(columnSpacing,column_diameter)
+
+Roof --> 
+	s('1.1,'1,'1)
+	center(x)
+	roofGable( roof_angle ,0,0, true,0)
+	comp(f) {top: rf.Roof(roofBrickW,roofBrickH)
+			|vertical: rf.Pediment(columnSpacing)
+			|bottom: tus.Ceiling. Overhang}
+	comp(e){ ridge: rf.Ridge(0,roofBrickW,roofBrickH) rf.Beam| hip: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH) | valley: rf.Ridge(roofBrickW*0.4,roofBrickW,roofBrickH) }
+				
+Overhang --> 
+	split(y){rf.pedimentWidth-col.geisonProjection: NIL
+			|~1: s('1,'1.02,.1)
+				center(y)
+				tex.Block("wall",tile)
+			|rf.pedimentWidth-col.geisonProjection: NIL}
+				
+				
+
+
+style Comitium2
+attr YEAR = -160.0
+
+
+style Comitium_1
+attr YEAR = 0.0

@@ -1,0 +1,214 @@
+/**
+ * File:    BasilicaUpperStorey.cga
+ * Created: 29 Dec 2014 23:45:34 GMT
+ * Updated: June 2017
+ * Author:  Marie Saldana
+ */
+
+version "2017.0"
+
+#This rule is imported separately to allow a different architectural order for the upper storey of the basilica.
+
+@Hidden
+import col : "_Colonnade.cga"
+
+@Hidden			
+import tex : "_TexturesAssets.cga"
+
+@Hidden	
+import rf:   "_Roof.cga" 	
+
+#-------Scene Settings
+
+@Group("SceneSettings",0)@Range("HIGH","MED","LOW")
+@Description("Level of Detail")
+attr LOD					= "LOW"
+	const highLOD 				= LOD == "HIGH"
+	const medLOD				= LOD == "MED"
+	const lowLOD				= LOD == "LOW"
+	
+#--------General
+
+@Group("General",2)@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+attr order_						= "DORIC"
+	const tuscan					= order_ == "TUSCAN"
+	const doric						= order_ == "DORIC"
+	const ionic						= order_ == "IONIC"
+	const corinthian				= order_ == "CORINTHIAN"
+
+@Group("General",2)@Range("REPUBLICAN","IMPERIAL","MARKET")
+attr type 						= "REPUBLICAN"
+	const republican				= type == "REPUBLICAN"
+	const imperial					= type == "IMPERIAL"
+	const market					= type == "MARKET"
+				
+#--------Colonnade
+
+@Hidden @Group("Colonnade",4)@Range("COLONNADE","ARCADE")
+attr colonnade_type		= 	case republican: "COLONNADE" else: "ARCADE"							
+	const columns		= colonnade_type == "COLONNADE"
+	const arches		= colonnade_type == "ARCADE"
+
+@Group("Colonnade",4)
+attr column_diameter			= 	1
+
+@Group("Colonnade",4)@Range("Front Side", "Both Sides", "Off")
+attr show_orders					 	= "Front Side"
+	const singleSide				= show_orders == "Front Side"
+	const bothSides					= show_orders == "Both Sides"
+	const ordersOff					= show_orders == "Off"
+	
+@Group("Colonnade",4)
+attr plinth_height					= 	case columns: 0 else:(column_spacing+column_diameter)/2
+
+@Group("Colonnade",4)
+attr arch_width					= 	3
+
+@Group("Colonnade",4)
+attr column_spacing				= 	case tuscan && columns: 	column_diameter*4
+									case doric && columns: 		column_diameter*2.5
+									case ionic && columns: 		column_diameter*5.5	
+									case corinthian && columns: column_diameter*9
+									case tuscan && arches: 		archColumnDiameter*4
+									case doric && arches: 		archColumnDiameter*2.5
+									case ionic && arches: 		archColumnDiameter*5.5	
+									else: 						arch_width //archColumnDiameter*9
+
+const archColumnDiameter		= arch_width/10
+const columnHeight				= case columns:col.columnHeight 
+
+									else: col.archH*.75
+#--------Ground Floor
+
+@Group("Ground Floor",5)
+attr aisle_width				= column_spacing
+
+const groundFloorHeight 		= columnHeight+entablatureH
+const entablatureH				= column_diameter*col.entablatureH
+const railingH					= 1
+
+								
+#--------Upper Floor
+
+const upperEntablatureH			= column_diameter*col.entablatureH
+const upper_wall_height			= columnHeight*.75
+const upper_baseWall			= case republican: 0 else: railingH+columnHeight*.22
+const upper_railingH			=  case republican: 0 else: railingH
+
+#--------Walls & Doors
+
+const wallThickness 			= 	case columns:column_diameter+col.columnOffset
+									else: .33
+const doorD						= 0.4
+const doorFrameW				= 0.4
+const doorFrameH				= 0.6
+const entranceFrameW			= doorFrameW+0.1
+
+#--------Roof
+
+const roofThickness 			= 0.5
+const roof_angle				= 25
+const roofBrickW 				= column_spacing *0.25
+const roofBrickH 				= column_spacing *0.35
+
+#--------Export (for FBX exports for Unity which have to be broken up due to too many vertices)
+
+@Group("Export",6)
+attr export						= 0
+
+#--------Texture Size
+
+const tile 						= columnHeight
+
+#-------Colors
+@Group("Colors",9)@Range( "#EEEEEE", "#F5F5F5","#FFFFFF","#E0E0D1","#AAAAA0")
+attr column					=  0% : "#F5F5F5" 20% : "#FFFFFF" 20% : "#E0E0D1" else : "#AAAAA0" 
+@Group("Colors",9)
+attr architrave				= "#E8DCC5"
+@Group("Colors",9)
+attr frieze					= "#EBD8B5" 
+@Group("Colors",9)
+attr metopes				= "#EBD8B5" 
+@Group("Colors",9)
+attr triglyph				= "#B5B59F" 
+@Group("Colors",9)
+attr cornice				= "#C9C0AD" 
+@Group("Colors",9)@Range("#A8763D", "#ff6600",  "#9E4F0E", "#B56A00", "#A3650D", "#AB6118")
+attr roof					= 15% : "#A8763D" 15% : "#9E4F0E" 15% : "#B56A00" 15% : "#A3650D" else : "#AB6118" 
+@Group ("Colors",9)
+attr floor					= "#A68F74"
+@Group("Colors",9)
+attr wood					= "#40331B" 
+
+
+////////////
+///////START
+
+UpperVolume -->
+case republican:
+	split(y){upper_wall_height: comp(f){side:Wall}
+			|columnHeight:comp(f){side:[t(0,0,-column_diameter)UpperWindows]col.FirstFlushNoLast(column_diameter,column_spacing)}
+			|upperEntablatureH:comp(f){side:col.Entablature(column_spacing,column_diameter)
+										|top: Roof}
+			}
+else: 
+	split(y){upper_baseWall: comp(f){side:UpperBaseWall}
+			|columnHeight:comp(f){side: s(scope.sx-col.archColumnBaseW,'1,'1)center(x)col.ArcadeStart}
+			|upperEntablatureH:comp(f){side:col.Entablature(column_spacing,column_diameter)
+										|top: offset(-aisle_width)
+											 comp(f){inside:split(y){aisle_width+wallThickness:Ceiling|~1: NIL|aisle_width+wallThickness: Ceiling}
+											 		|border: Ceiling}
+										}
+			|upper_railingH: comp(f){side: Wall}
+			|~1:NIL
+										
+			}
+
+///////ROOF	
+
+Ceiling -->
+color(floor) tex.Block("floor",.5)
+reverseNormals
+t(0,0,-.1)
+color(roof) tex.Block("roof",4,24)								                       
+
+Roof -->
+	roofGable(roof_angle, 1)
+	Roof1
+	
+Roof1 -->
+	comp(f){bottom: NIL|vertical: Wall|top:  color(roof) rf.Roof(roofBrickW,roofBrickH)}
+
+///////WALLS
+
+Wall -->
+	extrude (-wallThickness)
+	tex.Block("wall", tile)
+	
+UpperBaseWall -->
+	extrude (-wallThickness*2)
+	tex.Block("wall", tile)
+	
+UpperWindows -->
+case republican:
+split(x){~column_spacing:t(column_diameter,0,0)s(scope.sx-column_diameter,'1,'1)WindowWall
+			|{~column_spacing:WindowWall}*
+			|~column_spacing:s(scope.sx-column_diameter,'1,'1)WindowWall}
+else: 
+split(x){~arch_width:WindowWall
+			|{~arch_width:WindowWall}*
+			|~arch_width:WindowWall}
+
+WindowWall -->
+	split(x){~1: UpperWall
+			|column_diameter: split(y){~1: UpperWall
+									  |column_diameter*2: t(0,0,wallThickness/4)color(wood)Window.
+									  |~column_diameter: UpperWall}
+			|~1: UpperWall}
+
+UpperWall -->
+	t(0,0,wallThickness/4)
+	s('1,'1, wallThickness/2)
+	i("builtin:cube")
+	tex.Block("wall", tile)
+

@@ -1,0 +1,202 @@
+/**
+ * File:    altar.cga
+ * Created: 28 Aug 2012 18:27:08 GMT
+ * Author:  msaldana
+ */
+
+version "2011.2"
+
+import tex : "_TexturesAssets.cga"
+
+#-------Scene Settings
+
+@Group("SceneSettings",0)
+attr elevation 	= 0
+
+@Group("SceneSettings",0) @Range(-800,300)
+attr YEAR		= 0
+
+@Group("SceneSettings",0) @Range("OFF","ON")
+attr Materials_View		= "OFF"
+	const materials			= Materials_View == "ON"
+	const noMaterials		= Materials_View == "OFF"
+
+@Group("SceneSettings",0)@Range("HIGH","MED","LOW")
+attr LOD					= "LOW"
+	const highLOD 				= LOD == "HIGH"
+	const medLOD				= LOD == "MED"
+	const lowLOD				= LOD == "LOW"
+	
+#--------Materials
+	
+@Group ("Materials",1) @Range("Under Construction","Brick","Travertine", "Marble", "None", "Varied")
+attr Material				= 	case noMaterials && YEAR >= start_date && YEAR <= end_date: "Varied"
+								case materials && YEAR >= construction_start && YEAR <=construction_end: "Under Construction"
+								case materials && YEAR >= brick_start && YEAR <=brick_end: "Brick"
+								case materials && YEAR >= travertine_start && YEAR <=travertine_end: "Travertine"
+								case materials && YEAR >= marble_start && YEAR <=marble_end: "Marble"
+								else: "None"
+								
+	const constr				= Material == "Under Construction" 
+	const brick					= Material == "Brick"
+	const trav					= Material == "Travertine"
+	const marble				= Material == "Marble"
+	const noModel				= Material == "None"
+		
+
+const MaterialColor			= 	case constr: construction_color
+								case brick: brick_color
+								case trav: travertine_color
+								case marble: marble_color							
+								else: wall
+
+#--------General
+@Group("General",2)
+attr height				= 5.27
+
+const baseH		= stepsN*stepH
+const stepsN	= 3
+const stepH		= .23
+const stepD		= .5
+const Door_Height			= 5		
+const Door_Width			= 2.3
+const doorD					= 0.4
+const doorFrameW			= 0.3
+const doorFrameH			= corniceH
+const corniceH				= .45
+const entranceFrameW		= doorFrameW+0.1
+const entranceH				= Door_Height+doorFrameH+entranceFrameW+0.5*stepH
+const entranceW				= Door_Width+2*doorFrameW+2*entranceFrameW
+const wallThickness			= .6
+const corniceProjection 	= .17
+
+#-------Time Periods
+
+@Group ("Time Period",8) @Order(0) @Range(-800,300)
+attr start_date	= 0
+@Group ("Time Period",8) @Order(0) @Range(-800,300)
+attr end_date	= 0
+@Group ("Time Period",8) @Order(1) @Range(-800,300)
+attr construction_start	= 0
+@Group ("Time Period",8) @Order(2) @Range(-800,300)
+attr construction_end	= 0
+@Group ("Time Period",8) @Order(3) @Range(-800,300)
+attr brick_start		= 0
+@Group ("Time Period",8) @Order(4) @Range(-800,300)
+attr brick_end			= 0
+@Group ("Time Period",8) @Order(5) @Range(-800,300)
+attr travertine_start	= 0
+@Group ("Time Period",8) @Order(6) @Range(-800,300)
+attr travertine_end		= 0
+@Group ("Time Period",8) @Order(7) @Range(-800,300)
+attr marble_start       = 0
+@Group ("Time Period",8) @Order(8) @Range(-800,300)
+attr marble_end			= 0
+
+#-------Colors
+@Group("Colors",9)
+attr base					= case noMaterials || materials && noModel: "#CDC6AD" else: MaterialColor
+@Group("Colors",9)@Range( "#EEEEEE", "#F5F5F5","#FFFFFF","#E0E0D1","#AAAAA0")
+attr wall					= case noMaterials  || materials && noModel: 20% : "#EEEEEE" 20% : "#F5F5F5" 20% : "#FFFFFF" 20% : "#E0E0D1" else : "#AAAAA0" else: MaterialColor
+@Group("Colors",9)
+attr cornice				= case noMaterials  || materials && noModel: "#C9C0AD" else: MaterialColor
+@Group("Colors",9)
+attr wood					= case noMaterials  || materials && noModel: "#40331B" else: MaterialColor
+@Group("Colors",9)@Range( "#EEEEEE", "#F5F5F5","#FFFFFF","#E0E0D1","#AAAAA0")
+attr column					= case noMaterials  || materials && noModel: 20% : "#EEEEEE" 20% : "#F5F5F5" 20% : "#FFFFFF" 20% : "#E0E0D1" else : "#AAAAA0" else: MaterialColor
+
+
+const construction_color	= "#F7EB9E" 
+const brick_color			= "#705C46" 
+const travertine_color		= "#E2E8D1" 
+const marble_color			= "#F79E9E"
+
+const blue					= "#0066FF"
+const red					= "#FF3300"
+const green					= "#33CC33"
+const pink					= "#FF6699"
+const cyan					= "#00FFFF"
+const purple				= "#6600CC"
+const orange				= "#FF9900"
+
+
+
+Lot -->
+case !noModel:
+	t(0,elevation,0)
+	innerRect
+	color(base)
+	Steps(stepsN-1)
+	t(0,baseH,0)  
+	color(wall)
+	Mass InnerAltar
+	else: NIL
+
+Steps(n) --> 
+	case n >= 0 : 
+		[ t(0,stepH,0) Steps(n-1) ]
+		offset(n*stepD, inside) extrude(stepH) 
+		tex.Block("wall",5)
+	else : 
+		NIL
+		
+Mass -->
+	extrude (height)
+	comp(f) {front: split(y){~1:FrontWall|corniceH: Wall Cornice}
+			|left: split(y){~1:SideWall|corniceH: Wall Cornice}
+			|right: split(y){~1:SideWall|corniceH: Wall Cornice}
+			|back: split(y){~1:BackWall|corniceH: Wall Cornice}}
+	
+InnerAltar -->
+	split(x) {~1: NIL |10: split(z) {1: NIL | 6.5: extrude(3.9) Altar |~1: NIL} |~1: NIL}
+	
+Altar -->
+	color(column)
+	comp(f) {side: split(y){~1:tex.Block("wall",5)|corniceH:color(cornice)Cornice} | top: s('1.015,'1.02,'1) center(xy)tex.Block("wall",5)}
+	
+FrontWall -->
+	s('1.1,'1,'1) center(x)
+		split(x){ ~1			: Wall 
+				| entranceW 	: split(y){ entranceH : Entrance | ~1 : Wall } 
+				| ~1         	: Wall }
+				
+SideWall -->
+	Wall
+	
+BackWall -->
+	Wall
+				
+Entrance --> 	  			
+			 split(x){ entranceFrameW : Wall | ~1 : DoorMain | entranceFrameW : Wall } 
+
+
+DoorMain -->  
+	color(wood)
+	t(0,0,-wallThickness*0.15) 
+	split(y){ ~1          : split(x){ doorFrameW : Wall(wallThickness*0.8) | ~1 : Door | doorFrameW : Wall(wallThickness*0.8) } 
+			| doorFrameH  : Wall(wallThickness*0.8) DoorCornice }
+
+Door --> 
+	s('1,'1,doorD) t(0,0,'-1)
+	split(x){~1: i(tex.doorAsset) tex.Block("wood") |~1: i(tex.doorAsset) tex.Block("wood")}
+	//i(tex.doorAsset)
+
+DoorCornice -->	
+	s('1,'1,corniceProjection) i(tex.doorCorniceAsset)
+	tex.Block("block")
+	
+Cornice -->
+	color(cornice)
+	s('1.1,'1,corniceProjection)center(x) i(tex.doorCorniceAsset)
+	tex.Block("wall",5)
+	
+	
+Wall --> 
+	Wall(wallThickness) 	
+
+Wall(thickness) --> 
+	s('1,'1,thickness)
+	 t(0,0,'-1) 
+	 i("builtin:cube") 
+	 tex.Block("wall",5)
+	

@@ -1,0 +1,241 @@
+/**
+ * File:    HellenisticHouses.cga
+ * Created: 30 Jan 2015 20:56:29 GMT
+ * Author:  msaldana
+ */
+
+version "2014.1"
+
+
+import col : "_Colonnade.cga" 
+import tex : "_TexturesAssets.cga"	
+import rf:   "_Roof.cga" 			
+
+#-------Scene Settings
+
+@Group("SceneSettings",0)
+attr elevation 	= 0
+
+@Group("SceneSettings",0) @Range(-800,300)
+attr YEAR		= 0
+
+@Group("SceneSettings",0) @Range("OFF","ON")
+attr Materials_View		= "OFF"
+	const materials			= Materials_View == "ON"
+	const noMaterials		= Materials_View == "OFF"
+
+@Group("SceneSettings",0)@Range("HIGH","MED","LOW")
+attr LOD					= "LOW"
+	const highLOD 				= LOD == "HIGH"
+	const medLOD				= LOD == "MED"
+	const lowLOD				= LOD == "LOW"
+	
+#--------Materials
+	
+@Group ("Materials",1) @Range("Under Construction","Brick","Travertine", "Marble", "None", "Varied")
+attr Material				= 	case noMaterials && YEAR >= start_date && YEAR <= end_date: "Varied"
+								case materials && YEAR >= construction_start && YEAR <=construction_end: "Under Construction"
+								case materials && YEAR >= brick_start && YEAR <=brick_end: "Brick"
+								case materials && YEAR >= travertine_start && YEAR <=travertine_end: "Travertine"
+								case materials && YEAR >= marble_start && YEAR <=marble_end: "Marble"
+								else: "None"
+								
+	const constr				= Material == "Under Construction" 
+	const brick					= Material == "Brick"
+	const trav					= Material == "Travertine"
+	const marble				= Material == "Marble"
+	const noModel				= Material == "None"
+		
+
+const MaterialColor			= 	case constr: construction_color
+								case brick: brick_color
+								case trav: travertine_color
+								case marble: marble_color							
+								else: wall
+
+#--------General
+
+@Group("General",2)
+attr generate_roof 			= true
+
+@Group("General",2)@Range("TUSCAN","DORIC","IONIC","CORINTHIAN")
+attr order_					= "DORIC"
+	const tuscan				= order_ == "TUSCAN"
+	const doric					= order_ == "DORIC"
+	const ionic					= order_ == "IONIC"
+	const corinthian			= order_ == "CORINTHIAN"	
+@Group("General",2)
+attr height 				= 6
+
+const wallThickness			= .3
+const windowW				= .5
+const windowH				= .6
+const doorW					= rand(.8,1)
+const doorH					= rand(2,2.2)
+#--------Colonnade
+attr column_diameter		= (height-1)/12
+	
+#-------Time Periods
+
+@Group ("Time Period",8) @Order(0) @Range(-800,300)
+attr start_date	= 0
+@Group ("Time Period",8) @Order(0) @Range(-800,300)
+attr end_date	= 0
+@Group ("Time Period",8) @Order(1) @Range(-800,300)
+attr construction_start	= 0
+@Group ("Time Period",8) @Order(2) @Range(-800,300)
+attr construction_end	= 0
+@Group ("Time Period",8) @Order(3) @Range(-800,300)
+attr brick_start		= 0
+@Group ("Time Period",8) @Order(4) @Range(-800,300)
+attr brick_end			= 0
+@Group ("Time Period",8) @Order(5) @Range(-800,300)
+attr travertine_start	= 0
+@Group ("Time Period",8) @Order(6) @Range(-800,300)
+attr travertine_end		= 0
+@Group ("Time Period",8) @Order(7) @Range(-800,300)
+attr marble_start       = 0
+@Group ("Time Period",8) @Order(8) @Range(-800,300)
+attr marble_end			= 0
+
+#-------Colors
+@Group("Colors",9)@Range( "#EEEEEE", "#F5F5F5","#FFFFFF","#E0E0D1","#AAAAA0")
+attr wall					= case noMaterials  || materials && noModel: 20% : "#EEEEEE" 20% : "#F5F5F5" 20% : "#FFFFFF" 20% : "#E0E0D1" else : "#E1E1DE" else: MaterialColor
+@Group("Colors",9)
+attr wood					= case noMaterials  || materials && noModel: 20% : "#756E60"  20% : "#787166"  20% : "#787061"  20% : "#807162" else: "#857E6B" else: MaterialColor
+@Group("Colors",9)@Range( "#EEEEEE", "#F5F5F5","#FFFFFF","#E0E0D1","#AAAAA0")
+attr column					= case noMaterials  || materials && noModel: 20% : "#EEEEEE" 20% : "#F5F5F5" 20% : "#FFFFFF" 20% : "#E0E0D1" else : "#E1E1DE" else: MaterialColor
+@Group("Colors",9)@Range("#A8763D", "#ff6600",  "#9E4F0E", "#B56A00", "#A3650D", "#AB6118")
+attr roof					= case noMaterials  || materials && noModel: 15% : "#A69581" 15% : "#A89D91" 15% : "#B39F84" 15% : "#A69172" else : "#A8937E" else: MaterialColor
+@Group ("Colors",9)
+attr floor					= case noMaterials  || materials && noModel: 15% : "#A69581" 15% : "#A89D91" 15% : "#B39F84" 15% : "#A69172" else : "#A8937E" else:  MaterialColor
+@Group ("Colors",9)
+attr ground					= case noMaterials  || materials && noModel: 25%: "#AFB39B" 25%: "#838770" 25%: "#868770" else: "#8D9173"  else: MaterialColor
+
+const construction_color	= "#F7EB9E" 
+const brick_color			= "#705C46" 
+const travertine_color		= "#E2E8D1" 
+const marble_color			= "#F79E9E"
+
+const blue					= "#0066FF"
+const red					= "#FF3300"
+const green					= "#33CC33"
+const pink					= "#FF6699"
+const cyan					= "#00FFFF"
+const purple				= "#6600CC"
+const orange				= "#FF9900"
+
+////////////
+///////START
+
+Lot -->
+alignScopeToAxes(y)
+Lot(rand(.9,1.1))
+
+Lot(n) -->
+split(z){'.4*n:  Back(scope.sy,n,rand(1.9,3.1))
+		|~1: Middle(scope.sy) 
+		|'.2*n: alignScopeToAxes(y) Front(scope.sy) }
+
+
+Front(yDim) -->
+extrude(world.y,100)
+split(y){yDim:comp(f){side:WallSide}
+		|height*.5:comp(f){front:EntranceWall
+						 	|side:WallSide
+						 	|top:Roof
+						 	}
+		|~1: NIL
+		}
+
+Middle(yDim) -->
+extrude(world.y,100)
+split(y){yDim:comp(f){side:WallSide
+					|top:split(x){wallThickness: extrude(2)comp(f){all:WallSide}
+								|~1: color(ground)tex.Block("ground_BW",1)
+								|wallThickness: extrude(2)comp(f){all:WallSide}
+								}
+					}
+		|1: NIL
+		}
+
+Back(yDim,n,r) -->
+extrude(world.y,100)
+color(wall)
+split(y){yDim:comp(f){top:color(floor)tex.WholeBlock("floor",.5)
+					 			|side:WallSide
+					 			}
+					|height*n:split(x){'.75: split(y){'.5: comp(f){front: Prostas(n,r) t(0,0,-2)EntranceWall	
+																|side: set(trim.vertical,false)Wall
+																}
+													|'.05: comp(f){top:color(floor)tex.WholeBlock("floor",.5)
+																|side:WallSide
+																|bottom: WallSide
+																}
+													|'.4: comp(f){front:Prostas(n,r)Railing t(0,0,-2)EntranceWall
+																|side: set(trim.vertical,false)Wall
+													 			}
+													|'.05: comp(f){side:WallSide
+																	|top: Roof
+																	|bottom: WallSide
+																	}
+													}
+								|~1: split(y){'.5: comp(f){front:WindowWall(n)
+															|side:WallSide
+															}
+											|'.4:comp(f){front:WindowWall(n)
+														|side:WallSide
+														|top: color(floor)tex.WholeBlock("floor",.5)
+														}
+											|'.1:comp(f){side:Wall}
+											}		
+
+								}
+					|~1: NIL
+					}
+
+Prostas(n,r) -->
+color(column)
+col.NoFirstNoLast(col.column_spacing*3)//(scope.sx/r)
+
+Wall -->
+s('1,'1,wallThickness)
+t(0,0,-wallThickness)
+i("builtin:cube")
+tex.Block("wall",col.columnHeight)
+
+WallSide -->
+tex.Block("wall",col.columnHeight)
+
+WindowWall(n) -->
+split(x){~1:WallSide
+		|windowW*n:split(y){'.6:WallSide
+						|windowH*n: color(wood)tex.WholeBlock("wood")
+						|~1:WallSide
+						}
+		|~1:WallSide
+		}
+		
+Railing -->
+t(0,0,-column_diameter/2) 
+split(y){1:s(scope.sx-wallThickness*2,'1,.05)
+			center(xz)
+			color(wood)
+			split(x){~1:i(tex.railingAsset)Railing.}*
+		|~1: NIL
+		}
+
+EntranceWall -->
+split(x){~1:WallSide
+		|doorW: split(y){doorH:color(wood)tex.WholeBlock("wood")
+						|~1: WallSide
+						}
+		|~1:WallSide
+		}
+
+Roof -->
+roofGable(12)
+comp(f){top:color(roof)tex.Block("roof",4,24)
+		|side: WallSide
+		}
+

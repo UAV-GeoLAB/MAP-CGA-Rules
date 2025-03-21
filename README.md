@@ -22,6 +22,10 @@ CGA rules are divided into Olinth, Roman and Paphos rules.
 &emsp;─ INSULA-DIVISION.cga (rule for dividing insula to parcels)\
 &emsp;─ parcel_export.py (script for exporting extracted parcels by INSULA-DIVISION rule)
 
+|── Saldana-Rules\
+&emsp; ─ Set of rules used to generate public buildings, e.g. temple, porticus
+
+
 ![Logo](/img/workflow.png)
 
 ## Authors
